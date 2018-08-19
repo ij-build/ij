@@ -1,69 +1,98 @@
-# TODO - use definitions
+---
+
+definitions:
+  environment:
+    description: TODO
+    type: object
+    items:
+      type: string
+
+  task:
+    description: TODO
+    type: object
+    properties:
+      image:
+        description: TODO
+        type: string
+      command:
+        description: TODO
+        type: string
+      shell:
+        description: TODO
+        type: string
+      script:
+        description: TODO
+        type: string
+      environment:
+        $ref: '#/definitions/environment'
+      required_environment:
+        description: TODO
+        type: array
+        items:
+          type: string
+    additionalProperties: false
+    required:
+      - image
+
+  plan:
+    description: TODO
+    type: object
+    properties:
+      stages:
+        description: TODO
+        type: array
+        items:
+          $ref: '#/definitions/stage'
+      environment:
+        $ref: '#/definitions/environment'
+    additionalProperties: false
+
+  stage:
+    description: TODO
+    type: object
+    properties:
+      name:
+        description: TODO
+        type: string
+      tasks:
+        description: TODO
+        type: array
+        items:
+          $ref: '#/definitions/stage_task'
+      concurrent:
+        description: TODO
+        type: boolean
+      environment:
+        $ref: '#/definitions/environment'
+    additionalProperties: false
+    required:
+      - name
+
+  stage_task:
+    description: TODO
+    type: object
+    properties:
+      name:
+        description: TODO
+        type: string
+      environment:
+        $ref: '#/definitions/environment'
+    additionalProperties: false
+    required:
+      - name
 
 type: object
 properties:
   environment:
-    type: array
-    items:
-      type: string
+    $ref: '#/definitions/environment'
   tasks:
+    description: TODO
     type: object
     additionalProperties:
-      type: object
-      properties:
-        image:
-          type: string
-        environment:
-          type: array
-          items:
-            type: string
-        required_environment:
-          type: array
-          items:
-            type: string
-        command:
-          type: string
-      additionalProperties: false
-      required:
-        - image
+      $ref: '#/definitions/task'
   plans:
+    description: TODO
     type: object
     additionalProperties:
-      type: object
-      properties:
-        stages:
-          type: array
-          items:
-            type: object
-            properties:
-              name:
-                type: string
-              concurrent:
-                type: boolean
-              tasks:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    environment:
-                      type: array
-                      items:
-                        type: string
-                  additionalProperties: false
-                  required:
-                    - name
-              environment:
-                type: array
-                items:
-                  type: string
-            additionalProperties: false
-            required:
-              - name
-        environment:
-          type: array
-          items:
-            type: string
-      additionalProperties: false
+      $ref: '#/definitions/plan'
 additionalProperties: false

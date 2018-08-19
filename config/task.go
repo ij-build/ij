@@ -6,8 +6,8 @@ type Task struct {
 	Environment         []string `json:"environment"`
 	RequiredEnvironment []string `json:"required_environment"`
 	Command             string   `json:"command"`
-	// TODO - Script
-	// TODO - Shell
+	Script              string   `json:"script"`
+	Shell               string   `json:"shell"`
 	// TODO - Hostname
 	// TODO - Detach
 	// TODO - HealthCheck

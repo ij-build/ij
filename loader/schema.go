@@ -2,7 +2,7 @@ package loader
 
 import (
 	"fmt"
-	"os"
+	"strings"
 
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -24,12 +24,12 @@ func validateWithSchema(data []byte) error {
 	}
 
 	if !result.Valid() {
+		errors := []string{}
 		for _, err := range result.Errors() {
-			fmt.Printf("Validation error: %#v\n", err)
+			errors = append(errors, fmt.Sprintf("\t%s", err.(gojsonschema.ResultError)))
 		}
 
-		// TODO
-		os.Exit(1)
+		return fmt.Errorf("invalid schema: \n%s", strings.Join(errors, "\n"))
 	}
 
 	return nil

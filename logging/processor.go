@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"sync"
+
+	"github.com/mgutz/ansi"
 )
 
 type (
@@ -14,26 +16,25 @@ type (
 	}
 
 	processor struct {
-		queue   chan *message
-		handles []io.Closer
-		mutex   sync.Mutex
-		once    sync.Once
-		wg      sync.WaitGroup
+		colorPicker *colorPicker
+		queue       chan *message
+		handles     []io.Closer
+		mutex       sync.Mutex
+		once        sync.Once
+		wg          sync.WaitGroup
 	}
+)
 
-	message struct {
-		level  LogLevel
-		format string
-		args   []interface{}
-		prefix string
-		file   io.Writer
-	}
+const (
+	ShortTimestampFormat = "15:04:05"
+	LongTimestampFormat  = "2006-01-02 15:04:05.000"
 )
 
 func NewProcessor() Processor {
 	return &processor{
-		queue:   make(chan *message),
-		handles: []io.Closer{},
+		colorPicker: newColorPicker(),
+		queue:       make(chan *message),
+		handles:     []io.Closer{},
 	}
 }
 
@@ -64,7 +65,13 @@ func (p *processor) Logger(prefix string, outfile, errfile io.WriteCloser) Logge
 	p.handles = append(p.handles, outfile, errfile)
 	p.mutex.Unlock()
 
-	return newLogger(p, prefix, outfile, errfile)
+	return newLogger(
+		p,
+		prefix,
+		p.colorPicker.next(),
+		outfile,
+		errfile,
+	)
 }
 
 func (p *processor) enqueue(message *message) {
@@ -75,10 +82,27 @@ func (p *processor) process() {
 	defer p.wg.Done()
 
 	for message := range p.queue {
-		fmt.Printf(fmt.Sprintf("%s%s\n", message.level.Prefix(), message.format), message.args...)
+		streamText := fmt.Sprintf(
+			"%s%s [%s] %s%s\n",
+			message.colorCode,
+			message.timestamp.Format(ShortTimestampFormat),
+			message.prefix,
+			message.Text(),
+			ansi.Reset,
+		)
 
-		// TODO - probably want timestamps too
-		// TODO - short writes
-		message.file.Write([]byte(fmt.Sprintf(fmt.Sprintf("%s\n", message.format), message.args...)))
+		fileText := fmt.Sprintf(
+			"%s | %s\n",
+			message.timestamp.Format(LongTimestampFormat),
+			message.Text(),
+		)
+
+		if err := writeAll(message.stream, []byte(streamText)); err != nil {
+			emergencyLog("failed to write log (%s)", err.Error())
+		}
+
+		if err := writeAll(message.file, []byte(fileText)); err != nil {
+			emergencyLog("failed to write log (%s)", err.Error())
+		}
 	}
 }

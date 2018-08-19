@@ -53,7 +53,7 @@ func (w *Workspace) create() error {
 		[]string{
 			"docker",
 			"create",
-			fmt.Sprintf("--name=%s", w.runtime.id),
+			fmt.Sprintf("--name=%s", w.runtime.runID),
 			"convey/workspace",
 		},
 	)

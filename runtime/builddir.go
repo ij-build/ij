@@ -2,16 +2,23 @@ package runtime
 
 import (
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/efritz/pvc/paths"
+	"github.com/efritz/pvc/util"
 )
 
 type Builddir struct {
-	path string
+	runID string
+	path  string
 }
 
-func NewBuilddir() *Builddir {
-	return &Builddir{}
+func NewBuilddir(runID string) *Builddir {
+	return &Builddir{
+		runID: runID,
+	}
 }
 
 func (b *Builddir) Setup() error {
@@ -20,9 +27,8 @@ func (b *Builddir) Setup() error {
 		return err
 	}
 
-	path := filepath.Join(pwd, ".build")
-
-	if err := os.MkdirAll(path, 0700); err != nil {
+	path, err := makePath(pwd, ".build", b.runID)
+	if err != nil {
 		return err
 	}
 
@@ -35,9 +41,16 @@ func (b *Builddir) Teardown() error {
 	return nil
 }
 
-func (b *Builddir) LogFiles(prefix string) (io.WriteCloser, io.WriteCloser, error) {
-	outpath := filepath.Join(b.path, prefix+".out.log")
-	errpath := filepath.Join(b.path, prefix+".err.log")
+func (b *Builddir) MakeLogFiles(prefix string) (io.WriteCloser, io.WriteCloser, error) {
+	outpath, err := makePath(b.path, "logs", prefix+".out.log")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	errpath, err := makePath(b.path, "logs", prefix+".err.log")
+	if err != nil {
+		return nil, nil, err
+	}
 
 	outfile, err := os.Create(outpath)
 	if err != nil {
@@ -51,4 +64,32 @@ func (b *Builddir) LogFiles(prefix string) (io.WriteCloser, io.WriteCloser, erro
 	}
 
 	return outfile, errfile, nil
+}
+
+func (b *Builddir) WriteScript(script string) (string, error) {
+	scriptID, err := util.MakeID()
+	if err != nil {
+		return "", err
+	}
+
+	path, err := makePath(b.path, "scripts", scriptID)
+	if err != nil {
+		return "", err
+	}
+
+	if err := ioutil.WriteFile(path, []byte(script), 0700); err != nil {
+		return "", err
+	}
+
+	return path, nil
+}
+
+func makePath(parts ...string) (string, error) {
+	fullPath := filepath.Join(parts...)
+
+	if err := paths.EnsureDirExists(filepath.Dir(fullPath)); err != nil {
+		return "", err
+	}
+
+	return fullPath, nil
 }

@@ -6,10 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/efritz/pvc/loader"
 	"github.com/efritz/pvc/logging"
 	"github.com/efritz/pvc/runtime"
-	"github.com/google/uuid"
 )
 
 const Version = "0.1.0"
@@ -20,50 +18,32 @@ var shutdownSignals = []syscall.Signal{
 }
 
 func main() {
-	if err := run(); err != nil {
-		fmt.Printf("error: %s\n", err.Error())
+	if !run() {
 		os.Exit(1)
 	}
 }
 
-func run() error {
+func run() bool {
 	if err := parseArgs(); err != nil {
-		return err
-	}
-
-	config, err := loader.LoadFile(*configPath)
-	if err != nil {
-		return err
+		fmt.Printf("error: %s\n", err.Error())
+		return false
 	}
 
 	processor := logging.NewProcessor()
 	processor.Start()
 	defer processor.Shutdown()
 
-	raw, err := uuid.NewRandom()
-	if err != nil {
-		return err
-	}
-
-	runtime := runtime.NewRuntime(
-		raw.String(),
-		config,
-		processor,
-		*env,
-	)
+	runtime := runtime.NewRuntime(processor)
 
 	if err := runtime.Setup(); err != nil {
-		return err
+		fmt.Printf("error: %s\n", err.Error())
+		return false
 	}
 
 	go watchSignals(runtime)
 	defer runtime.Shutdown()
 
-	if err := runtime.Run(*plans); err != nil {
-		return err
-	}
-
-	return nil
+	return runtime.Run(*configPath, *plans, *env)
 }
 
 func watchSignals(runtime *runtime.Runtime) {

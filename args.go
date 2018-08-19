@@ -4,6 +4,8 @@ import (
 	"os"
 
 	"github.com/alecthomas/kingpin"
+
+	"github.com/efritz/pvc/paths"
 )
 
 var (
@@ -27,12 +29,15 @@ func parseArgs() error {
 
 	if *configPath == "" {
 		for _, path := range defaultConfigPaths {
-			if _, err := os.Stat(path); os.IsNotExist(err) {
-				continue
+			ok, err := paths.Exists(path)
+			if err != nil {
+				return err
 			}
 
-			*configPath = path
-			break
+			if ok {
+				*configPath = path
+				break
+			}
 		}
 	}
 

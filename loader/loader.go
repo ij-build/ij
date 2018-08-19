@@ -2,6 +2,7 @@ package loader
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/efritz/pvc/config"
 )
@@ -15,26 +16,58 @@ func LoadFile(path string) (*config.Config, error) {
 	return Load(data)
 }
 
-// TODO - laod url and other stuff
+// TODO - load url and other stuff
 
 func Load(data []byte) (*config.Config, error) {
 	if err := validateWithSchema(data); err != nil {
 		return nil, err
 	}
 
-	cfg := &config.Config{}
-	if err := json.Unmarshal(data, cfg); err != nil {
+	config := &config.Config{}
+	if err := json.Unmarshal(data, config); err != nil {
 		return nil, err
 	}
 
-	for name, task := range cfg.Tasks {
+	populateTaskNames(config)
+	populatePlanNames(config)
+
+	// TODO - additional validation
+	if err := validateTaskNames(config); err != nil {
+		return nil, err
+	}
+
+	return config, nil
+}
+
+func populateTaskNames(config *config.Config) {
+	for name, task := range config.Tasks {
 		task.Name = name
 	}
+}
 
-	for name, plan := range cfg.Plans {
+func populatePlanNames(config *config.Config) {
+	for name, plan := range config.Plans {
 		plan.Name = name
 	}
+}
 
-	// TODO - do other validation
-	return cfg, nil
+func validateTaskNames(config *config.Config) error {
+	for _, plan := range config.Plans {
+		for _, stage := range plan.Stages {
+			for i, stageTask := range stage.Tasks {
+				if _, ok := config.Tasks[stageTask.Name]; !ok {
+					return fmt.Errorf(
+						"unknown task name %s referenced in %s/%s/%s #(%d)",
+						stageTask.Name,
+						plan.Name,
+						stage.Name,
+						stageTask.Name,
+						i,
+					)
+				}
+			}
+		}
+	}
+
+	return nil
 }

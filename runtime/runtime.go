@@ -8,7 +8,9 @@ import (
 	"github.com/efritz/pvc/command"
 	"github.com/efritz/pvc/config"
 	"github.com/efritz/pvc/environment"
+	"github.com/efritz/pvc/loader"
 	"github.com/efritz/pvc/logging"
+	"github.com/efritz/pvc/util"
 	shellquote "github.com/kballard/go-shellquote"
 )
 
@@ -18,7 +20,7 @@ type (
 		logProcessor logging.Processor
 		logger       logging.Logger
 		env          []string
-		id           string
+		runID        string
 		ctx          context.Context
 		cancel       func()
 		cleanup      *Cleanup
@@ -29,14 +31,11 @@ type (
 	Runner func() error
 )
 
-func NewRuntime(id string, config *config.Config, logProcessor logging.Processor, env []string) *Runtime {
+func NewRuntime(logProcessor logging.Processor) *Runtime {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	return &Runtime{
-		config:       config,
 		logProcessor: logProcessor,
-		env:          env,
-		id:           id,
 		ctx:          ctx,
 		cancel:       cancel,
 		cleanup:      NewCleanup(),
@@ -45,8 +44,8 @@ func NewRuntime(id string, config *config.Config, logProcessor logging.Processor
 
 func (r *Runtime) Setup() error {
 	setupFuncs := []func() error{
+		r.setupRunID,
 		r.setupBuilddir,
-		r.setupWorkspace,
 		r.setupLogger,
 	}
 
@@ -59,8 +58,18 @@ func (r *Runtime) Setup() error {
 	return nil
 }
 
+func (r *Runtime) setupRunID() error {
+	runID, err := util.MakeID()
+	if err != nil {
+		return err
+	}
+
+	r.runID = runID
+	return nil
+}
+
 func (r *Runtime) setupBuilddir() error {
-	builddir := NewBuilddir()
+	builddir := NewBuilddir(r.runID)
 
 	if err := builddir.Setup(); err != nil {
 		return err
@@ -68,6 +77,16 @@ func (r *Runtime) setupBuilddir() error {
 
 	r.builddir = builddir
 	r.cleanup.Register(builddir.Teardown)
+	return nil
+}
+
+func (r *Runtime) setupLogger() error {
+	outfile, errfile, err := r.builddir.MakeLogFiles("pvc")
+	if err != nil {
+		return err
+	}
+
+	r.logger = r.logProcessor.Logger("pvc", outfile, errfile)
 	return nil
 }
 
@@ -82,34 +101,40 @@ func (r *Runtime) setupWorkspace() error {
 	return nil
 }
 
-func (r *Runtime) setupLogger() error {
-	outfile, errfile, err := r.builddir.LogFiles("pvc")
-	if err != nil {
-		return err
-	}
-
-	r.logger = r.logProcessor.Logger("pvc", outfile, errfile)
-	return nil
-}
-
 func (r *Runtime) Shutdown() {
 	r.cancel()
 	r.cleanup.Cleanup()
 }
 
-func (r *Runtime) Run(plans []string) error {
+func (r *Runtime) Run(configPath string, plans []string, env []string) bool {
+	config, err := loader.LoadFile(configPath)
+	if err != nil {
+		r.logger.Error("error: %s", err.Error())
+		return false
+	}
+
+	r.env = env
+	r.config = config
+
+	if err := r.setupWorkspace(); err != nil {
+		r.logger.Error("error: %s", err.Error())
+		return false
+	}
+
 	for _, name := range plans {
 		plan, ok := r.config.Plans[name]
 		if !ok {
-			return fmt.Errorf("plan %s not found", name)
+			r.logger.Error("plan %s not found", name)
+			return false
 		}
 
 		if err := r.runPlan(plan); err != nil {
-			return err
+			r.logger.Error("error: %s", err.Error())
+			return false
 		}
 	}
 
-	return nil
+	return true
 }
 
 func (r *Runtime) runPlan(plan *config.Plan) error {
@@ -124,7 +149,7 @@ func (r *Runtime) runPlan(plan *config.Plan) error {
 
 func (r *Runtime) runStage(plan *config.Plan, stage *config.Stage) error {
 	runners := []Runner{}
-	for i, taskInstance := range stage.Tasks {
+	for index, taskInstance := range stage.Tasks {
 		task, ok := r.config.Tasks[taskInstance.Name]
 		if !ok {
 			return fmt.Errorf("task %s not found", taskInstance.Name)
@@ -139,9 +164,16 @@ func (r *Runtime) runStage(plan *config.Plan, stage *config.Stage) error {
 			environment.New(taskInstance.Environment),
 		)
 
-		index := i
+		stableIndex := index
+
 		runner := func() error {
-			return r.runTask(plan, stage, task, index, env)
+			return r.runTask(
+				plan,
+				stage,
+				task,
+				stableIndex,
+				env,
+			)
 		}
 
 		runners = append(runners, runner)
@@ -161,7 +193,7 @@ func (r *Runtime) runTask(
 	index int,
 	env environment.Environment,
 ) error {
-	if ok, missing := containsAll(env.Keys(), task.RequiredEnvironment); !ok {
+	if ok, missing := util.ContainsAll(env.Keys(), task.RequiredEnvironment); !ok {
 		panic(fmt.Sprintf("missing environment values: %#v", missing))
 	}
 
@@ -170,13 +202,15 @@ func (r *Runtime) runTask(
 		return err
 	}
 
-	outfile, errfile, err := r.builddir.LogFiles(strings.Join([]string{
+	parts := []string{
 		plan.Name,
 		stage.Name,
-		task.Name,
-		fmt.Sprintf("%d", index),
-	}, "."))
+		fmt.Sprintf("%d.%s", index, task.Name),
+	}
 
+	prefix := strings.Join(parts, "/")
+
+	outfile, errfile, err := r.builddir.MakeLogFiles(prefix)
 	if err != nil {
 		return err
 	}
@@ -185,13 +219,7 @@ func (r *Runtime) runTask(
 		context.Background(),
 		args,
 		r.logProcessor.Logger(
-			fmt.Sprintf(
-				"%s/%s/%s (%d)",
-				plan.Name,
-				stage.Name,
-				task.Name,
-				index,
-			),
+			prefix,
 			outfile,
 			errfile,
 		),
@@ -216,14 +244,36 @@ func (r *Runtime) buildTaskCommandArgs(
 		args = append(args, "-e", line)
 	}
 
-	args = append(args, task.Image)
+	if task.Script != "" {
+		path, err := r.builddir.WriteScript(task.Script)
+		if err != nil {
+			return nil, err
+		}
 
-	commandArgs, err := shellquote.Split(task.Command)
-	if err != nil {
-		return nil, err
+		shell := task.Shell
+		if shell == "" {
+			shell = "/bin/sh"
+		}
+
+		args = append(
+			args,
+			"-v",
+			path+":/workspace/script", // TODO - something more unique
+			"--entrypoint",
+			shell,
+			task.Image,
+			"/workspace/script",
+		)
+	} else {
+		commandArgs, err := shellquote.Split(task.Command)
+		if err != nil {
+			return nil, err
+		}
+
+		args = append(args, task.Image)
+		args = append(args, commandArgs...)
 	}
 
-	args = append(args, commandArgs...)
 	return args, nil
 }
 
