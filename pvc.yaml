@@ -1,0 +1,14 @@
+tasks:
+  a:
+    image: alpine
+    command: /bin/sh -c "env && pwd && ls"
+
+plans:
+  x:
+    stages:
+      - name: foo
+        concurrent: true
+        tasks:
+          - name: a
+          - name: a
+          - name: a

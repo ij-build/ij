@@ -1,0 +1,69 @@
+# TODO - use definitions
+
+type: object
+properties:
+  environment:
+    type: array
+    items:
+      type: string
+  tasks:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        image:
+          type: string
+        environment:
+          type: array
+          items:
+            type: string
+        required_environment:
+          type: array
+          items:
+            type: string
+        command:
+          type: string
+      additionalProperties: false
+      required:
+        - image
+  plans:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        stages:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              concurrent:
+                type: boolean
+              tasks:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    environment:
+                      type: array
+                      items:
+                        type: string
+                  additionalProperties: false
+                  required:
+                    - name
+              environment:
+                type: array
+                items:
+                  type: string
+            additionalProperties: false
+            required:
+              - name
+        environment:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
+additionalProperties: false
