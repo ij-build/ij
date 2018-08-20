@@ -14,7 +14,7 @@ var (
 	configPath = app.Flag("filename", "").Short('o').String()
 	env        = app.Flag("env", "").Short('e').Strings()
 	verbose    = app.Flag("verbose", "").Short('v').Default("false").Bool()
-	colorize   = app.Flag("colorize", "").Default("true").Bool()
+	colorize   = app.Flag("color", "").Default("true").Bool()
 
 	defaultConfigPaths = []string{
 		"pvc.yaml",
