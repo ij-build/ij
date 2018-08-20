@@ -70,16 +70,18 @@ definitions:
 
   stage_task:
     description: TODO
-    type: object
-    properties:
-      name:
-        description: TODO
-        type: string
-      environment:
-        $ref: '#/definitions/environment'
-    additionalProperties: false
-    required:
-      - name
+    oneOf:
+      - type: string
+      - type: object
+        properties:
+          name:
+            description: TODO
+            type: string
+          environment:
+            $ref: '#/definitions/environment'
+        additionalProperties: false
+        required:
+          - name
 
 type: object
 properties:

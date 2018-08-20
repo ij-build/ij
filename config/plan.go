@@ -1,5 +1,7 @@
 package config
 
+import "encoding/json"
+
 type Plan struct {
 	Name        string
 	Stages      []*Stage `json:"stages"`
@@ -7,13 +9,15 @@ type Plan struct {
 }
 
 type Stage struct {
-	Name        string        `json:"name"`
-	Tasks       []*StageTasks `json:"tasks"`
-	Concurrent  bool          `json:"concurrent"`
-	Environment []string      `json:"environment"`
+	Name        string            `json:"name"`
+	RawTasks    []json.RawMessage `json:"tasks"`
+	Concurrent  bool              `json:"concurrent"`
+	Environment []string          `json:"environment"`
+
+	Tasks []*StageTask
 }
 
-type StageTasks struct {
+type StageTask struct {
 	Name        string   `json:"name"`
 	Environment []string `json:"environment"`
 }
