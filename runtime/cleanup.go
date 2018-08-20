@@ -1,8 +1,9 @@
 package runtime
 
 import (
-	"fmt"
 	"sync"
+
+	"github.com/efritz/pvc/logging"
 )
 
 type Cleanup struct {
@@ -26,8 +27,7 @@ func (c *Cleanup) Cleanup() {
 
 	for i := len(c.funcs) - 1; i >= 0; i-- {
 		if err := c.funcs[i](); err != nil {
-			// TODO
-			fmt.Printf("Error: %#v\n", err.Error())
+			logging.EmergencyLog("error: %#v\n", err.Error())
 		}
 	}
 }

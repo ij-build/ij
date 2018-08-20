@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -26,7 +25,7 @@ func main() {
 
 func run() bool {
 	if err := parseArgs(); err != nil {
-		fmt.Printf("error: %s\n", err.Error())
+		logging.EmergencyLog("error: %s", err.Error())
 		return false
 	}
 
