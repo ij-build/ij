@@ -59,6 +59,17 @@ func (r *Runtime) Run(configPath string, plans []string, env []string) bool {
 		return false
 	}
 
+	for _, name := range plans {
+		if _, ok := r.config.Plans[name]; !ok {
+			logging.EmergencyLog(
+				"error: unknown plan %s",
+				name,
+			)
+
+			return false
+		}
+	}
+
 	if err := r.setupLogger(); err != nil {
 		logging.EmergencyLog(
 			"error: failed to create log files: %s",
@@ -87,20 +98,9 @@ func (r *Runtime) Run(configPath string, plans []string, env []string) bool {
 	r.env = env
 
 	for _, name := range plans {
-		plan, ok := r.config.Plans[name]
-		if !ok {
-			r.logger.Error(
-				nil,
-				"error: unknown plan %s",
-				name,
-			)
-
-			return false
-		}
-
 		prefix := logging.NewPrefix(name)
 
-		if !r.runPlan(plan, prefix) {
+		if !r.runPlan(r.config.Plans[name], prefix) {
 			r.logger.Error(
 				prefix,
 				"Plan failed",
@@ -129,8 +129,12 @@ func (r *Runtime) setupLogger() error {
 }
 
 func (r *Runtime) loadConfig(configPath string) error {
-	config, err := loader.LoadPath(configPath)
+	config, err := loader.NewLoader().Load(configPath)
 	if err != nil {
+		return err
+	}
+
+	if err := config.Validate(); err != nil {
 		return err
 	}
 
