@@ -10,18 +10,18 @@ import (
 	"github.com/efritz/pvc/util"
 )
 
-type Builddir struct {
+type BuildDir struct {
 	runID string
 	path  string
 }
 
-func NewBuilddir(runID string) *Builddir {
-	return &Builddir{
+func NewBuildDir(runID string) *BuildDir {
+	return &BuildDir{
 		runID: runID,
 	}
 }
 
-func (b *Builddir) Setup() error {
+func (b *BuildDir) Setup() error {
 	pwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func (b *Builddir) Setup() error {
 	return nil
 }
 
-func (b *Builddir) MakeLogFiles(prefix string) (io.WriteCloser, io.WriteCloser, error) {
+func (b *BuildDir) MakeLogFiles(prefix string) (io.WriteCloser, io.WriteCloser, error) {
 	outpath, err := makePath(b.path, "logs", prefix+".out.log")
 	if err != nil {
 		return nil, nil, err
@@ -61,7 +61,7 @@ func (b *Builddir) MakeLogFiles(prefix string) (io.WriteCloser, io.WriteCloser, 
 	return outfile, errfile, nil
 }
 
-func (b *Builddir) WriteScript(script string) (string, error) {
+func (b *BuildDir) WriteScript(script string) (string, error) {
 	scriptID, err := util.MakeID()
 	if err != nil {
 		return "", err

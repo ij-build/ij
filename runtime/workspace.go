@@ -39,7 +39,10 @@ func (w *Workspace) Setup() error {
 }
 
 func (w *Workspace) Teardown() error {
-	w.logger.Info("Removing workspace")
+	w.logger.Info(
+		nil,
+		"Removing workspace",
+	)
 
 	_, err := command.RunForOutput(
 		context.Background(),
@@ -62,8 +65,15 @@ func (w *Workspace) create() error {
 		"convey/workspace",
 	}
 
-	w.logger.Info("Creating workspace")
-	w.logger.Debug("Running command: %s", strings.Join(args, " "))
+	w.logger.Info(
+		nil,
+		"Creating workspace",
+	)
+
+	w.logger.Debug(
+		nil,
+		"Running command: %s", strings.Join(args, " "),
+	)
 
 	containerName, err := command.RunForOutput(w.ctx, args)
 	if err != nil {
@@ -83,8 +93,15 @@ func (w *Workspace) inspect() error {
 		w.ContainerName,
 	}
 
-	w.logger.Info("Inspecting workspace")
-	w.logger.Debug("Running command: %s", strings.Join(args, " "))
+	w.logger.Info(
+		nil,
+		"Inspecting workspace",
+	)
+
+	w.logger.Debug(
+		nil,
+		"Running command: %s", strings.Join(args, " "),
+	)
 
 	volumePath, err := command.RunForOutput(w.ctx, args)
 	if err != nil {

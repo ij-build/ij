@@ -11,8 +11,7 @@ type message struct {
 	format    string
 	args      []interface{}
 	timestamp time.Time
-	prefix    string
-	colorCode string
+	prefix    *Prefix
 	stream    io.Writer
 	file      io.Writer
 }

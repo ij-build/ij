@@ -8,56 +8,51 @@ import (
 
 type (
 	Logger interface {
-		Debug(format string, args ...interface{})
-		Info(format string, args ...interface{})
-		Error(format string, args ...interface{})
+		Debug(prefix *Prefix, format string, args ...interface{})
+		Info(prefix *Prefix, format string, args ...interface{})
+		Error(prefix *Prefix, format string, args ...interface{})
 	}
 
-	LogFunc func(format string, args ...interface{})
+	LogFunc func(prefix *Prefix, format string, args ...interface{})
 
 	logger struct {
 		processor *processor
-		prefix    string
-		colorCode string
 		outfile   io.Writer
 		errfile   io.Writer
 	}
 )
 
-func newLogger(processor *processor, prefix, colorCode string, outfile, errfile io.Writer) Logger {
+func newLogger(processor *processor, outfile, errfile io.Writer) Logger {
 	return &logger{
 		processor: processor,
-		prefix:    prefix,
-		colorCode: colorCode,
 		outfile:   outfile,
 		errfile:   errfile,
 	}
 }
 
-func (l *logger) Debug(format string, args ...interface{}) {
+func (l *logger) Debug(prefix *Prefix, format string, args ...interface{}) {
 	if !l.processor.verbose {
 		return
 	}
 
-	l.enqueue(LevelDebug, format, args)
+	l.enqueue(LevelDebug, prefix, format, args)
 }
 
-func (l *logger) Info(format string, args ...interface{}) {
-	l.enqueue(LevelInfo, format, args)
+func (l *logger) Info(prefix *Prefix, format string, args ...interface{}) {
+	l.enqueue(LevelInfo, prefix, format, args)
 }
 
-func (l *logger) Error(format string, args ...interface{}) {
-	l.enqueue(LevelError, format, args)
+func (l *logger) Error(prefix *Prefix, format string, args ...interface{}) {
+	l.enqueue(LevelError, prefix, format, args)
 }
 
-func (l *logger) enqueue(level LogLevel, format string, args []interface{}) {
+func (l *logger) enqueue(level LogLevel, prefix *Prefix, format string, args []interface{}) {
 	l.processor.enqueue(&message{
 		level:     level,
 		format:    format,
 		args:      args,
 		timestamp: time.Now(),
-		prefix:    l.prefix,
-		colorCode: l.colorCode,
+		prefix:    prefix,
 		stream:    getStream(level),
 		file:      l.outfile,
 	})

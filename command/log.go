@@ -2,6 +2,6 @@ package command
 
 import "github.com/efritz/pvc/logging"
 
-func newLogProcessor(logFunc logging.LogFunc) outputProcessor {
-	return outputProcessorFunc(func(line string) { logFunc(line) })
+func newLogProcessor(prefix *logging.Prefix, logFunc logging.LogFunc) outputProcessor {
+	return outputProcessorFunc(func(line string) { logFunc(prefix, line) })
 }

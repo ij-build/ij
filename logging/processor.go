@@ -12,12 +12,12 @@ type (
 	Processor interface {
 		Start()
 		Shutdown()
-		BaseLogger(prefix string, outfile, errfile io.WriteCloser) Logger
-		TaskLogger(prefix string, outfile, errfile io.WriteCloser) Logger
+		Logger(outfile, errfile io.WriteCloser) Logger
 	}
 
 	processor struct {
 		verbose     bool
+		colorize    bool
 		colorPicker *colorPicker
 		queue       chan *message
 		handles     []io.Closer
@@ -32,10 +32,11 @@ const (
 	LongTimestampFormat  = "2006-01-02 15:04:05.000"
 )
 
-func NewProcessor(verbose bool) Processor {
+func NewProcessor(verbose, colorize bool) Processor {
 	return &processor{
 		verbose:     verbose,
-		colorPicker: newColorPicker(),
+		colorize:    colorize,
+		colorPicker: newColorPicker(colorize),
 		queue:       make(chan *message),
 		handles:     []io.Closer{},
 	}
@@ -63,27 +64,13 @@ func (p *processor) Shutdown() {
 	p.handles = p.handles[:0]
 }
 
-func (p *processor) BaseLogger(prefix string, outfile, errfile io.WriteCloser) Logger {
-	return p.loggerWithColor(prefix, outfile, errfile, "")
-}
-
-func (p *processor) TaskLogger(prefix string, outfile, errfile io.WriteCloser) Logger {
-	p.mutex.Lock()
-	colorCode := p.colorPicker.next()
-	p.mutex.Unlock()
-
-	return p.loggerWithColor(prefix, outfile, errfile, colorCode)
-}
-
-func (p *processor) loggerWithColor(prefix string, outfile, errfile io.WriteCloser, colorCode string) Logger {
+func (p *processor) Logger(outfile, errfile io.WriteCloser) Logger {
 	p.mutex.Lock()
 	p.handles = append(p.handles, outfile, errfile)
 	p.mutex.Unlock()
 
 	return newLogger(
 		p,
-		prefix,
-		colorCode,
 		outfile,
 		errfile,
 	)
@@ -96,14 +83,25 @@ func (p *processor) enqueue(message *message) {
 func (p *processor) process() {
 	defer p.wg.Done()
 
+	// TODO - also need colors based on level
+
 	for message := range p.queue {
+		text := message.Text()
+
+		if p.colorize {
+			text = fmt.Sprintf(
+				"%s%s%s",
+				levelColors[message.level],
+				text,
+				ansi.Reset,
+			)
+		}
+
 		streamText := fmt.Sprintf(
-			"%s%s [%s] %s%s\n",
-			message.colorCode,
+			"%s %s%s\n",
 			message.timestamp.Format(ShortTimestampFormat),
-			message.prefix,
-			message.Text(),
-			ansi.Reset,
+			p.buildPrefix(message.prefix),
+			text,
 		)
 
 		fileText := fmt.Sprintf(
@@ -120,4 +118,15 @@ func (p *processor) process() {
 			EmergencyLog("error: failed to write log: %s", err.Error())
 		}
 	}
+}
+
+func (p *processor) buildPrefix(prefix *Prefix) string {
+	if prefix == nil {
+		return ""
+	}
+
+	return fmt.Sprintf(
+		"%s: ",
+		prefix.Serialize(p.colorPicker),
+	)
 }

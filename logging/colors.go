@@ -1,19 +1,14 @@
 package logging
 
-import "github.com/mgutz/ansi"
-
-type colorPicker struct {
-	index int
-}
+import (
+	"github.com/mgutz/ansi"
+)
 
 var colors = []string{
-	ansi.Black,
 	ansi.Red,
-	ansi.Green,
 	ansi.Yellow,
 	ansi.Blue,
 	ansi.Magenta,
-	ansi.Cyan,
 	ansi.White,
 	ansi.LightBlack,
 	ansi.LightRed,
@@ -25,12 +20,8 @@ var colors = []string{
 	ansi.LightWhite,
 }
 
-func newColorPicker() *colorPicker {
-	return &colorPicker{}
-}
-
-func (cp *colorPicker) next() string {
-	index := cp.index % len(colors)
-	cp.index++
-	return colors[index]
+var levelColors = map[LogLevel]string{
+	LevelDebug: ansi.Cyan,
+	LevelInfo:  ansi.Green,
+	LevelError: ansi.ColorCode("red+b"),
 }

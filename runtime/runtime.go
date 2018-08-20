@@ -24,19 +24,19 @@ type (
 		ctx          context.Context
 		cancel       func()
 		cleanup      *Cleanup
-		builddir     *Builddir
+		buildDir     *BuildDir
 		workspace    *Workspace
 	}
 
 	Runner func() bool
 )
 
-func NewRuntime(runID string, builddir *Builddir, logProcessor logging.Processor) *Runtime {
+func NewRuntime(runID string, buildDir *BuildDir, logProcessor logging.Processor) *Runtime {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	return &Runtime{
 		runID:        runID,
-		builddir:     builddir,
+		buildDir:     buildDir,
 		logProcessor: logProcessor,
 		ctx:          ctx,
 		cancel:       cancel,
@@ -51,19 +51,36 @@ func (r *Runtime) Shutdown() {
 
 func (r *Runtime) Run(configPath string, plans []string, env []string) bool {
 	if err := r.loadConfig(configPath); err != nil {
-		logging.EmergencyLog("error: failed to load config: %s", err.Error())
+		logging.EmergencyLog(
+			"error: failed to load config: %s",
+			err.Error(),
+		)
+
 		return false
 	}
 
 	if err := r.setupLogger(); err != nil {
-		logging.EmergencyLog("error: failed to create log files: %s", err.Error())
+		logging.EmergencyLog(
+			"error: failed to create log files: %s",
+			err.Error(),
+		)
+
 		return false
 	}
 
-	r.logger.Info("Beginning run %s", r.runID)
+	r.logger.Info(
+		nil,
+		"Beginning run %s",
+		r.runID,
+	)
 
 	if err := r.setupWorkspace(); err != nil {
-		r.logger.Error("error: failed to create workspace volume: %s", err.Error())
+		r.logger.Error(
+			nil,
+			"error: failed to create workspace volume: %s",
+			err.Error(),
+		)
+
 		return false
 	}
 
@@ -72,22 +89,29 @@ func (r *Runtime) Run(configPath string, plans []string, env []string) bool {
 	for _, name := range plans {
 		plan, ok := r.config.Plans[name]
 		if !ok {
-			r.logger.Error("error: unknown plan %s", name)
-			return false
-		}
-
-		if !r.runPlan(plan) {
 			r.logger.Error(
-				"Plan %s failed",
+				nil,
+				"error: unknown plan %s",
 				name,
 			)
 
 			return false
 		}
 
+		prefix := logging.NewPrefix(name)
+
+		if !r.runPlan(plan, prefix) {
+			r.logger.Error(
+				prefix,
+				"Plan failed",
+			)
+
+			return false
+		}
+
 		r.logger.Info(
-			"Plan %s completed successfully",
-			name,
+			prefix,
+			"Plan completed successfully",
 		)
 	}
 
@@ -95,12 +119,12 @@ func (r *Runtime) Run(configPath string, plans []string, env []string) bool {
 }
 
 func (r *Runtime) setupLogger() error {
-	outfile, errfile, err := r.builddir.MakeLogFiles("pvc")
+	outfile, errfile, err := r.buildDir.MakeLogFiles("pvc")
 	if err != nil {
 		return err
 	}
 
-	r.logger = r.logProcessor.BaseLogger("pvc", outfile, errfile)
+	r.logger = r.logProcessor.Logger(outfile, errfile)
 	return nil
 }
 
@@ -125,24 +149,30 @@ func (r *Runtime) setupWorkspace() error {
 	return nil
 }
 
-func (r *Runtime) runPlan(plan *config.Plan) bool {
-	r.logger.Info("Beginning plan %s", plan.Name)
+func (r *Runtime) runPlan(
+	plan *config.Plan,
+	prefix *logging.Prefix,
+) bool {
+	r.logger.Info(
+		prefix,
+		"Beginning plan",
+	)
 
 	for _, stage := range plan.Stages {
-		if !r.runStage(plan, stage) {
+		stagePrefix := prefix.Append(stage.Name)
+
+		if !r.runStage(plan, stage, stagePrefix) {
 			r.logger.Error(
-				"Stage %s/%s failed",
-				plan.Name,
-				stage.Name,
+				stagePrefix,
+				"Stage failed",
 			)
 
 			return false
 		}
 
 		r.logger.Info(
-			"Stage %s/%s completed successfully",
-			plan.Name,
-			stage.Name,
+			stagePrefix,
+			"Stage completed successfully",
 		)
 	}
 
@@ -152,8 +182,15 @@ func (r *Runtime) runPlan(plan *config.Plan) bool {
 // TODO - info logs
 // TODO - verbose logs
 
-func (r *Runtime) runStage(plan *config.Plan, stage *config.Stage) bool {
-	r.logger.Info("Beginning stage %s/%s", plan.Name, stage.Name)
+func (r *Runtime) runStage(
+	plan *config.Plan,
+	stage *config.Stage,
+	prefix *logging.Prefix,
+) bool {
+	r.logger.Info(
+		prefix,
+		"Beginning stage",
+	)
 
 	runners := []Runner{}
 	for i, inst := range stage.Tasks {
@@ -164,11 +201,18 @@ func (r *Runtime) runStage(plan *config.Plan, stage *config.Stage) bool {
 		)
 
 		runner := func() bool {
+			taskPrefix := prefix.Append(fmt.Sprintf(
+				"%s.%d",
+				task.Name,
+				index,
+			))
+
 			success := r.runTask(
 				plan,
 				stage,
 				task,
 				index,
+				taskPrefix,
 				environment.Merge(
 					environment.New(r.env),
 					environment.New(r.config.Environment),
@@ -181,19 +225,13 @@ func (r *Runtime) runStage(plan *config.Plan, stage *config.Stage) bool {
 
 			if !success {
 				r.logger.Info(
-					"Task %s/%s/%s (#%d) has failed",
-					plan.Name,
-					stage.Name,
-					task.Name,
-					index,
+					taskPrefix,
+					"Task has failed",
 				)
 			} else {
 				r.logger.Info(
-					"Task %s/%s/%s (#%d) has completed successfully",
-					plan.Name,
-					stage.Name,
-					task.Name,
-					index,
+					taskPrefix,
+					"Task has completed successfully",
 				)
 			}
 
@@ -215,21 +253,18 @@ func (r *Runtime) runTask(
 	stage *config.Stage,
 	task *config.Task,
 	index int,
+	prefix *logging.Prefix,
 	env environment.Environment,
 ) bool {
-	logID := fmt.Sprintf("(%s/%s/%s #%d)",
-		plan.Name,
-		stage.Name,
-		task.Name,
-		index,
+	r.logger.Info(
+		prefix,
+		"Beginning task",
 	)
-
-	r.logger.Info("%s Beginning task", logID)
 
 	if ok, missing := util.ContainsAll(env.Keys(), task.RequiredEnvironment); !ok {
 		r.logger.Error(
-			"%s Missing environment values: %s",
-			logID,
+			prefix,
+			"Missing environment values: %s",
 			strings.Join(missing, ", "),
 		)
 
@@ -239,8 +274,8 @@ func (r *Runtime) runTask(
 	args, err := r.buildTaskCommandArgs(task, env)
 	if err != nil {
 		r.logger.Error(
-			"%s Failed to build command args: %s",
-			logID,
+			prefix,
+			"Failed to build command args: %s",
 			err.Error(),
 		)
 
@@ -248,22 +283,19 @@ func (r *Runtime) runTask(
 	}
 
 	r.logger.Debug(
-		"%s Running command: %s",
-		logID,
+		prefix,
+		"Running command: %s",
 		strings.Join(args, " "),
 	)
 
-	logPrefix := strings.Join([]string{
-		plan.Name,
-		stage.Name,
-		fmt.Sprintf("%d-%s", index, task.Name),
-	}, "/")
+	outfile, errfile, err := r.buildDir.MakeLogFiles(
+		prefix.Serialize(nil),
+	)
 
-	outfile, errfile, err := r.builddir.MakeLogFiles(logPrefix)
 	if err != nil {
 		r.logger.Error(
-			"%s Failed to create task run log files: %s",
-			logID,
+			prefix,
+			"Failed to create task run log files: %s",
 			err.Error(),
 		)
 
@@ -272,9 +304,9 @@ func (r *Runtime) runTask(
 
 	commandErr := command.Run(
 		context.Background(),
+		prefix,
 		args,
-		r.logProcessor.TaskLogger(
-			logPrefix,
+		r.logProcessor.Logger(
 			outfile,
 			errfile,
 		),
@@ -282,8 +314,8 @@ func (r *Runtime) runTask(
 
 	if commandErr != nil {
 		r.logger.Error(
-			"%s Command failed: %s",
-			logID,
+			prefix,
+			"Command failed: %s",
 			commandErr.Error(),
 		)
 
@@ -312,7 +344,7 @@ func (r *Runtime) buildTaskCommandArgs(
 	}
 
 	if task.Script != "" {
-		path, err := r.builddir.WriteScript(task.Script)
+		path, err := r.buildDir.WriteScript(task.Script)
 		if err != nil {
 			return nil, err
 		}

@@ -36,17 +36,17 @@ func run() bool {
 		return false
 	}
 
-	builddir := runtime.NewBuilddir(runID)
-	if err := builddir.Setup(); err != nil {
+	buildDir := runtime.NewBuildDir(runID)
+	if err := buildDir.Setup(); err != nil {
 		logging.EmergencyLog("error: failed to create build directory: %s", err.Error())
 		return false
 	}
 
-	processor := logging.NewProcessor(*verbose)
+	processor := logging.NewProcessor(*verbose, *colorize)
 	processor.Start()
 	defer processor.Shutdown()
 
-	runtime := runtime.NewRuntime(runID, builddir, processor)
+	runtime := runtime.NewRuntime(runID, buildDir, processor)
 
 	go watchSignals(runtime)
 	defer runtime.Shutdown()

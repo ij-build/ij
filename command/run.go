@@ -10,12 +10,17 @@ import (
 	"github.com/efritz/pvc/logging"
 )
 
-func Run(ctx context.Context, args []string, logger logging.Logger) error {
+func Run(
+	ctx context.Context,
+	prefix *logging.Prefix,
+	args []string,
+	logger logging.Logger,
+) error {
 	return run(
 		ctx,
 		args,
-		newLogProcessor(logger.Info),
-		newLogProcessor(logger.Error),
+		newLogProcessor(prefix, logger.Info),
+		newLogProcessor(prefix, logger.Error),
 	)
 }
 
