@@ -197,11 +197,11 @@ func (r *Runtime) runStage(
 	)
 
 	runners := []Runner{}
-	for i, inst := range stage.Tasks {
+	for i, st := range stage.Tasks {
 		var (
-			index    = i
-			instance = inst
-			task     = r.config.Tasks[instance.Name]
+			index     = i
+			stageTask = st
+			task      = r.config.Tasks[stageTask.Name]
 		)
 
 		runner := func() bool {
@@ -222,7 +222,7 @@ func (r *Runtime) runStage(
 					environment.New(task.Environment),
 					environment.New(plan.Environment),
 					environment.New(stage.Environment),
-					environment.New(instance.Environment),
+					environment.New(stageTask.Environment),
 					environment.New(r.env),
 				),
 			)
