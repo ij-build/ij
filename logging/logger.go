@@ -47,21 +47,23 @@ func (l *logger) Error(prefix *Prefix, format string, args ...interface{}) {
 }
 
 func (l *logger) enqueue(level LogLevel, prefix *Prefix, format string, args []interface{}) {
+	stream, file := l.getTargets(level)
+
 	l.processor.enqueue(&message{
 		level:     level,
 		format:    format,
 		args:      args,
 		timestamp: time.Now(),
 		prefix:    prefix,
-		stream:    getStream(level),
-		file:      l.outfile,
+		stream:    stream,
+		file:      file,
 	})
 }
 
-func getStream(level LogLevel) io.Writer {
+func (l *logger) getTargets(level LogLevel) (io.Writer, io.Writer) {
 	if level == LevelError {
-		return os.Stderr
+		return os.Stderr, l.errfile
 	}
 
-	return os.Stdout
+	return os.Stdout, l.outfile
 }
