@@ -218,12 +218,12 @@ func (r *Runtime) runStage(
 				index,
 				taskPrefix,
 				environment.Merge(
-					environment.New(r.env),
 					environment.New(r.config.Environment),
 					environment.New(task.Environment),
 					environment.New(plan.Environment),
 					environment.New(stage.Environment),
 					environment.New(instance.Environment),
+					environment.New(r.env),
 				),
 			)
 
