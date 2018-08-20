@@ -1,7 +1,11 @@
+environment:
+  - FOO=BAZ
+
 tasks:
   a:
     image: alpine
-    command: /bin/sh -c "env && pwd && ls"
+    script: |
+      echo $FOO
 
 plans:
   x:
@@ -9,6 +13,8 @@ plans:
       - name: foo
         concurrent: true
         tasks:
+          - a
+          - a
           - name: a
-          - name: a
-          - name: a
+            environment:
+              - FOO=BAR
