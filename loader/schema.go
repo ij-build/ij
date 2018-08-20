@@ -36,7 +36,7 @@ func validateWithSchema(data []byte) error {
 }
 
 func loadSchema(path string) (*gojsonschema.Schema, error) {
-	json, err := readFile(path)
+	json, err := readPath(path)
 	if err != nil {
 		return nil, err
 	}

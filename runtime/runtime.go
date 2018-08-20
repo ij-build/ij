@@ -129,7 +129,7 @@ func (r *Runtime) setupLogger() error {
 }
 
 func (r *Runtime) loadConfig(configPath string) error {
-	config, err := loader.LoadFile(configPath)
+	config, err := loader.LoadPath(configPath)
 	if err != nil {
 		return err
 	}

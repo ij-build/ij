@@ -7,8 +7,8 @@ import (
 	"github.com/efritz/pvc/config"
 )
 
-func LoadFile(path string) (*config.Config, error) {
-	data, err := readFile(path)
+func LoadPath(path string) (*config.Config, error) {
+	data, err := readPath(path)
 	if err != nil {
 		return nil, err
 	}
