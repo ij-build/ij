@@ -4,21 +4,19 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ghodss/yaml"
 	"github.com/xeipuuv/gojsonschema"
+
+	"github.com/efritz/pvc/schema"
 )
 
-const SchemaPath = "schemas/config.yaml"
-
 func validateWithSchema(data []byte) error {
-	// TODO - need bindata or something
-	schema, err := loadSchema(SchemaPath)
+	schema, err := getSchema()
 	if err != nil {
 		return err
 	}
 
-	loader := gojsonschema.NewStringLoader(string(data))
-
-	result, err := schema.Validate(loader)
+	result, err := schema.Validate(gojsonschema.NewStringLoader(string(data)))
 	if err != nil {
 		return err
 	}
@@ -26,17 +24,28 @@ func validateWithSchema(data []byte) error {
 	if !result.Valid() {
 		errors := []string{}
 		for _, err := range result.Errors() {
-			errors = append(errors, fmt.Sprintf("\t%s", err.(gojsonschema.ResultError)))
+			errors = append(errors, fmt.Sprintf(
+				"\t%s",
+				err.(gojsonschema.ResultError),
+			))
 		}
 
-		return fmt.Errorf("invalid schema: \n%s", strings.Join(errors, "\n"))
+		return fmt.Errorf(
+			"invalid schema: \n%s",
+			strings.Join(errors, "\n"),
+		)
 	}
 
 	return nil
 }
 
-func loadSchema(path string) (*gojsonschema.Schema, error) {
-	json, err := readPath(path)
+func getSchema() (*gojsonschema.Schema, error) {
+	data, err := schema.Asset("config.yaml")
+	if err != nil {
+		return nil, err
+	}
+
+	json, err := yaml.YAMLToJSON(data)
 	if err != nil {
 		return nil, err
 	}

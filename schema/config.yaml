@@ -85,6 +85,9 @@ definitions:
 
 type: object
 properties:
+  extends:
+    type: string
+    minLength: 1
   environment:
     $ref: '#/definitions/environment'
   tasks:
