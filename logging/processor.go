@@ -83,8 +83,6 @@ func (p *processor) enqueue(message *message) {
 func (p *processor) process() {
 	defer p.wg.Done()
 
-	// TODO - also need colors based on level
-
 	for message := range p.queue {
 		text := message.Text()
 
