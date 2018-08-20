@@ -36,11 +36,6 @@ func (b *Builddir) Setup() error {
 	return nil
 }
 
-func (b *Builddir) Teardown() error {
-	// TODO - nothing right now!
-	return nil
-}
-
 func (b *Builddir) MakeLogFiles(prefix string) (io.WriteCloser, io.WriteCloser, error) {
 	outpath, err := makePath(b.path, "logs", prefix+".out.log")
 	if err != nil {

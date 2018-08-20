@@ -12,10 +12,12 @@ type (
 	Processor interface {
 		Start()
 		Shutdown()
-		Logger(prefix string, outfile, errfile io.WriteCloser) Logger
+		BaseLogger(prefix string, outfile, errfile io.WriteCloser) Logger
+		TaskLogger(prefix string, outfile, errfile io.WriteCloser) Logger
 	}
 
 	processor struct {
+		verbose     bool
 		colorPicker *colorPicker
 		queue       chan *message
 		handles     []io.Closer
@@ -30,8 +32,9 @@ const (
 	LongTimestampFormat  = "2006-01-02 15:04:05.000"
 )
 
-func NewProcessor() Processor {
+func NewProcessor(verbose bool) Processor {
 	return &processor{
+		verbose:     verbose,
 		colorPicker: newColorPicker(),
 		queue:       make(chan *message),
 		handles:     []io.Closer{},
@@ -60,7 +63,19 @@ func (p *processor) Shutdown() {
 	p.handles = p.handles[:0]
 }
 
-func (p *processor) Logger(prefix string, outfile, errfile io.WriteCloser) Logger {
+func (p *processor) BaseLogger(prefix string, outfile, errfile io.WriteCloser) Logger {
+	return p.loggerWithColor(prefix, outfile, errfile, "")
+}
+
+func (p *processor) TaskLogger(prefix string, outfile, errfile io.WriteCloser) Logger {
+	p.mutex.Lock()
+	colorCode := p.colorPicker.next()
+	p.mutex.Unlock()
+
+	return p.loggerWithColor(prefix, outfile, errfile, colorCode)
+}
+
+func (p *processor) loggerWithColor(prefix string, outfile, errfile io.WriteCloser, colorCode string) Logger {
 	p.mutex.Lock()
 	p.handles = append(p.handles, outfile, errfile)
 	p.mutex.Unlock()
@@ -68,7 +83,7 @@ func (p *processor) Logger(prefix string, outfile, errfile io.WriteCloser) Logge
 	return newLogger(
 		p,
 		prefix,
-		p.colorPicker.next(),
+		colorCode,
 		outfile,
 		errfile,
 	)
@@ -98,11 +113,11 @@ func (p *processor) process() {
 		)
 
 		if err := writeAll(message.stream, []byte(streamText)); err != nil {
-			emergencyLog("failed to write log (%s)", err.Error())
+			EmergencyLog("error: failed to write log: %s", err.Error())
 		}
 
 		if err := writeAll(message.file, []byte(fileText)); err != nil {
-			emergencyLog("failed to write log (%s)", err.Error())
+			EmergencyLog("error: failed to write log: %s", err.Error())
 		}
 	}
 }

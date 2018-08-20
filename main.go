@@ -8,6 +8,7 @@ import (
 
 	"github.com/efritz/pvc/logging"
 	"github.com/efritz/pvc/runtime"
+	"github.com/efritz/pvc/util"
 )
 
 const Version = "0.1.0"
@@ -29,16 +30,23 @@ func run() bool {
 		return false
 	}
 
-	processor := logging.NewProcessor()
+	runID, err := util.MakeID()
+	if err != nil {
+		logging.EmergencyLog("error: failed to generate run id: %s", err.Error())
+		return false
+	}
+
+	builddir := runtime.NewBuilddir(runID)
+	if err := builddir.Setup(); err != nil {
+		logging.EmergencyLog("error: failed to create build directory: %s", err.Error())
+		return false
+	}
+
+	processor := logging.NewProcessor(*verbose)
 	processor.Start()
 	defer processor.Shutdown()
 
-	runtime := runtime.NewRuntime(processor)
-
-	if err := runtime.Setup(); err != nil {
-		fmt.Printf("error: %s\n", err.Error())
-		return false
-	}
+	runtime := runtime.NewRuntime(runID, builddir, processor)
 
 	go watchSignals(runtime)
 	defer runtime.Shutdown()

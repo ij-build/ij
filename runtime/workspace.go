@@ -6,17 +6,22 @@ import (
 	"strings"
 
 	"github.com/efritz/pvc/command"
+	"github.com/efritz/pvc/logging"
 )
 
 type Workspace struct {
-	runtime       *Runtime
+	runID         string
+	ctx           context.Context
+	logger        logging.Logger
 	ContainerName string
 	VolumePath    string
 }
 
-func NewWorkspace(runtime *Runtime) *Workspace {
+func NewWorkspace(runID string, ctx context.Context, logger logging.Logger) *Workspace {
 	return &Workspace{
-		runtime: runtime,
+		runID:  runID,
+		ctx:    ctx,
+		logger: logger,
 	}
 }
 
@@ -34,6 +39,8 @@ func (w *Workspace) Setup() error {
 }
 
 func (w *Workspace) Teardown() error {
+	w.logger.Info("Removing workspace")
+
 	_, err := command.RunForOutput(
 		context.Background(),
 		[]string{
@@ -48,16 +55,17 @@ func (w *Workspace) Teardown() error {
 }
 
 func (w *Workspace) create() error {
-	containerName, err := command.RunForOutput(
-		w.runtime.ctx,
-		[]string{
-			"docker",
-			"create",
-			fmt.Sprintf("--name=%s", w.runtime.runID),
-			"convey/workspace",
-		},
-	)
+	args := []string{
+		"docker",
+		"create",
+		fmt.Sprintf("--name=%s", w.runID),
+		"convey/workspace",
+	}
 
+	w.logger.Info("Creating workspace")
+	w.logger.Debug("Running command: %s", strings.Join(args, " "))
+
+	containerName, err := command.RunForOutput(w.ctx, args)
 	if err != nil {
 		return err
 	}
@@ -67,17 +75,18 @@ func (w *Workspace) create() error {
 }
 
 func (w *Workspace) inspect() error {
-	volumePath, err := command.RunForOutput(
-		w.runtime.ctx,
-		[]string{
-			"docker",
-			"inspect",
-			"--format",
-			`{{range .Mounts}}{{if eq .Destination "/workspace"}}{{.Source}}{{end}}{{end}}`,
-			w.ContainerName,
-		},
-	)
+	args := []string{
+		"docker",
+		"inspect",
+		"--format",
+		`{{range .Mounts}}{{if eq .Destination "/workspace"}}{{.Source}}{{end}}{{end}}`,
+		w.ContainerName,
+	}
 
+	w.logger.Info("Inspecting workspace")
+	w.logger.Debug("Running command: %s", strings.Join(args, " "))
+
+	volumePath, err := command.RunForOutput(w.ctx, args)
 	if err != nil {
 		w.Teardown()
 		return err

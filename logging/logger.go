@@ -35,6 +35,10 @@ func newLogger(processor *processor, prefix, colorCode string, outfile, errfile 
 }
 
 func (l *logger) Debug(format string, args ...interface{}) {
+	if !l.processor.verbose {
+		return
+	}
+
 	l.enqueue(LevelDebug, format, args)
 }
 

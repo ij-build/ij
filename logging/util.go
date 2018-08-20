@@ -6,8 +6,8 @@ import (
 	"os"
 )
 
-func emergencyLog(format string, args ...interface{}) {
-	writeAll(os.Stderr, []byte(fmt.Sprintf(format, args...)))
+func EmergencyLog(format string, args ...interface{}) {
+	fmt.Fprintln(os.Stderr, fmt.Sprintf(format, args...))
 }
 
 func writeAll(w io.Writer, data []byte) error {

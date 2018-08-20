@@ -13,6 +13,7 @@ var (
 	plans      = app.Arg("plans", "").Required().Strings()
 	configPath = app.Flag("filename", "").Short('o').String()
 	env        = app.Flag("env", "").Short('e').Strings()
+	verbose = app.Flag("verbose", "").Short('v').Default("False").Bool()
 
 	defaultConfigPaths = []string{
 		"pvc.yaml",
@@ -29,7 +30,7 @@ func parseArgs() error {
 
 	if *configPath == "" {
 		for _, path := range defaultConfigPaths {
-			ok, err := paths.Exists(path)
+			ok, err := paths.FileExists(path)
 			if err != nil {
 				return err
 			}
