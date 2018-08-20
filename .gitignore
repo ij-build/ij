@@ -1,3 +1,3 @@
 pvc
 .build
-pvc.yaml
+*.yaml
