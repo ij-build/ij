@@ -13,6 +13,7 @@ type State struct {
 	config              *config.Config
 	plans               []string
 	env                 []string
+	forceSequential     bool
 	cleanup             *Cleanup
 	ctx                 context.Context
 	cancel              func()
@@ -33,16 +34,18 @@ func NewState(
 	env []string,
 	verbose bool,
 	colorize bool,
+	forceSequential bool,
 ) (s *State, err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	s = &State{
-		config:  config,
-		plans:   plans,
-		env:     env,
-		cleanup: NewCleanup(),
-		ctx:     ctx,
-		cancel:  cancel,
+		config:          config,
+		plans:           plans,
+		env:             env,
+		forceSequential: forceSequential,
+		cleanup:         NewCleanup(),
+		ctx:             ctx,
+		cancel:          cancel,
 	}
 
 	//

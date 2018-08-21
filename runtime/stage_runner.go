@@ -49,8 +49,7 @@ func (r *StageRunner) Run() bool {
 		))
 	}
 
-	if !r.stage.Parallel {
-		// TODO - also can force
+	if !r.stage.Parallel || r.state.forceSequential {
 		return runSequential(runners)
 	}
 

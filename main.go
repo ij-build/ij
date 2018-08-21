@@ -18,12 +18,13 @@ import (
 const Version = "0.1.0"
 
 var (
-	app        = kingpin.New("ij", "").Version(Version)
-	plans      = app.Arg("plans", "").Default("default").Strings()
-	configPath = app.Flag("filename", "").Short('o').String()
-	env        = app.Flag("env", "").Short('e').Strings()
-	verbose    = app.Flag("verbose", "").Short('v').Default("false").Bool()
-	colorize   = app.Flag("color", "").Default("true").Bool()
+	app             = kingpin.New("ij", "").Version(Version)
+	plans           = app.Arg("plans", "").Default("default").Strings()
+	configPath      = app.Flag("filename", "").Short('o').String()
+	env             = app.Flag("env", "").Short('e').Strings()
+	verbose         = app.Flag("verbose", "").Short('v').Default("false").Bool()
+	colorize        = app.Flag("color", "").Default("true").Bool()
+	forceSequential = app.Flag("force-sequential", "").Default("false").Bool()
 
 	defaultConfigPaths = []string{
 		"ij.yaml",
@@ -62,6 +63,7 @@ func run() bool {
 		*env,
 		*verbose,
 		*colorize,
+		*forceSequential,
 	)
 
 	if err != nil {
