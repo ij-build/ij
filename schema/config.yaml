@@ -11,6 +11,9 @@ definitions:
     description: TODO
     type: object
     properties:
+      extends:
+        description: TODO
+        type: string
       image:
         description: TODO
         type: string
@@ -23,6 +26,17 @@ definitions:
       script:
         description: TODO
         type: string
+      entrypoint:
+        description: TODO
+        type: string
+      hostname:
+        description: TODO
+        type: string
+      detach:
+        description: TODO
+        type: boolean
+      healthcheck:
+        $ref: '#/definitions/healthcheck'
       environment:
         $ref: '#/definitions/environment'
       required_environment:
@@ -31,8 +45,27 @@ definitions:
         items:
           type: string
     additionalProperties: false
-    required:
-      - image
+
+  healthcheck:
+    description: TODO
+    type: object
+    properties:
+      command:
+        description: TODO
+        type: string
+      interval:
+        description: TODO
+        type: string
+      retries:
+        description: TODO
+        type: integer
+      start_period:
+        description: TODO
+        type: string
+      timeout:
+        description: TODO
+        type: string
+    additionalProperties: false
 
   plan:
     description: TODO

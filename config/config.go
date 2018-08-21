@@ -14,11 +14,23 @@ func (c *Config) Validate() error {
 		return err
 	}
 
-	// TODO - additional validation
+	if err := c.resolveTasks(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (c *Config) validateTaskNames() error {
+	for _, task := range c.Tasks {
+		if _, ok := c.Tasks[task.Extends]; task.Extends != "" && !ok {
+			return fmt.Errorf(
+				"unknown task name %s referenced in task %s",
+				task.Name,
+			)
+		}
+	}
+
 	for _, plan := range c.Plans {
 		for _, stage := range plan.Stages {
 			for i, stageTask := range stage.Tasks {
@@ -33,6 +45,31 @@ func (c *Config) validateTaskNames() error {
 					)
 				}
 			}
+		}
+	}
+
+	return nil
+}
+
+func (c *Config) resolveTasks() error {
+	resolver := NewTaskExtendsResolver(c)
+
+	for _, task := range c.Tasks {
+		if task.Extends != "" {
+			resolver.Add(task)
+		}
+	}
+
+	if err := resolver.Resolve(); err != nil {
+		return err
+	}
+
+	for _, task := range c.Tasks {
+		if task.Image == "" {
+			return fmt.Errorf(
+				"no image supplied for task %s",
+				task.Name,
+			)
 		}
 	}
 
