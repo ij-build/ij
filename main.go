@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/kingpin"
+
 	"github.com/efritz/ij/command"
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/loader"
