@@ -1,6 +1,6 @@
 package loader
 
-import "github.com/efritz/pvc/config"
+import "github.com/efritz/ij/config"
 
 func populateTaskNames(config *config.Config) {
 	for name, task := range config.Tasks {

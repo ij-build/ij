@@ -3,7 +3,7 @@ package loader
 import (
 	"encoding/json"
 
-	"github.com/efritz/pvc/config"
+	"github.com/efritz/ij/config"
 )
 
 func unmarshalStageTasks(config *config.Config) error {

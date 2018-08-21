@@ -5,8 +5,8 @@ import (
 
 	"github.com/kballard/go-shellquote"
 
-	"github.com/efritz/pvc/config"
-	"github.com/efritz/pvc/environment"
+	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/environment"
 )
 
 type TaskBuilder struct {

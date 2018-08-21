@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/efritz/pvc/config"
-	"github.com/efritz/pvc/logging"
-	"github.com/efritz/pvc/util"
+	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/logging"
+	"github.com/efritz/ij/util"
 )
 
 type State struct {
@@ -99,7 +99,7 @@ func NewState(
 	//
 	// Create Base Logger
 
-	outfile, errfile, err := s.buildDir.MakeLogFiles("pvc")
+	outfile, errfile, err := s.buildDir.MakeLogFiles("ij")
 	if err != nil {
 		logging.EmergencyLog(
 			"error: failed to create log files: %s",

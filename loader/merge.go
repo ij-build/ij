@@ -1,6 +1,6 @@
 package loader
 
-import "github.com/efritz/pvc/config"
+import "github.com/efritz/ij/config"
 
 func merge(child, parent *config.Config) error {
 	parent.Environment = append(

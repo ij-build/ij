@@ -5,8 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/efritz/pvc/config"
-	"github.com/efritz/pvc/logging"
+	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/logging"
 )
 
 type PlanRunner struct {

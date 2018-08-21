@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/efritz/pvc/command"
-	"github.com/efritz/pvc/config"
-	"github.com/efritz/pvc/environment"
-	"github.com/efritz/pvc/logging"
-	"github.com/efritz/pvc/util"
+	"github.com/efritz/ij/command"
+	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/environment"
+	"github.com/efritz/ij/logging"
+	"github.com/efritz/ij/util"
 )
 
 type TaskRunner struct {

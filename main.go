@@ -6,18 +6,18 @@ import (
 	"time"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/efritz/pvc/command"
-	"github.com/efritz/pvc/config"
-	"github.com/efritz/pvc/loader"
-	"github.com/efritz/pvc/logging"
-	"github.com/efritz/pvc/runtime"
-	"github.com/efritz/pvc/util"
+	"github.com/efritz/ij/command"
+	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/loader"
+	"github.com/efritz/ij/logging"
+	"github.com/efritz/ij/runtime"
+	"github.com/efritz/ij/util"
 )
 
 const Version = "0.1.0"
 
 var (
-	app        = kingpin.New("pvc", "").Version(Version)
+	app        = kingpin.New("ij", "").Version(Version)
 	plans      = app.Arg("plans", "").Default("default").Strings()
 	configPath = app.Flag("filename", "").Short('o').String()
 	env        = app.Flag("env", "").Short('e').Strings()
@@ -25,8 +25,8 @@ var (
 	colorize   = app.Flag("color", "").Default("true").Bool()
 
 	defaultConfigPaths = []string{
-		"pvc.yaml",
-		"pvc.yml",
+		"ij.yaml",
+		"ij.yml",
 	}
 )
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/efritz/pvc/config"
+	"github.com/efritz/ij/config"
 )
 
 type Loader struct {

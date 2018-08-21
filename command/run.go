@@ -8,8 +8,8 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/efritz/pvc/logging"
-	"github.com/efritz/pvc/util"
+	"github.com/efritz/ij/logging"
+	"github.com/efritz/ij/util"
 )
 
 func Run(

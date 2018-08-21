@@ -7,7 +7,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/xeipuuv/gojsonschema"
 
-	"github.com/efritz/pvc/schema"
+	"github.com/efritz/ij/schema"
 )
 
 func validateWithSchema(data []byte) error {

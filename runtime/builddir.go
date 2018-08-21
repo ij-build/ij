@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/efritz/pvc/util"
+	"github.com/efritz/ij/util"
 )
 
 type BuildDir struct {
