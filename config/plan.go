@@ -12,7 +12,7 @@ type (
 	Stage struct {
 		Name        string            `json:"name"`
 		RawTasks    []json.RawMessage `json:"tasks"`
-		Concurrent  bool              `json:"concurrent"`
+		Parallel    bool              `json:"parallel"`
 		Environment []string          `json:"environment"`
 
 		Tasks []*StageTask

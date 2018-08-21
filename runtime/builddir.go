@@ -39,26 +39,6 @@ func (b *BuildDir) Setup() error {
 	return nil
 }
 
-func (b *BuildDir) Prune() error {
-	return filepath.Walk(b.path, func(path string, _ os.FileInfo, err error) error {
-		if strings.HasSuffix(path, ".err.log") {
-
-			info, err := os.Stat(path)
-			if err != nil {
-				return err
-			}
-
-			if info.Size() == 0 {
-				if err := os.Remove(path); err != nil {
-					return err
-				}
-			}
-		}
-
-		return nil
-	})
-}
-
 func (b *BuildDir) Teardown() error {
 	if err := os.RemoveAll(b.path); err != nil {
 		return err
@@ -99,6 +79,26 @@ func (b *BuildDir) MakeLogFiles(prefix string) (io.WriteCloser, io.WriteCloser, 
 	}
 
 	return outfile, errfile, nil
+}
+
+func (b *BuildDir) Prune() error {
+	return filepath.Walk(b.path, func(path string, _ os.FileInfo, err error) error {
+		if strings.HasSuffix(path, ".err.log") {
+
+			info, err := os.Stat(path)
+			if err != nil {
+				return err
+			}
+
+			if info.Size() == 0 {
+				if err := os.Remove(path); err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
 }
 
 func (b *BuildDir) WriteScript(script string) (string, error) {

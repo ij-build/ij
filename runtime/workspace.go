@@ -10,41 +10,43 @@ import (
 )
 
 type Workspace struct {
-	runID         string
 	ctx           context.Context
+	runID         string
 	logger        logging.Logger
 	ContainerName string
 	VolumePath    string
 }
 
-func NewWorkspace(runID string, ctx context.Context, logger logging.Logger) *Workspace {
-	return &Workspace{
-		runID:  runID,
+func NewWorkspace(
+	ctx context.Context,
+	runID string,
+	logger logging.Logger,
+) (*Workspace, error) {
+	w := &Workspace{
 		ctx:    ctx,
+		runID:  runID,
 		logger: logger,
 	}
-}
 
-func (w *Workspace) Setup() error {
 	if err := w.create(); err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := w.inspect(); err != nil {
 		w.Teardown()
-		return err
+		return nil, err
 	}
 
-	return nil
+	return w, nil
 }
 
-func (w *Workspace) Teardown() error {
+func (w *Workspace) Teardown() {
 	w.logger.Info(
 		nil,
 		"Removing workspace",
 	)
 
-	_, err := command.RunForOutput(
+	_, _, err := command.RunForOutput(
 		context.Background(),
 		[]string{
 			"docker",
@@ -52,30 +54,35 @@ func (w *Workspace) Teardown() error {
 			"-v",
 			w.ContainerName,
 		},
+		w.logger,
 	)
 
-	return err
+	if err != nil {
+		w.logger.Error(
+			nil,
+			"Failed to remove workspace: %s",
+			err.Error(),
+		)
+	}
 }
 
 func (w *Workspace) create() error {
-	args := []string{
-		"docker",
-		"create",
-		fmt.Sprintf("--name=%s", w.runID),
-		"convey/workspace",
-	}
-
 	w.logger.Info(
 		nil,
 		"Creating workspace",
 	)
 
-	w.logger.Debug(
-		nil,
-		"Running command: %s", strings.Join(args, " "),
+	containerName, _, err := command.RunForOutput(
+		w.ctx,
+		[]string{
+			"docker",
+			"create",
+			fmt.Sprintf("--name=%s", w.runID),
+			"convey/workspace",
+		},
+		w.logger,
 	)
 
-	containerName, err := command.RunForOutput(w.ctx, args)
 	if err != nil {
 		return err
 	}
@@ -85,25 +92,23 @@ func (w *Workspace) create() error {
 }
 
 func (w *Workspace) inspect() error {
-	args := []string{
-		"docker",
-		"inspect",
-		"--format",
-		`{{range .Mounts}}{{if eq .Destination "/workspace"}}{{.Source}}{{end}}{{end}}`,
-		w.ContainerName,
-	}
-
 	w.logger.Info(
 		nil,
 		"Inspecting workspace",
 	)
 
-	w.logger.Debug(
-		nil,
-		"Running command: %s", strings.Join(args, " "),
+	volumePath, _, err := command.RunForOutput(
+		w.ctx,
+		[]string{
+			"docker",
+			"inspect",
+			"--format",
+			`{{range .Mounts}}{{if eq .Destination "/workspace"}}{{.Source}}{{end}}{{end}}`,
+			w.ContainerName,
+		},
+		w.logger,
 	)
 
-	volumePath, err := command.RunForOutput(w.ctx, args)
 	if err != nil {
 		w.Teardown()
 		return err

@@ -2,12 +2,10 @@ package runtime
 
 import (
 	"sync"
-
-	"github.com/efritz/pvc/logging"
 )
 
 type Cleanup struct {
-	funcs []func() error
+	funcs []func()
 	mutex sync.Mutex
 }
 
@@ -15,7 +13,7 @@ func NewCleanup() *Cleanup {
 	return &Cleanup{}
 }
 
-func (c *Cleanup) Register(f func() error) {
+func (c *Cleanup) Register(f func()) {
 	c.mutex.Lock()
 	c.funcs = append(c.funcs, f)
 	c.mutex.Unlock()
@@ -26,8 +24,6 @@ func (c *Cleanup) Cleanup() {
 	defer c.mutex.Unlock()
 
 	for i := len(c.funcs) - 1; i >= 0; i-- {
-		if err := c.funcs[i](); err != nil {
-			logging.EmergencyLog("error: %#v\n", err.Error())
-		}
+		c.funcs[i]()
 	}
 }

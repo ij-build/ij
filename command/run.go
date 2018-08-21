@@ -5,9 +5,11 @@ import (
 	"context"
 	"io"
 	"os/exec"
-	"sync"
+	"strings"
+	"syscall"
 
 	"github.com/efritz/pvc/logging"
+	"github.com/efritz/pvc/util"
 )
 
 func Run(
@@ -21,27 +23,55 @@ func Run(
 		args,
 		newLogProcessor(prefix, logger.Info),
 		newLogProcessor(prefix, logger.Error),
+		logger,
 	)
 }
 
-func RunForOutput(ctx context.Context, args []string) (string, error) {
-	processor := newStringProcessor()
-	if err := run(ctx, args, processor, nilProcessor); err != nil {
-		return "", err
-	}
+func RunForOutput(
+	ctx context.Context,
+	args []string,
+	logger logging.Logger,
+) (string, string, error) {
+	outProcessor := newStringProcessor()
+	errProcessor := newStringProcessor()
 
-	return processor.String(), nil
+	err := run(
+		ctx,
+		args,
+		outProcessor,
+		errProcessor,
+		logger,
+	)
+
+	return outProcessor.String(), errProcessor.String(), err
 }
 
 //
 //
 
-func run(ctx context.Context, args []string, outProcessor, errProcessor outputProcessor) error {
+func run(
+	ctx context.Context,
+	args []string,
+	outProcessor outputProcessor,
+	errProcessor outputProcessor,
+	logger logging.Logger,
+) error {
+	if logger != nil {
+		logger.Debug(
+			nil,
+			"Running command: %s", strings.Join(args, " "),
+		)
+	}
+
 	command := exec.CommandContext(
 		ctx,
 		args[0],
 		args[1:]...,
 	)
+
+	command.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
+	}
 
 	outReader, err := command.StdoutPipe()
 	if err != nil {
@@ -53,17 +83,12 @@ func run(ctx context.Context, args []string, outProcessor, errProcessor outputPr
 		return err
 	}
 
-	wg := &sync.WaitGroup{}
-	wg.Add(2)
+	wg := util.RunParallel(
+		func() { processOutput(outReader, outProcessor) },
+		func() { processOutput(errReader, errProcessor) },
+	)
 
-	go processOutput(outReader, outProcessor, wg)
-	go processOutput(errReader, errProcessor, wg)
-
-	if err := command.Start(); err != nil {
-		return err
-	}
-
-	if err := command.Wait(); err != nil {
+	if err := command.Run(); err != nil {
 		return err
 	}
 
@@ -71,9 +96,7 @@ func run(ctx context.Context, args []string, outProcessor, errProcessor outputPr
 	return nil
 }
 
-func processOutput(r io.Reader, p outputProcessor, wg *sync.WaitGroup) {
-	defer wg.Done()
-
+func processOutput(r io.Reader, p outputProcessor) {
 	scanner := bufio.NewScanner(r)
 
 	for scanner.Scan() {

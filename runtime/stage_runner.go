@@ -1,0 +1,141 @@
+package runtime
+
+import (
+	"fmt"
+
+	"github.com/efritz/pvc/config"
+	"github.com/efritz/pvc/environment"
+	"github.com/efritz/pvc/logging"
+	"github.com/efritz/pvc/util"
+)
+
+type (
+	StageRunner struct {
+		state  *State
+		plan   *config.Plan
+		stage  *config.Stage
+		prefix *logging.Prefix
+	}
+
+	RunnerFunc func() bool
+)
+
+func NewStageRunner(
+	state *State,
+	plan *config.Plan,
+	stage *config.Stage,
+	prefix *logging.Prefix,
+) *StageRunner {
+	return &StageRunner{
+		state:  state,
+		plan:   plan,
+		stage:  stage,
+		prefix: prefix,
+	}
+}
+
+func (r *StageRunner) Run() bool {
+	r.state.logger.Info(
+		r.prefix,
+		"Beginning stage",
+	)
+
+	runners := []RunnerFunc{}
+	for i, stageTask := range r.stage.Tasks {
+		runners = append(runners, r.buildRunner(
+			stageTask,
+			i,
+			r.state.config.Tasks[stageTask.Name],
+		))
+	}
+
+	if !r.stage.Parallel {
+		// TODO - also can force
+		return runSequential(runners)
+	}
+
+	return runParallel(runners)
+}
+
+func (r *StageRunner) buildRunner(
+	stageTask *config.StageTask,
+	index int,
+	task *config.Task,
+) RunnerFunc {
+	taskPrefix := r.prefix.Append(fmt.Sprintf(
+		"%s.%d",
+		task.Name,
+		index,
+	))
+
+	env := environment.Merge(
+		environment.New(r.state.config.Environment),
+		environment.New(task.Environment),
+		environment.New(r.plan.Environment),
+		environment.New(r.stage.Environment),
+		environment.New(stageTask.Environment),
+		environment.New(r.state.env),
+	)
+
+	runner := NewTaskRunner(
+		r.state,
+		task,
+		taskPrefix,
+		env,
+	)
+
+	return func() bool {
+		if !runner.Run() {
+			r.state.ReportError(
+				taskPrefix,
+				"Task has failed",
+			)
+
+			return false
+		}
+
+		r.state.logger.Info(
+			taskPrefix,
+			"Task has completed successfully",
+		)
+
+		return true
+	}
+}
+
+//
+// Helpers
+
+func runSequential(runners []RunnerFunc) bool {
+	for _, runner := range runners {
+		if !runner() {
+			return false
+		}
+	}
+
+	return true
+}
+
+func runParallel(runners []RunnerFunc) bool {
+	failures := make(chan bool, len(runners))
+	defer close(failures)
+
+	funcs := []func(){}
+	for _, runner := range runners {
+		funcs = append(funcs, func() {
+			if ok := runner(); !ok {
+				failures <- false
+			}
+		})
+	}
+
+	util.RunParallel(funcs...)
+
+	select {
+	case <-failures:
+		return false
+	default:
+	}
+
+	return true
+}
