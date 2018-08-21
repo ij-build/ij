@@ -10,7 +10,7 @@ import (
 
 var (
 	app        = kingpin.New("pvc", "").Version(Version)
-	plans      = app.Arg("plans", "").Required().Strings()
+	plans      = app.Arg("plans", "").Default("default").Strings()
 	configPath = app.Flag("filename", "").Short('o').String()
 	env        = app.Flag("env", "").Short('e').Strings()
 	verbose    = app.Flag("verbose", "").Short('v').Default("false").Bool()
