@@ -15,7 +15,7 @@ import (
 )
 
 type (
-	Runtime struct {
+	Runner struct {
 		config       *config.Config
 		logProcessor logging.Processor
 		logger       logging.Logger
@@ -28,13 +28,20 @@ type (
 		workspace    *Workspace
 	}
 
-	Runner func() bool
+	RunStatus  int
+	RunnerFunc func() bool
 )
 
-func NewRuntime(runID string, buildDir *BuildDir, logProcessor logging.Processor) *Runtime {
+const (
+	RunStatusSuccess RunStatus = iota
+	RunStatusSetupFailure
+	RunStatusFailure
+)
+
+func NewRunner(runID string, buildDir *BuildDir, logProcessor logging.Processor) *Runner {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	return &Runtime{
+	return &Runner{
 		runID:        runID,
 		buildDir:     buildDir,
 		logProcessor: logProcessor,
@@ -44,19 +51,19 @@ func NewRuntime(runID string, buildDir *BuildDir, logProcessor logging.Processor
 	}
 }
 
-func (r *Runtime) Shutdown() {
+func (r *Runner) Shutdown() {
 	r.cancel()
 	r.cleanup.Cleanup()
 }
 
-func (r *Runtime) Run(configPath string, plans []string, env []string) bool {
+func (r *Runner) Run(configPath string, plans []string, env []string) RunStatus {
 	if err := r.loadConfig(configPath); err != nil {
 		logging.EmergencyLog(
 			"error: failed to load config: %s",
 			err.Error(),
 		)
 
-		return false
+		return RunStatusSetupFailure
 	}
 
 	for _, name := range plans {
@@ -66,8 +73,19 @@ func (r *Runtime) Run(configPath string, plans []string, env []string) bool {
 				name,
 			)
 
-			return false
+			return RunStatusSetupFailure
 		}
+	}
+
+	_, err := command.RunForOutput(r.ctx, []string{
+		"docker",
+		"ps",
+		"-q",
+	})
+
+	if err != nil {
+		logging.EmergencyLog("error: docker is not running")
+		return RunStatusSetupFailure
 	}
 
 	if err := r.setupLogger(); err != nil {
@@ -76,8 +94,10 @@ func (r *Runtime) Run(configPath string, plans []string, env []string) bool {
 			err.Error(),
 		)
 
-		return false
+		return RunStatusSetupFailure
 	}
+
+	// TODO - if failed before this point, delete build dir
 
 	r.logger.Info(
 		nil,
@@ -92,7 +112,7 @@ func (r *Runtime) Run(configPath string, plans []string, env []string) bool {
 			err.Error(),
 		)
 
-		return false
+		return RunStatusFailure
 	}
 
 	r.env = env
@@ -106,7 +126,7 @@ func (r *Runtime) Run(configPath string, plans []string, env []string) bool {
 				"Plan failed",
 			)
 
-			return false
+			return RunStatusFailure
 		}
 
 		r.logger.Info(
@@ -115,10 +135,10 @@ func (r *Runtime) Run(configPath string, plans []string, env []string) bool {
 		)
 	}
 
-	return true
+	return RunStatusSuccess
 }
 
-func (r *Runtime) setupLogger() error {
+func (r *Runner) setupLogger() error {
 	outfile, errfile, err := r.buildDir.MakeLogFiles("pvc")
 	if err != nil {
 		return err
@@ -128,7 +148,7 @@ func (r *Runtime) setupLogger() error {
 	return nil
 }
 
-func (r *Runtime) loadConfig(configPath string) error {
+func (r *Runner) loadConfig(configPath string) error {
 	config, err := loader.NewLoader().Load(configPath)
 	if err != nil {
 		return err
@@ -142,7 +162,7 @@ func (r *Runtime) loadConfig(configPath string) error {
 	return nil
 }
 
-func (r *Runtime) setupWorkspace() error {
+func (r *Runner) setupWorkspace() error {
 	workspace := NewWorkspace(r.runID, r.ctx, r.logger)
 	if err := workspace.Setup(); err != nil {
 		return err
@@ -153,7 +173,7 @@ func (r *Runtime) setupWorkspace() error {
 	return nil
 }
 
-func (r *Runtime) runPlan(
+func (r *Runner) runPlan(
 	plan *config.Plan,
 	prefix *logging.Prefix,
 ) bool {
@@ -183,10 +203,7 @@ func (r *Runtime) runPlan(
 	return true
 }
 
-// TODO - info logs
-// TODO - verbose logs
-
-func (r *Runtime) runStage(
+func (r *Runner) runStage(
 	plan *config.Plan,
 	stage *config.Stage,
 	prefix *logging.Prefix,
@@ -196,7 +213,7 @@ func (r *Runtime) runStage(
 		"Beginning stage",
 	)
 
-	runners := []Runner{}
+	runnerFuncs := []RunnerFunc{}
 	for i, st := range stage.Tasks {
 		var (
 			index     = i
@@ -242,17 +259,17 @@ func (r *Runtime) runStage(
 			return success
 		}
 
-		runners = append(runners, runner)
+		runnerFuncs = append(runnerFuncs, runner)
 	}
 
 	if stage.Concurrent {
-		return runConcurrent(runners)
+		return runConcurrent(runnerFuncs)
 	}
 
-	return runSequential(runners)
+	return runSequential(runnerFuncs)
 }
 
-func (r *Runtime) runTask(
+func (r *Runner) runTask(
 	plan *config.Plan,
 	stage *config.Stage,
 	task *config.Task,
@@ -329,7 +346,7 @@ func (r *Runtime) runTask(
 	return true
 }
 
-func (r *Runtime) buildTaskCommandArgs(
+func (r *Runner) buildTaskCommandArgs(
 	task *config.Task,
 	env environment.Environment,
 ) ([]string, error) {
@@ -380,18 +397,18 @@ func (r *Runtime) buildTaskCommandArgs(
 	return args, nil
 }
 
-func runConcurrent(runners []Runner) bool {
+func runConcurrent(runnerFuncs []RunnerFunc) bool {
 	okChan := make(chan bool)
 	defer close(okChan)
 
-	for _, runner := range runners {
-		go func(runner Runner) {
-			okChan <- runner()
-		}(runner)
+	for _, runnerFunc := range runnerFuncs {
+		go func(runnerFunc RunnerFunc) {
+			okChan <- runnerFunc()
+		}(runnerFunc)
 	}
 
 	success := true
-	for i := 0; i < len(runners); i++ {
+	for i := 0; i < len(runnerFuncs); i++ {
 		if ok := <-okChan; !ok {
 			success = false
 		}
@@ -400,9 +417,9 @@ func runConcurrent(runners []Runner) bool {
 	return success
 }
 
-func runSequential(runners []Runner) bool {
-	for _, runner := range runners {
-		if !runner() {
+func runSequential(runnerFuncs []RunnerFunc) bool {
+	for _, runnerFunc := range runnerFuncs {
+		if !runnerFunc() {
 			return false
 		}
 	}

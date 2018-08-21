@@ -5,7 +5,7 @@ import (
 
 	"github.com/alecthomas/kingpin"
 
-	"github.com/efritz/pvc/paths"
+	"github.com/efritz/pvc/util"
 )
 
 var (
@@ -31,7 +31,7 @@ func parseArgs() error {
 
 	if *configPath == "" {
 		for _, path := range defaultConfigPaths {
-			ok, err := paths.FileExists(path)
+			ok, err := util.FileExists(path)
 			if err != nil {
 				return err
 			}

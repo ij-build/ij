@@ -5,14 +5,15 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
-	"github.com/efritz/pvc/paths"
 	"github.com/efritz/pvc/util"
 )
 
 type BuildDir struct {
-	runID string
-	path  string
+	runID  string
+	path   string
+	parent string
 }
 
 func NewBuildDir(runID string) *BuildDir {
@@ -27,22 +28,61 @@ func (b *BuildDir) Setup() error {
 		return err
 	}
 
-	path, err := makePath(pwd, ".build", b.runID)
+	parent := filepath.Join(pwd, ".build")
+	path, err := util.BuildPath(parent, b.runID)
 	if err != nil {
 		return err
 	}
 
 	b.path = path
+	b.parent = filepath.Join(parent)
+	return nil
+}
+
+func (b *BuildDir) Prune() error {
+	return filepath.Walk(b.path, func(path string, _ os.FileInfo, err error) error {
+		if strings.HasSuffix(path, ".err.log") {
+
+			info, err := os.Stat(path)
+			if err != nil {
+				return err
+			}
+
+			if info.Size() == 0 {
+				if err := os.Remove(path); err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
+}
+
+func (b *BuildDir) Teardown() error {
+	if err := os.RemoveAll(b.path); err != nil {
+		return err
+	}
+
+	names, err := util.Dirnames(b.parent)
+	if err != nil {
+		return err
+	}
+
+	if len(names) == 0 {
+		return os.RemoveAll(b.parent)
+	}
+
 	return nil
 }
 
 func (b *BuildDir) MakeLogFiles(prefix string) (io.WriteCloser, io.WriteCloser, error) {
-	outpath, err := makePath(b.path, "logs", prefix+".out.log")
+	outpath, err := util.BuildPath(b.path, "logs", prefix+".out.log")
 	if err != nil {
 		return nil, nil, err
 	}
 
-	errpath, err := makePath(b.path, "logs", prefix+".err.log")
+	errpath, err := util.BuildPath(b.path, "logs", prefix+".err.log")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -67,7 +107,7 @@ func (b *BuildDir) WriteScript(script string) (string, error) {
 		return "", err
 	}
 
-	path, err := makePath(b.path, "scripts", scriptID)
+	path, err := util.BuildPath(b.path, "scripts", scriptID)
 	if err != nil {
 		return "", err
 	}
@@ -77,14 +117,4 @@ func (b *BuildDir) WriteScript(script string) (string, error) {
 	}
 
 	return path, nil
-}
-
-func makePath(parts ...string) (string, error) {
-	fullPath := filepath.Join(parts...)
-
-	if err := paths.EnsureDirExists(filepath.Dir(fullPath)); err != nil {
-		return "", err
-	}
-
-	return fullPath, nil
 }

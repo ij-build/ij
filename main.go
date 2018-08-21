@@ -31,13 +31,21 @@ func run() bool {
 
 	runID, err := util.MakeID()
 	if err != nil {
-		logging.EmergencyLog("error: failed to generate run id: %s", err.Error())
+		logging.EmergencyLog(
+			"error: failed to generate run id: %s",
+			err.Error(),
+		)
+
 		return false
 	}
 
 	buildDir := runtime.NewBuildDir(runID)
 	if err := buildDir.Setup(); err != nil {
-		logging.EmergencyLog("error: failed to create build directory: %s", err.Error())
+		logging.EmergencyLog(
+			"error: failed to create build directory: %s",
+			err.Error(),
+		)
+
 		return false
 	}
 
@@ -45,15 +53,35 @@ func run() bool {
 	processor.Start()
 	defer processor.Shutdown()
 
-	runtime := runtime.NewRuntime(runID, buildDir, processor)
+	runner := runtime.NewRunner(runID, buildDir, processor)
 
-	go watchSignals(runtime)
-	defer runtime.Shutdown()
+	go watchSignals(runner)
+	defer runner.Shutdown()
 
-	return runtime.Run(*configPath, *plans, *env)
+	status := runner.Run(*configPath, *plans, *env)
+
+	if status == runtime.RunStatusSetupFailure {
+		if err := buildDir.Teardown(); err != nil {
+			logging.EmergencyLog(
+				"error: failed to teardown build directory: %s",
+				err.Error(),
+			)
+		}
+
+		return false
+	}
+
+	if err := buildDir.Prune(); err != nil {
+		logging.EmergencyLog(
+			"error: failed to prune build directory: %s",
+			err.Error(),
+		)
+	}
+
+	return status == runtime.RunStatusSuccess
 }
 
-func watchSignals(runtime *runtime.Runtime) {
+func watchSignals(runtime *runtime.Runner) {
 	signals := make(chan os.Signal, 1)
 
 	for _, s := range shutdownSignals {
