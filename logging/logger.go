@@ -33,7 +33,7 @@ func newLogger(processor *processor, outfile, errfile io.Writer, writePrefix boo
 }
 
 func (l *logger) Debug(prefix *Prefix, format string, args ...interface{}) {
-	if !l.processor.verbose {
+	if l == nil || !l.processor.verbose {
 		return
 	}
 
@@ -49,6 +49,10 @@ func (l *logger) Error(prefix *Prefix, format string, args ...interface{}) {
 }
 
 func (l *logger) enqueue(level LogLevel, prefix *Prefix, format string, args []interface{}) {
+	if l == nil {
+		return
+	}
+
 	stream, file := l.getTargets(level)
 
 	l.processor.enqueue(&message{
