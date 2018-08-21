@@ -12,7 +12,7 @@ type (
 	Processor interface {
 		Start()
 		Shutdown()
-		Logger(outfile, errfile io.WriteCloser) Logger
+		Logger(outfile, errfile io.WriteCloser, writePrefix bool) Logger
 	}
 
 	processor struct {
@@ -64,7 +64,7 @@ func (p *processor) Shutdown() {
 	p.handles = p.handles[:0]
 }
 
-func (p *processor) Logger(outfile, errfile io.WriteCloser) Logger {
+func (p *processor) Logger(outfile, errfile io.WriteCloser, writePrefix bool) Logger {
 	p.mutex.Lock()
 	p.handles = append(p.handles, outfile, errfile)
 	p.mutex.Unlock()
@@ -73,6 +73,7 @@ func (p *processor) Logger(outfile, errfile io.WriteCloser) Logger {
 		p,
 		outfile,
 		errfile,
+		writePrefix,
 	)
 }
 
@@ -103,8 +104,9 @@ func (p *processor) process() {
 		)
 
 		fileText := fmt.Sprintf(
-			"%s | %s\n",
+			"%s | %s%s\n",
 			message.timestamp.Format(LongTimestampFormat),
+			p.buildPrefixForFile(message.prefix, message.writePrefix),
 			message.Text(),
 		)
 
@@ -127,4 +129,12 @@ func (p *processor) buildPrefix(prefix *Prefix) string {
 		"%s: ",
 		prefix.Serialize(p.colorPicker),
 	)
+}
+
+func (p *processor) buildPrefixForFile(prefix *Prefix, writePrefix bool) string {
+	if prefix == nil || !writePrefix {
+		return ""
+	}
+
+	return fmt.Sprintf("%s: ", prefix.Serialize(nil))
 }

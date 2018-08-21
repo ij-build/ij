@@ -7,13 +7,14 @@ import (
 )
 
 type message struct {
-	level     LogLevel
-	format    string
-	args      []interface{}
-	timestamp time.Time
-	prefix    *Prefix
-	stream    io.Writer
-	file      io.Writer
+	level       LogLevel
+	format      string
+	args        []interface{}
+	timestamp   time.Time
+	prefix      *Prefix
+	writePrefix bool
+	stream      io.Writer
+	file        io.Writer
 }
 
 func (m *message) Text() string {

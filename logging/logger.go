@@ -16,17 +16,19 @@ type (
 	LogFunc func(prefix *Prefix, format string, args ...interface{})
 
 	logger struct {
-		processor *processor
-		outfile   io.Writer
-		errfile   io.Writer
+		processor   *processor
+		outfile     io.Writer
+		errfile     io.Writer
+		writePrefix bool
 	}
 )
 
-func newLogger(processor *processor, outfile, errfile io.Writer) Logger {
+func newLogger(processor *processor, outfile, errfile io.Writer, writePrefix bool) Logger {
 	return &logger{
-		processor: processor,
-		outfile:   outfile,
-		errfile:   errfile,
+		processor:   processor,
+		outfile:     outfile,
+		errfile:     errfile,
+		writePrefix: writePrefix,
 	}
 }
 
@@ -50,13 +52,14 @@ func (l *logger) enqueue(level LogLevel, prefix *Prefix, format string, args []i
 	stream, file := l.getTargets(level)
 
 	l.processor.enqueue(&message{
-		level:     level,
-		format:    format,
-		args:      args,
-		timestamp: time.Now(),
-		prefix:    prefix,
-		stream:    stream,
-		file:      file,
+		level:       level,
+		format:      format,
+		args:        args,
+		timestamp:   time.Now(),
+		prefix:      prefix,
+		writePrefix: l.writePrefix,
+		stream:      stream,
+		file:        file,
 	})
 }
 

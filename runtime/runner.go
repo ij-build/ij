@@ -144,7 +144,12 @@ func (r *Runner) setupLogger() error {
 		return err
 	}
 
-	r.logger = r.logProcessor.Logger(outfile, errfile)
+	r.logger = r.logProcessor.Logger(
+		outfile,
+		errfile,
+		true,
+	)
+
 	return nil
 }
 
@@ -330,6 +335,7 @@ func (r *Runner) runTask(
 		r.logProcessor.Logger(
 			outfile,
 			errfile,
+			false,
 		),
 	)
 
