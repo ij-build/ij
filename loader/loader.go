@@ -8,12 +8,12 @@ import (
 )
 
 type Loader struct {
-	loaded []string
+	loaded map[string]struct{}
 }
 
 func NewLoader() *Loader {
 	return &Loader{
-		loaded: []string{},
+		loaded: map[string]struct{}{},
 	}
 }
 
@@ -47,16 +47,14 @@ func (l *Loader) resolveParent(config *config.Config) (*config.Config, error) {
 		return config, nil
 	}
 
-	for _, path := range l.loaded {
-		if path == config.Extends {
-			return nil, fmt.Errorf(
-				"failed to extend from %s (extension is cyclic)",
-				config.Extends,
-			)
-		}
+	if _, ok := l.loaded[config.Extends]; ok {
+		return nil, fmt.Errorf(
+			"failed to extend from %s (extension is cyclic)",
+			config.Extends,
+		)
 	}
 
-	l.loaded = append(l.loaded, config.Extends)
+	l.loaded[config.Extends] = struct{}{}
 
 	parent, err := l.Load(config.Extends)
 	if err != nil {

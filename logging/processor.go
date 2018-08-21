@@ -38,7 +38,6 @@ func NewProcessor(verbose, colorize bool) Processor {
 		colorize:    colorize,
 		colorPicker: newColorPicker(colorize),
 		queue:       make(chan *message),
-		handles:     []io.Closer{},
 	}
 }
 
