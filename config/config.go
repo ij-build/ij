@@ -26,6 +26,7 @@ func (c *Config) validateTaskNames() error {
 		if _, ok := c.Tasks[task.Extends]; task.Extends != "" && !ok {
 			return fmt.Errorf(
 				"unknown task name %s referenced in task %s",
+				task.Extends,
 				task.Name,
 			)
 		}
