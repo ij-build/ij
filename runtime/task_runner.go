@@ -186,7 +186,6 @@ func (r *TaskRunner) runInBackground(containerName string, args []string) bool {
 }
 
 func (r *TaskRunner) monitor(containerName string) bool {
-	// TODO - not infinite
 	for {
 		status, err := getHealthStatus(
 			r.state.ctx,
@@ -221,8 +220,7 @@ func (r *TaskRunner) monitor(containerName string) bool {
 		)
 
 		select {
-		// TODO - configure
-		case <-time.After(time.Second):
+		case <-time.After(r.state.healthcheckInterval):
 		case <-r.state.ctx.Done():
 			return false
 		}

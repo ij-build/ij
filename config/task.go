@@ -24,24 +24,24 @@ type (
 
 	Healthcheck struct {
 		Command     string   `json:"command"`
-		Interval    duration `json:"interval"`
+		Interval    Duration `json:"interval"`
 		Retries     int      `json:"retries"`
-		StartPeriod duration `json:"start_period"`
-		Timeout     duration `json:"timeout"`
+		StartPeriod Duration `json:"start_period"`
+		Timeout     Duration `json:"timeout"`
 	}
 
-	duration struct {
+	Duration struct {
 		time.Duration
 	}
 )
 
-var zeroDuration = duration{time.Duration(0)}
+var ZeroDuration = Duration{time.Duration(0)}
 
-func (d duration) MarshalJSON() ([]byte, error) {
+func (d Duration) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.String())
 }
 
-func (d *duration) UnmarshalJSON(data []byte) error {
+func (d *Duration) UnmarshalJSON(data []byte) error {
 	val := ""
 	err := json.Unmarshal(data, &val)
 
@@ -51,7 +51,7 @@ func (d *duration) UnmarshalJSON(data []byte) error {
 			return err
 		}
 
-		*d = duration{parsed}
+		*d = Duration{parsed}
 		return nil
 	}
 

@@ -116,7 +116,7 @@ func mergeHealthcheck(child, parent *Healthcheck) *Healthcheck {
 		child.Command = parent.Command
 	}
 
-	if child.Interval == zeroDuration {
+	if child.Interval == ZeroDuration {
 		child.Interval = parent.Interval
 	}
 
@@ -124,11 +124,11 @@ func mergeHealthcheck(child, parent *Healthcheck) *Healthcheck {
 		child.Retries = parent.Retries
 	}
 
-	if child.StartPeriod == zeroDuration {
+	if child.StartPeriod == ZeroDuration {
 		child.StartPeriod = parent.StartPeriod
 	}
 
-	if child.Timeout == zeroDuration {
+	if child.Timeout == ZeroDuration {
 		child.Timeout = parent.Timeout
 	}
 

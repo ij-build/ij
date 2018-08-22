@@ -3,6 +3,7 @@ package runtime
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/logging"
@@ -14,6 +15,7 @@ type State struct {
 	plans               []string
 	env                 []string
 	forceSequential     bool
+	healthcheckInterval time.Duration
 	cleanup             *Cleanup
 	ctx                 context.Context
 	cancel              func()
@@ -35,17 +37,19 @@ func NewState(
 	verbose bool,
 	colorize bool,
 	forceSequential bool,
+	healthcheckInterval time.Duration,
 ) (s *State, err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	s = &State{
-		config:          config,
-		plans:           plans,
-		env:             env,
-		forceSequential: forceSequential,
-		cleanup:         NewCleanup(),
-		ctx:             ctx,
-		cancel:          cancel,
+		config:              config,
+		plans:               plans,
+		env:                 env,
+		forceSequential:     forceSequential,
+		healthcheckInterval: healthcheckInterval,
+		cleanup:             NewCleanup(),
+		ctx:                 ctx,
+		cancel:              cancel,
 	}
 
 	//

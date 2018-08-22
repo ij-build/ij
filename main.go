@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -18,13 +19,15 @@ import (
 const Version = "0.1.0"
 
 var (
-	app             = kingpin.New("ij", "").Version(Version)
-	plans           = app.Arg("plans", "").Default("default").Strings()
-	configPath      = app.Flag("filename", "").Short('o').String()
-	env             = app.Flag("env", "").Short('e').Strings()
-	verbose         = app.Flag("verbose", "").Short('v').Default("false").Bool()
-	colorize        = app.Flag("color", "").Default("true").Bool()
-	forceSequential = app.Flag("force-sequential", "").Default("false").Bool()
+	app                    = kingpin.New("ij", "").Version(Version)
+	plans                  = app.Arg("plans", "").Default("default").Strings()
+	configPath             = app.Flag("filename", "").Short('f').String()
+	env                    = app.Flag("env", "").Short('e').Strings()
+	verbose                = app.Flag("verbose", "").Short('v').Default("false").Bool()
+	colorize               = app.Flag("color", "").Default("true").Bool()
+	forceSequential        = app.Flag("force-sequential", "").Default("false").Bool()
+	rawHealthcheckInterval = app.Flag("healthcheck-interval", "").Default("5s").String()
+	healthcheckInterval    time.Duration
 
 	defaultConfigPaths = []string{
 		"ij.yaml",
@@ -49,7 +52,11 @@ func run() bool {
 		return false
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(
+		context.Background(),
+		time.Second,
+	)
+
 	defer cancel()
 
 	if !ensureDocker(ctx) {
@@ -64,6 +71,7 @@ func run() bool {
 		*verbose,
 		*colorize,
 		*forceSequential,
+		healthcheckInterval,
 	)
 
 	if err != nil {
@@ -94,6 +102,15 @@ func parseArgs() error {
 		}
 	}
 
+	parsed, err := time.ParseDuration(*rawHealthcheckInterval)
+	if err != nil {
+		return fmt.Errorf(
+			"illegal healthcheck interval '%s'",
+			*rawHealthcheckInterval,
+		)
+	}
+
+	healthcheckInterval = parsed
 	return nil
 }
 
