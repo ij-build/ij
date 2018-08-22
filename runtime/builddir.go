@@ -28,7 +28,7 @@ func (b *BuildDir) Setup() error {
 		return err
 	}
 
-	parent := filepath.Join(pwd, ".build")
+	parent := filepath.Join(pwd, ".ij")
 	path, err := util.BuildPath(parent, b.runID)
 	if err != nil {
 		return err
