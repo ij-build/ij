@@ -75,7 +75,7 @@ func (r *TaskRunner) Run() bool {
 		r.state.runID,
 		containerName,
 		r.state.workspace,
-		r.state.buildDir,
+		r.state.scratch,
 		r.task,
 		r.env,
 	)
@@ -99,7 +99,7 @@ func (r *TaskRunner) Run() bool {
 }
 
 func (r *TaskRunner) runInForeground(containerName string, args []string) bool {
-	outfile, errfile, err := r.state.buildDir.MakeLogFiles(
+	outfile, errfile, err := r.state.scratch.MakeLogFiles(
 		r.prefix.Serialize(nil),
 	)
 

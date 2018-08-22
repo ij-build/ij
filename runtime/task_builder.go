@@ -13,7 +13,7 @@ type TaskBuilder struct {
 	runID         string
 	containerName string
 	workspace     *Workspace
-	buildDir      *BuildDir
+	scratch       *ScratchSpace
 	task          *config.Task
 	env           environment.Environment
 	args          []string
@@ -29,7 +29,7 @@ func NewTaskBuilder(
 	runID string,
 	containerName string,
 	workspace *Workspace,
-	buildDir *BuildDir,
+	scratch *ScratchSpace,
 	task *config.Task,
 	env environment.Environment,
 ) *TaskBuilder {
@@ -37,7 +37,7 @@ func NewTaskBuilder(
 		runID:         runID,
 		containerName: containerName,
 		workspace:     workspace,
-		buildDir:      buildDir,
+		scratch:       scratch,
 		task:          task,
 		env:           env,
 		args:          []string{"docker", "run", "--rm"},
@@ -54,7 +54,7 @@ func (b *TaskBuilder) Build() ([]string, error) {
 	b.addArgs("--network", b.runID)
 	b.addArgs("-v", fmt.Sprintf(
 		"%s:%s",
-		b.workspace.VolumePath,
+		b.scratch.Workspace(),
 		MountPoint,
 	))
 
@@ -100,7 +100,7 @@ func (b *TaskBuilder) buildCommand() ([]string, string, error) {
 		return command, b.task.Entrypoint, nil
 	}
 
-	path, err := b.buildDir.WriteScript(b.task.Script)
+	path, err := b.scratch.WriteScript(b.task.Script)
 	if err != nil {
 		return nil, "", err
 	}

@@ -21,12 +21,11 @@ type State struct {
 	cancel              func()
 	once                sync.Once
 	runID               string
-	buildDir            *BuildDir
+	scratch             *ScratchSpace
 	logProcessor        logging.Processor
 	logger              logging.Logger
 	containerStopper    *ContainerList
 	networkDisconnector *ContainerList
-	workspace           *Workspace
 	network             *Network
 }
 
@@ -67,9 +66,9 @@ func NewState(
 	//
 	// Generate a build directory
 
-	s.buildDir = NewBuildDir(s.runID)
+	s.scratch = NewScratchSpace(s.runID)
 
-	if err = s.buildDir.Setup(); err != nil {
+	if err = s.scratch.Setup(); err != nil {
 		logging.EmergencyLog(
 			"error: failed to create build directory: %s",
 			err.Error(),
@@ -88,7 +87,7 @@ func NewState(
 			return
 		}
 
-		if err := s.buildDir.Teardown(); err != nil {
+		if err := s.scratch.Teardown(); err != nil {
 			logging.EmergencyLog(
 				"error: failed to teardown build directory: %s",
 				err.Error(),
@@ -106,7 +105,7 @@ func NewState(
 	//
 	// Create Base Logger
 
-	outfile, errfile, err := s.buildDir.MakeLogFiles("ij")
+	outfile, errfile, err := s.scratch.MakeLogFiles("ij")
 	if err != nil {
 		logging.EmergencyLog(
 			"error: failed to create log files: %s",
