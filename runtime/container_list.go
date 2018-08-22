@@ -10,39 +10,53 @@ import (
 )
 
 type ContainerList struct {
-	logger      logging.Logger
-	containers  []string
-	mutex       sync.Mutex
 	description string
-	f           func(string)
+	target      func(string)
+	logger      logging.Logger
+	containers  map[string]struct{}
+	mutex       sync.RWMutex
 }
 
 func NewContainerList(
 	description string,
+	target func(string),
 	logger logging.Logger,
-	f func(string),
 ) *ContainerList {
 	return &ContainerList{
 		description: description,
-		f:           f,
+		target:      target,
 		logger:      logger,
+		containers:  map[string]struct{}{},
 	}
 }
 
-func (l *ContainerList) RegisterContainer(containerName string) {
+func (l *ContainerList) Add(containerName string) {
 	l.mutex.Lock()
-	l.containers = append(l.containers, containerName)
+	l.containers[containerName] = struct{}{}
+	l.mutex.Unlock()
+}
+
+func (l *ContainerList) Remove(containerName string) {
+	l.mutex.Lock()
+	delete(l.containers, containerName)
 	l.mutex.Unlock()
 }
 
 func (l *ContainerList) Execute() {
-	if len(l.containers) == 0 {
+	l.mutex.RLock()
+	defer l.mutex.RUnlock()
+
+	names := []string{}
+	for containerName := range l.containers {
+		names = append(names, containerName)
+	}
+
+	if len(names) == 0 {
 		return
 	}
 
 	l.logger.Info(nil, l.description)
-
-	util.RunParallelArgs(l.f, l.containers...)
+	util.RunParallelArgs(l.target, names...)
 }
 
 func NewContainerStopper(logger logging.Logger) *ContainerList {
@@ -83,8 +97,8 @@ func NewContainerStopper(logger logging.Logger) *ContainerList {
 
 	return NewContainerList(
 		"Stopping detached containers",
-		logger,
 		stopper,
+		logger,
 	)
 }
 
@@ -129,7 +143,7 @@ func NewNetworkDisconnector(runID string, logger logging.Logger) *ContainerList 
 
 	return NewContainerList(
 		"Disconnecting containers from network",
-		logger,
 		disconnect,
+		logger,
 	)
 }

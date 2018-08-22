@@ -14,9 +14,9 @@ import (
 
 func Run(
 	ctx context.Context,
-	prefix *logging.Prefix,
 	args []string,
 	logger logging.Logger,
+	prefix *logging.Prefix,
 ) error {
 	return run(
 		ctx,

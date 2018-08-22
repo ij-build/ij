@@ -113,17 +113,20 @@ func (r *TaskRunner) runInForeground(containerName string, args []string) bool {
 		return false
 	}
 
-	r.state.networkDisconnector.RegisterContainer(containerName)
+	logger := r.state.logProcessor.Logger(
+		outfile,
+		errfile,
+		false,
+	)
+
+	r.state.networkDisconnector.Add(containerName)
+	defer r.state.networkDisconnector.Remove(containerName)
 
 	commandErr := command.Run(
 		r.state.ctx,
-		r.prefix,
 		args,
-		r.state.logProcessor.Logger(
-			outfile,
-			errfile,
-			false,
-		),
+		logger,
+		r.prefix,
 	)
 
 	if commandErr != nil {
@@ -140,7 +143,7 @@ func (r *TaskRunner) runInForeground(containerName string, args []string) bool {
 }
 
 func (r *TaskRunner) runInBackground(containerName string, args []string) bool {
-	r.state.containerStopper.RegisterContainer(containerName)
+	r.state.containerStopper.Add(containerName)
 
 	_, _, err := command.RunForOutput(
 		context.Background(),
