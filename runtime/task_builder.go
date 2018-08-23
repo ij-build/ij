@@ -84,17 +84,14 @@ func (b *TaskBuilder) addCommandOptions() error {
 		return err
 	}
 
-	if b.task.Entrypoint != "" {
-		b.addArgs("--entrypoint", b.task.Entrypoint)
-	}
-
+	b.addFlagValue("--entrypoint", b.task.Entrypoint)
 	b.command = command
 	return nil
 }
 
 func (b *TaskBuilder) addDetachOptions() error {
 	if b.task.Detach {
-		b.addArgs("-d")
+		b.addFlag("-d")
 	}
 
 	return nil
@@ -102,60 +99,39 @@ func (b *TaskBuilder) addDetachOptions() error {
 
 func (b *TaskBuilder) addEnvironmentOptions() error {
 	for _, line := range b.env.Serialize() {
-		b.addArgs("-e", line)
+		b.addFlagValue("-e", line)
 	}
 
 	return nil
 }
 
 func (b *TaskBuilder) addHealthCheckOptions() error {
-	healthcheck := b.task.Healthcheck
-	if healthcheck == nil {
+	hc := b.task.Healthcheck
+	if hc == nil {
 		return nil
 	}
 
-	if healthcheck.Command != "" {
-		b.addArgs("--health-cmd", healthcheck.Command)
-	}
+	b.addFlagValue("--health-cmd", hc.Command)
+	b.addFlagValue("--health-interval", hc.Interval.String())
+	b.addFlagValue("--health-start-period", hc.StartPeriod.String())
+	b.addFlagValue("--health-timeout", hc.Timeout.String())
 
-	if healthcheck.Interval.Duration > 0 {
-		b.addArgs("--health-interval", healthcheck.Interval.String())
-	}
-
-	if healthcheck.Retries > 0 {
-		b.addArgs("--health-retries", fmt.Sprintf("%d", healthcheck.Retries))
-	}
-
-	if healthcheck.StartPeriod.Duration > 0 {
-		b.addArgs("--health-start-period", healthcheck.StartPeriod.String())
-	}
-
-	if healthcheck.Timeout.Duration > 0 {
-		b.addArgs("--health-timeout", healthcheck.Timeout.String())
+	if hc.Retries > 0 {
+		b.addFlagValue("--health-retries", fmt.Sprintf("%d", hc.Retries))
 	}
 
 	return nil
 }
 
 func (b *TaskBuilder) addLimitOptions() error {
-	if b.state.cpuShares != "" {
-		b.addArgs("--cpu-shares", b.state.cpuShares)
-	}
-
-	if b.state.memory != "" {
-		b.addArgs("--memory", b.state.memory)
-	}
-
+	b.addFlagValue("--cpu-shares", b.state.cpuShares)
+	b.addFlagValue("--memory", b.state.memory)
 	return nil
 }
 
 func (b *TaskBuilder) addNetworkOptions() error {
-	b.addArgs("--network", b.state.runID)
-
-	if b.task.Hostname != "" {
-		b.addArgs("--network-alias", b.task.Hostname)
-	}
-
+	b.addFlagValue("--network", b.state.runID)
+	b.addFlagValue("--network-alias", b.task.Hostname)
 	return nil
 }
 
@@ -169,18 +145,19 @@ func (b *TaskBuilder) addScriptOptions() error {
 		return err
 	}
 
-	b.addArgs("-v", fmt.Sprintf(
+	mount := fmt.Sprintf(
 		"%s:%s",
 		path,
 		ScriptPath,
-	))
+	)
 
-	if b.task.Shell == "" {
-		b.addArgs("--entrypoint", "/bin/sh")
-	} else {
-		b.addArgs("--entrypoint", b.task.Shell)
+	shell := b.task.Shell
+	if shell == "" {
+		shell = "/bin/sh"
 	}
 
+	b.addFlagValue("-v", mount)
+	b.addFlagValue("--entrypoint", shell)
 	b.command = []string{ScriptPath}
 	return nil
 }
@@ -191,13 +168,9 @@ func (b *TaskBuilder) addUserOptions() error {
 		return err
 	}
 
-	b.addArgs("-e", fmt.Sprintf("UID=%s", user.Uid))
-	b.addArgs("-e", fmt.Sprintf("GID=%s", user.Gid))
-
-	if b.task.User != "" {
-		b.addArgs("--user", b.task.User)
-	}
-
+	b.addFlagValue("--user", b.task.User)
+	b.addFlagValue("-e", fmt.Sprintf("UID=%s", user.Uid))
+	b.addFlagValue("-e", fmt.Sprintf("GID=%s", user.Gid))
 	return nil
 }
 
@@ -207,8 +180,8 @@ func (b *TaskBuilder) addSSHOptions() error {
 	}
 
 	authSock := os.Getenv("SSH_AUTH_SOCK")
-	b.addArgs("-e", "SSH_AUTH_SOCK")
-	b.addArgs("-v", authSock+":"+authSock)
+	b.addFlagValue("-e", "SSH_AUTH_SOCK")
+	b.addFlagValue("-v", authSock+":"+authSock)
 	return nil
 }
 
@@ -218,19 +191,26 @@ func (b *TaskBuilder) addWorkspaceOptions() error {
 		workspacePath = DefaultWorkspacePath
 	}
 
-	b.addArgs("-w", workspacePath)
-	b.addArgs("-v", fmt.Sprintf(
+	mount := fmt.Sprintf(
 		"%s:%s",
 		b.state.scratch.Workspace(),
 		workspacePath,
-	))
+	)
 
+	b.addFlagValue("-v", mount)
+	b.addFlagValue("-w", workspacePath)
 	return nil
 }
 
 //
 // Helpers
 
-func (b *TaskBuilder) addArgs(args ...string) {
-	b.args = append(b.args, args...)
+func (b *TaskBuilder) addFlag(flag string) {
+	b.args = append(b.args, flag)
+}
+
+func (b *TaskBuilder) addFlagValue(flag, value string) {
+	if value != "" {
+		b.args = append(b.args, flag, value)
+	}
 }
