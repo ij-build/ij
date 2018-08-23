@@ -12,11 +12,12 @@ import (
 )
 
 type TaskBuilder struct {
-	state   *State
-	task    *config.Task
-	env     environment.Environment
-	args    []string
-	command []string
+	state         *State
+	task          *config.Task
+	containerName string
+	env           environment.Environment
+	args          []string
+	command       []string
 }
 
 const (
@@ -26,31 +27,29 @@ const (
 
 func NewTaskBuilder(
 	state *State,
-	containerName string,
 	task *config.Task,
+	containerName string,
 	env environment.Environment,
 ) *TaskBuilder {
 	args := []string{
 		"docker",
 		"run",
 		"--rm",
-		"--name",
-		containerName,
 	}
 
 	return &TaskBuilder{
-		state: state,
-		task:  task,
-		env:   env,
-		args:  args,
+		state:         state,
+		task:          task,
+		containerName: containerName,
+		env:           env,
+		args:          args,
 	}
 }
-
-// TODO - map environment
 
 func (b *TaskBuilder) Build() ([]string, error) {
 	builders := []func() error{
 		b.addCommandOptions,
+		b.addContainerName,
 		b.addDetachOptions,
 		b.addEnvironmentOptions,
 		b.addHealthCheckOptions,
@@ -68,7 +67,12 @@ func (b *TaskBuilder) Build() ([]string, error) {
 		}
 	}
 
-	return append(append(b.args, b.task.Image), b.command...), nil
+	image, err := b.env.ExpandString(b.task.Image)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(append(b.args, image), b.command...), nil
 }
 
 //
@@ -79,13 +83,33 @@ func (b *TaskBuilder) addCommandOptions() error {
 		return nil
 	}
 
-	command, err := shellquote.Split(b.task.Command)
+	command, err := b.env.ExpandString(b.task.Command)
 	if err != nil {
 		return err
 	}
 
-	b.addFlagValue("--entrypoint", b.task.Entrypoint)
-	b.command = command
+	entrypoint, err := b.env.ExpandString(b.task.Entrypoint)
+	if err != nil {
+		return err
+	}
+
+	commandArgs, err := shellquote.Split(command)
+	if err != nil {
+		return err
+	}
+
+	b.addFlagValue("--entrypoint", entrypoint)
+	b.command = commandArgs
+	return nil
+}
+
+func (b *TaskBuilder) addContainerName() error {
+	containerName, err := b.env.ExpandString(b.containerName)
+	if err != nil {
+		return err
+	}
+
+	b.addFlagValue("--name", containerName)
 	return nil
 }
 
@@ -99,7 +123,12 @@ func (b *TaskBuilder) addDetachOptions() error {
 
 func (b *TaskBuilder) addEnvironmentOptions() error {
 	for _, line := range b.env.Serialize() {
-		b.addFlagValue("-e", line)
+		expanded, err := b.env.ExpandString(line)
+		if err != nil {
+			return err
+		}
+
+		b.addFlagValue("-e", expanded)
 	}
 
 	return nil
@@ -111,7 +140,12 @@ func (b *TaskBuilder) addHealthCheckOptions() error {
 		return nil
 	}
 
-	b.addFlagValue("--health-cmd", hc.Command)
+	command, err := b.env.ExpandString(hc.Command)
+	if err != nil {
+		return err
+	}
+
+	b.addFlagValue("--health-cmd", command)
 	b.addFlagValue("--health-interval", hc.Interval.String())
 	b.addFlagValue("--health-start-period", hc.StartPeriod.String())
 	b.addFlagValue("--health-timeout", hc.Timeout.String())
@@ -130,8 +164,13 @@ func (b *TaskBuilder) addLimitOptions() error {
 }
 
 func (b *TaskBuilder) addNetworkOptions() error {
+	hostname, err := b.env.ExpandString(b.task.Hostname)
+	if err != nil {
+		return err
+	}
+
 	b.addFlagValue("--network", b.state.runID)
-	b.addFlagValue("--network-alias", b.task.Hostname)
+	b.addFlagValue("--network-alias", hostname)
 	return nil
 }
 
@@ -140,7 +179,12 @@ func (b *TaskBuilder) addScriptOptions() error {
 		return nil
 	}
 
-	path, err := b.state.scratch.WriteScript(b.task.Script)
+	script, err := b.env.ExpandString(b.task.Script)
+	if err != nil {
+		return err
+	}
+
+	path, err := b.state.scratch.WriteScript(script)
 	if err != nil {
 		return err
 	}
@@ -151,7 +195,11 @@ func (b *TaskBuilder) addScriptOptions() error {
 		ScriptPath,
 	)
 
-	shell := b.task.Shell
+	shell, err := b.env.ExpandString(b.task.Shell)
+	if err != nil {
+		return err
+	}
+
 	if shell == "" {
 		shell = "/bin/sh"
 	}
@@ -168,7 +216,12 @@ func (b *TaskBuilder) addUserOptions() error {
 		return err
 	}
 
-	b.addFlagValue("--user", b.task.User)
+	username, err := b.env.ExpandString(b.task.User)
+	if err != nil {
+		return err
+	}
+
+	b.addFlagValue("--user", username)
 	b.addFlagValue("-e", fmt.Sprintf("UID=%s", user.Uid))
 	b.addFlagValue("-e", fmt.Sprintf("GID=%s", user.Gid))
 	return nil
@@ -186,7 +239,11 @@ func (b *TaskBuilder) addSSHOptions() error {
 }
 
 func (b *TaskBuilder) addWorkspaceOptions() error {
-	workspacePath := b.task.WorkspacePath
+	workspacePath, err := b.env.ExpandString(b.task.WorkspacePath)
+	if err != nil {
+		return err
+	}
+
 	if workspacePath == "" {
 		workspacePath = DefaultWorkspacePath
 	}
