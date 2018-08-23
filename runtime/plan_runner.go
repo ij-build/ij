@@ -35,7 +35,7 @@ func (r *PlanRunner) Run() bool {
 	go r.watchSignals()
 	defer r.state.cleanup.Cleanup()
 
-	importer, err := paths.NewImporter(
+	transferer, err := paths.NewTransferer(
 		r.state.scratch.Project(),
 		r.state.scratch.Scratch(),
 		r.state.scratch.Workspace(),
@@ -53,7 +53,7 @@ func (r *PlanRunner) Run() bool {
 		return false
 	}
 
-	if err := importer.Import(r.state.config.Imports); err != nil {
+	if err := transferer.Import(r.state.config.Imports); err != nil {
 		r.state.logger.Error(
 			nil,
 			"Failed to import files to workspace: %s",
@@ -81,7 +81,7 @@ func (r *PlanRunner) Run() bool {
 		)
 	}
 
-	if err := importer.Export(r.state.config.Exports); err != nil {
+	if err := transferer.Export(r.state.config.Exports); err != nil {
 		r.state.logger.Error(
 			nil,
 			"Failed to export files from workspace: %s",

@@ -11,8 +11,8 @@ func constructBlacklist(project string, patterns []string) (map[string]struct{},
 		allPatterns = append(DefaultBlacklist, patterns...)
 	)
 
-	err := runOnPatterns(allPatterns, project, func(path string) error {
-		blacklist[path] = struct{}{}
+	err := runOnPatterns(allPatterns, project, false, func(pair filePair) error {
+		blacklist[pair.src] = struct{}{}
 		return nil
 	})
 

@@ -8,7 +8,7 @@ import (
 	"github.com/efritz/ij/logging"
 )
 
-type Importer struct {
+type Transferer struct {
 	project      string
 	scratch      string
 	workspace    string
@@ -16,19 +16,19 @@ type Importer struct {
 	exportCopier *Copier
 }
 
-func NewImporter(
+func NewTransferer(
 	project string,
 	scratch string,
 	workspace string,
 	blacklistPatterns []string,
 	logger logging.Logger,
-) (*Importer, error) {
+) (*Transferer, error) {
 	blacklist, err := constructBlacklist(project, blacklistPatterns)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Importer{
+	return &Transferer{
 		project:      project,
 		scratch:      scratch,
 		workspace:    workspace,
@@ -37,49 +37,50 @@ func NewImporter(
 	}, nil
 }
 
-// TODO - import to specific dest
-// TODO - export to specific dest
-
-func (i *Importer) Import(patterns []string) error {
-	return runOnPatterns(patterns, "", i.importPath)
+func (t *Transferer) Import(patterns []string) error {
+	return runOnPatterns(patterns, "", true, t.importPath)
 }
 
-func (i *Importer) Export(patterns []string) error {
-	return runOnPatterns(patterns, i.workspace, i.exportPath)
+func (t *Transferer) Export(patterns []string) error {
+	return runOnPatterns(patterns, t.workspace, true, t.exportPath)
 }
 
-func (i *Importer) importPath(path string) error {
-	return i.transferPath(
-		path,
+func (t *Transferer) importPath(pair filePair) error {
+	return t.transferPath(
+		pair.src,
+		pair.dest,
 		"import",
-		i.project,
-		i.workspace,
-		i.importCopier,
+		t.project,
+		t.workspace,
+		t.importCopier,
 	)
 }
 
-func (i *Importer) exportPath(path string) error {
-	return i.transferPath(
-		path,
+func (t *Transferer) exportPath(pair filePair) error {
+	return t.transferPath(
+		pair.src,
+		pair.dest,
 		"export",
-		i.workspace,
-		i.project,
-		i.exportCopier,
+		t.workspace,
+		t.project,
+		t.exportCopier,
 	)
 }
 
-func (i *Importer) transferPath(
-	path string,
+func (t *Transferer) transferPath(
+	rawSrc string,
+	rawDest string,
 	transferType string,
 	srcRoot string,
 	destRoot string,
 	copier *Copier,
 ) error {
-	src, err := filepath.Abs(path)
+	src, err := filepath.Abs(rawSrc)
 	if err != nil {
 		return fmt.Errorf(
-			"failed to normalize %s path: %s",
+			"failed to normalize %s path %s: %s",
 			transferType,
+			rawSrc,
 			err.Error(),
 		)
 	}
@@ -92,17 +93,17 @@ func (i *Importer) transferPath(
 		)
 	}
 
-	if strings.HasPrefix(path, srcRoot) {
-		path = path[len(srcRoot):]
+	if strings.HasPrefix(rawDest, srcRoot) {
+		rawDest = rawDest[len(srcRoot):]
 	}
 
-	dest := filepath.Join(destRoot, path)
+	dest := filepath.Join(destRoot, rawDest)
 
 	if err := copier.Copy(src, dest); err != nil {
 		return fmt.Errorf(
 			"failed to %s path %s: %s",
 			transferType,
-			path,
+			rawSrc,
 			err.Error(),
 		)
 	}
