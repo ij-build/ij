@@ -74,7 +74,6 @@ func (r *TaskRunner) Run() bool {
 	builder := NewTaskBuilder(
 		r.state.runID,
 		containerName,
-		r.state.workspace,
 		r.state.scratch,
 		r.task,
 		r.env,

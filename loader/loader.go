@@ -32,6 +32,10 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 		return nil, err
 	}
 
+	if err := unmarshalFileList(config); err != nil {
+		return nil, err
+	}
+
 	if err := unmarshalStageTasks(config); err != nil {
 		return nil, err
 	}

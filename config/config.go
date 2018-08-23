@@ -1,12 +1,22 @@
 package config
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type Config struct {
 	Extends     string           `json:"extends"`
 	Environment []string         `json:"environment"`
 	Tasks       map[string]*Task `json:"tasks"`
 	Plans       map[string]*Plan `json:"plans"`
+	RawImports  json.RawMessage  `json:"import"`
+	RawExports  json.RawMessage  `json:"export"`
+	RawExcludes json.RawMessage  `json:"exclude"`
+
+	Imports  []string
+	Exports  []string
+	Excludes []string
 }
 
 func (c *Config) Validate() error {

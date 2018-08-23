@@ -1,21 +1,10 @@
-package util
+package paths
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
 )
-
-func Dirnames(dirname string) ([]string, error) {
-	dir, err := os.Open(dirname)
-	if err != nil {
-		return nil, err
-	}
-
-	defer dir.Close()
-
-	return dir.Readdirnames(0)
-}
 
 func FileExists(path string) (bool, error) {
 	info, err := os.Stat(path)
@@ -51,7 +40,7 @@ func DirExists(path string) (bool, error) {
 	return true, nil
 }
 
-func EnsureDirExists(dirname string) error {
+func EnsureDirExists(dirname string, mode os.FileMode) error {
 	exists, err := DirExists(dirname)
 	if err != nil {
 		return err
@@ -61,15 +50,9 @@ func EnsureDirExists(dirname string) error {
 		return nil
 	}
 
-	return os.MkdirAll(dirname, os.ModeDir|os.ModePerm)
+	return os.MkdirAll(dirname, mode|os.ModeDir)
 }
 
-func BuildPath(parts ...string) (string, error) {
-	fullPath := filepath.Join(parts...)
-
-	if err := EnsureDirExists(filepath.Dir(fullPath)); err != nil {
-		return "", err
-	}
-
-	return fullPath, nil
+func EnsureParentExists(path string, mode os.FileMode) error {
+	return EnsureDirExists(filepath.Dir(path), mode)
 }

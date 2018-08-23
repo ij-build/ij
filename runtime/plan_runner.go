@@ -7,6 +7,7 @@ import (
 
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/logging"
+	"github.com/efritz/ij/paths"
 )
 
 type PlanRunner struct {
@@ -34,6 +35,34 @@ func (r *PlanRunner) Run() bool {
 	go r.watchSignals()
 	defer r.state.cleanup.Cleanup()
 
+	importer, err := paths.NewImporter(
+		r.state.scratch.Project(),
+		r.state.scratch.Scratch(),
+		r.state.scratch.Workspace(),
+		r.state.config.Excludes,
+		r.state.logger,
+	)
+
+	if err != nil {
+		r.state.logger.Error(
+			nil,
+			"Failed to prepare file import blacklist: %s",
+			err.Error(),
+		)
+
+		return false
+	}
+
+	if err := importer.Import(r.state.config.Imports); err != nil {
+		r.state.logger.Error(
+			nil,
+			"Failed to import files to workspace: %s",
+			err.Error(),
+		)
+
+		return false
+	}
+
 	for _, name := range r.state.plans {
 		prefix := logging.NewPrefix(name)
 
@@ -50,6 +79,16 @@ func (r *PlanRunner) Run() bool {
 			prefix,
 			"Plan completed successfully",
 		)
+	}
+
+	if err := importer.Export(r.state.config.Exports); err != nil {
+		r.state.logger.Error(
+			nil,
+			"Failed to export files from workspace: %s",
+			err.Error(),
+		)
+
+		return false
 	}
 
 	return true

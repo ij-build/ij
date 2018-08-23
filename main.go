@@ -12,8 +12,8 @@ import (
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/loader"
 	"github.com/efritz/ij/logging"
+	"github.com/efritz/ij/paths"
 	"github.com/efritz/ij/runtime"
-	"github.com/efritz/ij/util"
 )
 
 const Version = "0.1.0"
@@ -90,7 +90,7 @@ func parseArgs() error {
 
 	if *configPath == "" {
 		for _, path := range defaultConfigPaths {
-			ok, err := util.FileExists(path)
+			ok, err := paths.FileExists(path)
 			if err != nil {
 				return err
 			}

@@ -137,21 +137,6 @@ func NewState(
 	s.cleanup.Register(s.networkDisconnector.Execute)
 
 	//
-	// Create Workspace
-
-	if s.workspace, err = NewWorkspace(s.ctx, s.runID, s.logger); err != nil {
-		s.ReportError(
-			nil,
-			"error: failed to create workspace volume: %s",
-			err.Error(),
-		)
-
-		return
-	}
-
-	s.cleanup.Register(s.workspace.Teardown)
-
-	//
 	// Create Network
 
 	if s.network, err = NewNetwork(s.ctx, s.runID, s.logger); err != nil {

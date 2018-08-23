@@ -12,7 +12,6 @@ import (
 type TaskBuilder struct {
 	runID         string
 	containerName string
-	workspace     *Workspace
 	scratch       *ScratchSpace
 	task          *config.Task
 	env           environment.Environment
@@ -28,7 +27,6 @@ const (
 func NewTaskBuilder(
 	runID string,
 	containerName string,
-	workspace *Workspace,
 	scratch *ScratchSpace,
 	task *config.Task,
 	env environment.Environment,
@@ -36,7 +34,6 @@ func NewTaskBuilder(
 	return &TaskBuilder{
 		runID:         runID,
 		containerName: containerName,
-		workspace:     workspace,
 		scratch:       scratch,
 		task:          task,
 		env:           env,

@@ -123,6 +123,27 @@ properties:
     minLength: 1
   environment:
     $ref: '#/definitions/environment'
+  import:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+  export:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+  exclude:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
   tasks:
     description: TODO
     type: object
