@@ -20,9 +20,8 @@ type TaskBuilder struct {
 }
 
 const (
-	// TODO - configure
-	MountPoint  = "/workspace"
-	ScriptMount = "/workspace/script"
+	DefaultWorkspacePath = "/workspace"
+	ScriptPath           = "/tmp/ij/script"
 )
 
 func NewTaskBuilder(
@@ -173,7 +172,7 @@ func (b *TaskBuilder) addScriptOptions() error {
 	b.addArgs("-v", fmt.Sprintf(
 		"%s:%s",
 		path,
-		ScriptMount,
+		ScriptPath,
 	))
 
 	if b.task.Shell == "" {
@@ -182,7 +181,7 @@ func (b *TaskBuilder) addScriptOptions() error {
 		b.addArgs("--entrypoint", b.task.Shell)
 	}
 
-	b.command = []string{ScriptMount}
+	b.command = []string{ScriptPath}
 	return nil
 }
 
@@ -214,11 +213,16 @@ func (b *TaskBuilder) addSSHOptions() error {
 }
 
 func (b *TaskBuilder) addWorkspaceOptions() error {
-	b.addArgs("-w", MountPoint)
+	workspacePath := b.task.WorkspacePath
+	if workspacePath == "" {
+		workspacePath = DefaultWorkspacePath
+	}
+
+	b.addArgs("-w", workspacePath)
 	b.addArgs("-v", fmt.Sprintf(
 		"%s:%s",
 		b.state.scratch.Workspace(),
-		MountPoint,
+		workspacePath,
 	))
 
 	return nil

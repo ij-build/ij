@@ -32,6 +32,9 @@ definitions:
       user:
         description: TODO
         type: string
+      workspace:
+        description: TODO
+        type: string
       hostname:
         description: TODO
         type: string
