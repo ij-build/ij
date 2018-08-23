@@ -11,23 +11,6 @@ func (e Environment) ExpandString(template string) (string, error) {
 	return e.expandString(template, ExpandMaxIterations)
 }
 
-func (e Environment) ExpandSlice(templates []string) ([]string, error) {
-	expanded := []string{}
-	for _, template := range templates {
-		val, err := e.ExpandString(template)
-		if err != nil {
-			return nil, err
-		}
-
-		expanded = append(expanded, val)
-	}
-
-	return expanded, nil
-}
-
-//
-//
-
 func (e Environment) expandString(template string, count int) (string, error) {
 	if count == 0 {
 		return "", fmt.Errorf(
