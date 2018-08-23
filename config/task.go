@@ -39,6 +39,14 @@ type (
 
 var ZeroDuration = Duration{time.Duration(0)}
 
+func (d Duration) String() string {
+	if d.Duration == 0 {
+		return ""
+	}
+
+	return d.Duration.String()
+}
+
 func (d Duration) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.String())
 }
