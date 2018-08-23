@@ -7,11 +7,6 @@ import (
 
 const ExpandMaxIterations = 50
 
-var ErrExpandLoop = fmt.Errorf(
-	"exceeded %d iterations while expanding environment",
-	ExpandMaxIterations,
-)
-
 func (e Environment) ExpandString(template string) (string, error) {
 	return e.expandString(template, ExpandMaxIterations)
 }
@@ -35,7 +30,11 @@ func (e Environment) ExpandSlice(templates []string) ([]string, error) {
 
 func (e Environment) expandString(template string, count int) (string, error) {
 	if count == 0 {
-		return "", ErrExpandLoop
+		return "", fmt.Errorf(
+			"exceeded %d iterations while expanding environment: current template is `%s`",
+			ExpandMaxIterations,
+			template,
+		)
 	}
 
 	if expanded := os.Expand(template, e.translate); expanded != template {
