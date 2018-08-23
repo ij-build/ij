@@ -15,10 +15,10 @@ type State struct {
 	plans               []string
 	env                 []string
 	forceSequential     bool
+	enableSSHAgent      bool
 	healthcheckInterval time.Duration
 	cpuShares           string
 	memory              string
-	sshIdentities       []string
 	cleanup             *Cleanup
 	ctx                 context.Context
 	cancel              func()
@@ -39,10 +39,10 @@ func NewState(
 	verbose bool,
 	colorize bool,
 	forceSequential bool,
+	enableSSHAgent bool,
 	healthcheckInterval time.Duration,
 	cpuShares string,
 	memory string,
-	sshIdentities []string,
 	planTimeout time.Duration,
 ) (s *State, err error) {
 	ctx, cancel := makeContext(planTimeout)
@@ -52,10 +52,10 @@ func NewState(
 		plans:               plans,
 		env:                 env,
 		forceSequential:     forceSequential,
+		enableSSHAgent:      enableSSHAgent,
 		healthcheckInterval: healthcheckInterval,
 		cpuShares:           cpuShares,
 		memory:              memory,
-		sshIdentities:       sshIdentities,
 		cleanup:             NewCleanup(),
 		ctx:                 ctx,
 		cancel:              cancel,

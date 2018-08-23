@@ -13,6 +13,7 @@ import (
 	"github.com/efritz/ij/logging"
 	"github.com/efritz/ij/paths"
 	"github.com/efritz/ij/runtime"
+	"github.com/efritz/ij/ssh"
 )
 
 const Version = "0.1.0"
@@ -67,6 +68,16 @@ func run() bool {
 		return false
 	}
 
+	enableAgent, err := ssh.EnureKeysAvailable(*sshIdentities)
+	if err != nil {
+		logging.EmergencyLog(
+			"error: failed to validate ssh keys: %s",
+			err.Error(),
+		)
+
+		return false
+	}
+
 	state, err := runtime.NewState(
 		config,
 		*plans,
@@ -74,10 +85,10 @@ func run() bool {
 		*verbose,
 		*colorize,
 		*forceSequential,
+		enableAgent,
 		*healthcheckInterval,
 		*cpuShares,
 		*memory,
-		*sshIdentities,
 		*planTimeout,
 	)
 

@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"fmt"
+	"os"
 	"os/user"
 
 	"github.com/kballard/go-shellquote"
@@ -202,7 +203,13 @@ func (b *TaskBuilder) addUserOptions() error {
 }
 
 func (b *TaskBuilder) addSSHOptions() error {
-	// TODO - implement
+	if !b.state.enableSSHAgent {
+		return nil
+	}
+
+	authSock := os.Getenv("SSH_AUTH_SOCK")
+	b.addArgs("-e", "SSH_AUTH_SOCK")
+	b.addArgs("-v", authSock+":"+authSock)
 	return nil
 }
 
