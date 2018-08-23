@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"fmt"
+	"os/user"
 
 	"github.com/kballard/go-shellquote"
 
@@ -10,12 +11,11 @@ import (
 )
 
 type TaskBuilder struct {
-	runID         string
-	containerName string
-	scratch       *ScratchSpace
-	task          *config.Task
-	env           environment.Environment
-	args          []string
+	state   *State
+	task    *config.Task
+	env     environment.Environment
+	args    []string
+	command []string
 }
 
 const (
@@ -25,104 +25,93 @@ const (
 )
 
 func NewTaskBuilder(
-	runID string,
+	state *State,
 	containerName string,
-	scratch *ScratchSpace,
 	task *config.Task,
 	env environment.Environment,
 ) *TaskBuilder {
+	args := []string{
+		"docker",
+		"run",
+		"--rm",
+		"--name",
+		containerName,
+	}
+
 	return &TaskBuilder{
-		runID:         runID,
-		containerName: containerName,
-		scratch:       scratch,
-		task:          task,
-		env:           env,
-		args:          []string{"docker", "run", "--rm"},
+		state: state,
+		task:  task,
+		env:   env,
+		args:  args,
 	}
 }
 
-//
-// TODO - need to map environment as well
-//
+// TODO - map environment
 
 func (b *TaskBuilder) Build() ([]string, error) {
-	b.addArgs("--name", b.containerName)
-	b.addArgs("-w", MountPoint)
-	b.addArgs("--network", b.runID)
-	b.addArgs("-v", fmt.Sprintf(
-		"%s:%s",
-		b.scratch.Workspace(),
-		MountPoint,
-	))
-
-	if b.task.Hostname != "" {
-		b.addArgs("--network-alias", b.task.Hostname)
+	builders := []func() error{
+		b.addCommandOptions,
+		b.addDetachOptions,
+		b.addEnvironmentOptions,
+		b.addHealthCheckOptions,
+		b.addLimitOptions,
+		b.addNetworkOptions,
+		b.addScriptOptions,
+		b.addSSHOptions,
+		b.addUserOptions,
+		b.addWorkspaceOptions,
 	}
 
-	for _, line := range b.env.Serialize() {
-		b.addArgs("-e", line)
+	for _, builder := range builders {
+		if err := builder(); err != nil {
+			return nil, err
+		}
 	}
 
-	// TODO - cpu shares
-	// TODO - memory
-	// TODO - UID/GID/user
+	return append(append(b.args, b.task.Image), b.command...), nil
+}
 
-	command, entrypoint, err := b.buildCommand()
+//
+// Builders
+
+func (b *TaskBuilder) addCommandOptions() error {
+	if b.task.Script != "" {
+		return nil
+	}
+
+	command, err := shellquote.Split(b.task.Command)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if entrypoint != "" {
-		b.addArgs("--entrypoint", entrypoint)
+	if b.task.Entrypoint != "" {
+		b.addArgs("--entrypoint", b.task.Entrypoint)
 	}
 
+	b.command = command
+	return nil
+}
+
+func (b *TaskBuilder) addDetachOptions() error {
 	if b.task.Detach {
 		b.addArgs("-d")
 	}
 
-	b.buildHealthCheck()
-	b.addArgs(b.task.Image)
-	b.addArgs(command...)
-
-	return b.args, nil
+	return nil
 }
 
-func (b *TaskBuilder) buildCommand() ([]string, string, error) {
-	if b.task.Script == "" {
-		command, err := shellquote.Split(b.task.Command)
-		if err != nil {
-			return nil, "", err
-		}
-
-		return command, b.task.Entrypoint, nil
+func (b *TaskBuilder) addEnvironmentOptions() error {
+	for _, line := range b.env.Serialize() {
+		b.addArgs("-e", line)
 	}
 
-	path, err := b.scratch.WriteScript(b.task.Script)
-	if err != nil {
-		return nil, "", err
-	}
-
-	b.addArgs("-v", fmt.Sprintf(
-		"%s:%s",
-		path,
-		ScriptMount,
-	))
-
-	return []string{ScriptMount}, b.getShell(), nil
+	return nil
 }
 
-func (b *TaskBuilder) getShell() string {
-	if b.task.Shell == "" {
-		return "/bin/sh"
-	}
-
-	return b.task.Shell
-}
-
-func (b *TaskBuilder) buildHealthCheck() {
+func (b *TaskBuilder) addHealthCheckOptions() error {
 	healthcheck := b.task.Healthcheck
 	if healthcheck == nil {
-		return
+		return nil
 	}
 
 	if healthcheck.Command != "" {
@@ -144,7 +133,92 @@ func (b *TaskBuilder) buildHealthCheck() {
 	if healthcheck.Timeout.Duration > 0 {
 		b.addArgs("--health-timeout", healthcheck.Timeout.String())
 	}
+
+	return nil
 }
+
+func (b *TaskBuilder) addLimitOptions() error {
+	if b.state.cpuShares != "" {
+		b.addArgs("--cpu-shares", b.state.cpuShares)
+	}
+
+	if b.state.memory != "" {
+		b.addArgs("--memory", b.state.memory)
+	}
+
+	return nil
+}
+
+func (b *TaskBuilder) addNetworkOptions() error {
+	b.addArgs("--network", b.state.runID)
+
+	if b.task.Hostname != "" {
+		b.addArgs("--network-alias", b.task.Hostname)
+	}
+
+	return nil
+}
+
+func (b *TaskBuilder) addScriptOptions() error {
+	if b.task.Script == "" {
+		return nil
+	}
+
+	path, err := b.state.scratch.WriteScript(b.task.Script)
+	if err != nil {
+		return err
+	}
+
+	b.addArgs("-v", fmt.Sprintf(
+		"%s:%s",
+		path,
+		ScriptMount,
+	))
+
+	if b.task.Shell == "" {
+		b.addArgs("--entrypoint", "/bin/sh")
+	} else {
+		b.addArgs("--entrypoint", b.task.Shell)
+	}
+
+	b.command = []string{ScriptMount}
+	return nil
+}
+
+func (b *TaskBuilder) addUserOptions() error {
+	user, err := user.Current()
+	if err != nil {
+		return err
+	}
+
+	b.addArgs("-e", fmt.Sprintf("UID=%s", user.Uid))
+	b.addArgs("-e", fmt.Sprintf("GID=%s", user.Gid))
+
+	if b.task.User != "" {
+		b.addArgs("--user", b.task.User)
+	}
+
+	return nil
+}
+
+func (b *TaskBuilder) addSSHOptions() error {
+	// TODO - implement
+	return nil
+}
+
+func (b *TaskBuilder) addWorkspaceOptions() error {
+	b.addArgs("-w", MountPoint)
+	b.addArgs("-v", fmt.Sprintf(
+		"%s:%s",
+		b.state.scratch.Workspace(),
+		MountPoint,
+	))
+
+	return nil
+}
+
+//
+// Helpers
 
 func (b *TaskBuilder) addArgs(args ...string) {
 	b.args = append(b.args, args...)

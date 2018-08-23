@@ -16,6 +16,9 @@ type State struct {
 	env                 []string
 	forceSequential     bool
 	healthcheckInterval time.Duration
+	cpuShares           string
+	memory              string
+	sshIdentities       []string
 	cleanup             *Cleanup
 	ctx                 context.Context
 	cancel              func()
@@ -37,8 +40,12 @@ func NewState(
 	colorize bool,
 	forceSequential bool,
 	healthcheckInterval time.Duration,
+	cpuShares string,
+	memory string,
+	sshIdentities []string,
+	planTimeout time.Duration,
 ) (s *State, err error) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := makeContext(planTimeout)
 
 	s = &State{
 		config:              config,
@@ -46,6 +53,9 @@ func NewState(
 		env:                 env,
 		forceSequential:     forceSequential,
 		healthcheckInterval: healthcheckInterval,
+		cpuShares:           cpuShares,
+		memory:              memory,
+		sshIdentities:       sshIdentities,
 		cleanup:             NewCleanup(),
 		ctx:                 ctx,
 		cancel:              cancel,
@@ -165,4 +175,12 @@ func (s *State) ReportError(
 	}
 
 	s.logger.Error(prefix, format, args...)
+}
+
+func makeContext(timeout time.Duration) (context.Context, func()) {
+	if timeout == 0 {
+		return context.WithCancel(context.Background())
+	}
+
+	return context.WithTimeout(context.Background(), timeout)
 }

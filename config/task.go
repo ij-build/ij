@@ -15,6 +15,7 @@ type (
 		Shell               string       `json:"shell"`
 		Script              string       `json:"script"`
 		Entrypoint          string       `json:"entrypoint"`
+		User                string       `json:"user"`
 		Hostname            string       `json:"hostname"`
 		Detach              bool         `json:"detach"`
 		Healthcheck         *Healthcheck `json:"healthcheck"`

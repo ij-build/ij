@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"time"
 
@@ -19,15 +18,19 @@ import (
 const Version = "0.1.0"
 
 var (
-	app                    = kingpin.New("ij", "").Version(Version)
-	plans                  = app.Arg("plans", "").Default("default").Strings()
-	configPath             = app.Flag("filename", "").Short('f').String()
-	env                    = app.Flag("env", "").Short('e').Strings()
-	verbose                = app.Flag("verbose", "").Short('v').Default("false").Bool()
-	colorize               = app.Flag("color", "").Default("true").Bool()
-	forceSequential        = app.Flag("force-sequential", "").Default("false").Bool()
-	rawHealthcheckInterval = app.Flag("healthcheck-interval", "").Default("5s").String()
-	healthcheckInterval    time.Duration
+	app = kingpin.New("ij", "ij is a build tool built with Docker.").Version(Version)
+
+	plans               = app.Arg("plans", "The name of the plans to execute.").Default("default").Strings()
+	configPath          = app.Flag("config", "The path to the config file.").Short('f').String()
+	env                 = app.Flag("env", "Environment variables.").Short('e').Strings()
+	verbose             = app.Flag("verbose", "Output debug logs.").Short('v').Default("false").Bool()
+	colorize            = app.Flag("color", "Enable colorized output.").Default("true").Bool()
+	forceSequential     = app.Flag("force-sequential", "Disable parallel execution.").Default("false").Bool()
+	healthcheckInterval = app.Flag("healthcheck-interval", "The interval between service container healthchecks.").Default("5s").Duration()
+	cpuShares           = app.Flag("cpu-shares", "The amount of cpu shares to give to each container.").Short('c').String()
+	memory              = app.Flag("memory", "The amount of memory to give each container.").Short('m').String()
+	sshIdentities       = app.Flag("ssh-identity", "Enable ssh-agent for the given identities.").Strings()
+	planTimeout         = app.Flag("timeout", "Maximum amount of time a plan can run. 0 to disable.").Default("15m").Duration()
 
 	defaultConfigPaths = []string{
 		"ij.yaml",
@@ -71,7 +74,11 @@ func run() bool {
 		*verbose,
 		*colorize,
 		*forceSequential,
-		healthcheckInterval,
+		*healthcheckInterval,
+		*cpuShares,
+		*memory,
+		*sshIdentities,
+		*planTimeout,
 	)
 
 	if err != nil {
@@ -102,15 +109,6 @@ func parseArgs() error {
 		}
 	}
 
-	parsed, err := time.ParseDuration(*rawHealthcheckInterval)
-	if err != nil {
-		return fmt.Errorf(
-			"illegal healthcheck interval '%s'",
-			*rawHealthcheckInterval,
-		)
-	}
-
-	healthcheckInterval = parsed
 	return nil
 }
 

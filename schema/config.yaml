@@ -29,6 +29,9 @@ definitions:
       entrypoint:
         description: TODO
         type: string
+      user:
+        description: TODO
+        type: string
       hostname:
         description: TODO
         type: string
