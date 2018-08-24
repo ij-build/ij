@@ -25,6 +25,16 @@ func unmarshalFileList(config *config.Config) error {
 	config.Imports = imports
 	config.Exports = exports
 	config.Excludes = excludes
+
+	for _, task := range config.Tasks {
+		exportEnvironmentFiles, err := unmarshalStringList(task.RawExportEnvironmentFiles)
+		if err != nil {
+			return err
+		}
+
+		task.ExportEnvironmentFiles = exportEnvironmentFiles
+	}
+
 	return nil
 }
 

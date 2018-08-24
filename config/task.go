@@ -8,20 +8,23 @@ import (
 
 type (
 	Task struct {
-		Name                string
-		Extends             string       `json:"extends"`
-		Image               string       `json:"image"`
-		Command             string       `json:"command"`
-		Shell               string       `json:"shell"`
-		Script              string       `json:"script"`
-		Entrypoint          string       `json:"entrypoint"`
-		User                string       `json:"user"`
-		WorkspacePath       string       `json:"workspace"`
-		Hostname            string       `json:"hostname"`
-		Detach              bool         `json:"detach"`
-		Healthcheck         *Healthcheck `json:"healthcheck"`
-		Environment         []string     `json:"environment"`
-		RequiredEnvironment []string     `json:"required_environment"`
+		Name                      string
+		Extends                   string          `json:"extends"`
+		Image                     string          `json:"image"`
+		Command                   string          `json:"command"`
+		Shell                     string          `json:"shell"`
+		Script                    string          `json:"script"`
+		Entrypoint                string          `json:"entrypoint"`
+		User                      string          `json:"user"`
+		WorkspacePath             string          `json:"workspace"`
+		Hostname                  string          `json:"hostname"`
+		Detach                    bool            `json:"detach"`
+		Healthcheck               *Healthcheck    `json:"healthcheck"`
+		Environment               []string        `json:"environment"`
+		RequiredEnvironment       []string        `json:"required_environment"`
+		RawExportEnvironmentFiles json.RawMessage `json:"export_environment_file"`
+
+		ExportEnvironmentFiles []string
 	}
 
 	Healthcheck struct {

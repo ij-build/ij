@@ -50,6 +50,13 @@ definitions:
         type: array
         items:
           type: string
+      export_environment_file:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
     additionalProperties: false
 
   healthcheck:

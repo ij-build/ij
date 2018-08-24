@@ -2,6 +2,9 @@ package runtime
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -135,6 +138,95 @@ func (r *TaskRunner) runInForeground(containerName string, args []string) bool {
 		)
 
 		return false
+	}
+
+	return r.exportEnvironmentFiles()
+}
+
+func (r *TaskRunner) exportEnvironmentFiles() bool {
+	paths, err := r.env.ExpandSlice(r.task.ExportEnvironmentFiles)
+	if err != nil {
+		r.state.ReportError(
+			r.prefix,
+			"Failed to build build export environment files: %s",
+			err.Error(),
+		)
+
+		return false
+	}
+
+	for _, path := range paths {
+		if !r.exportEnvironmentFile(path) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (r *TaskRunner) exportEnvironmentFile(path string) bool {
+	realPath, err := filepath.Abs(filepath.Join(
+		r.state.scratch.Workspace(),
+		path,
+	))
+
+	if err != nil {
+		r.state.ReportError(
+			r.prefix,
+			"Failed to construct export environment file path: %s",
+			err.Error(),
+		)
+
+		return false
+	}
+
+	workspace := r.state.scratch.Workspace()
+
+	if !strings.HasPrefix(realPath, workspace) {
+		r.state.ReportError(
+			r.prefix,
+			"export environment file is outside of workspace directory: %s",
+			realPath,
+		)
+
+		return false
+	}
+
+	r.state.logger.Info(
+		r.prefix,
+		"Injecting environment from file %s",
+		fmt.Sprintf("~%s", realPath[len(workspace):]),
+	)
+
+	data, err := ioutil.ReadFile(realPath)
+	if err != nil {
+		r.state.logger.Error(
+			r.prefix,
+			"Failed to read environment file: %s",
+			err.Error(),
+		)
+
+		return false
+	}
+
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+
+		if line == "" || line[0] == '#' {
+			continue
+		}
+
+		if !strings.Contains(line, "=") {
+			r.state.logger.Error(
+				r.prefix,
+				"Malformed entry in environments file: %s",
+				line,
+			)
+
+			return false
+		}
+
+		r.state.ExportEnv(line)
 	}
 
 	return true

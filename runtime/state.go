@@ -30,6 +30,8 @@ type State struct {
 	containerStopper    *ContainerList
 	networkDisconnector *ContainerList
 	network             *Network
+	exportedEnv         []string
+	envMutex            sync.RWMutex
 }
 
 func NewState(
@@ -161,6 +163,24 @@ func NewState(
 
 	s.cleanup.Register(s.network.Teardown)
 	return
+}
+
+func (s *State) ExportEnv(line string) {
+	s.envMutex.Lock()
+	s.exportedEnv = append(s.exportedEnv, line)
+	s.envMutex.Unlock()
+}
+
+func (s *State) GetExportedEnv() []string {
+	s.envMutex.RLock()
+	defer s.envMutex.RUnlock()
+
+	env := []string{}
+	for _, line := range s.exportedEnv {
+		env = append(env, line)
+	}
+
+	return s.exportedEnv
 }
 
 func (s *State) ReportError(
