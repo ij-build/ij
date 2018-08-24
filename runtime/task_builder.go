@@ -239,23 +239,28 @@ func (b *TaskBuilder) addSSHOptions() error {
 }
 
 func (b *TaskBuilder) addWorkspaceOptions() error {
-	workspacePath, err := b.env.ExpandString(b.task.WorkspacePath)
+	workspace, err := b.env.ExpandString(b.task.Workspace)
 	if err != nil {
 		return err
 	}
 
-	if workspacePath == "" {
-		workspacePath = DefaultWorkspacePath
+	workspace, err = b.env.ExpandString(b.state.config.Workspace)
+	if err != nil {
+		return err
+	}
+
+	if workspace == "" {
+		workspace = DefaultWorkspacePath
 	}
 
 	mount := fmt.Sprintf(
 		"%s:%s",
 		b.state.scratch.Workspace(),
-		workspacePath,
+		workspace,
 	)
 
 	b.addFlagValue("-v", mount)
-	b.addFlagValue("-w", workspacePath)
+	b.addFlagValue("-w", workspace)
 	return nil
 }
 

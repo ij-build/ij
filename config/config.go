@@ -6,13 +6,15 @@ import (
 )
 
 type Config struct {
-	Extends     string           `json:"extends"`
-	Environment []string         `json:"environment"`
-	Tasks       map[string]*Task `json:"tasks"`
-	Plans       map[string]*Plan `json:"plans"`
-	RawImports  json.RawMessage  `json:"import"`
-	RawExports  json.RawMessage  `json:"export"`
-	RawExcludes json.RawMessage  `json:"exclude"`
+	Extends     string              `json:"extends"`
+	Workspace   string              `json:"workspace"`
+	Environment []string            `json:"environment"`
+	Tasks       map[string]*Task    `json:"tasks"`
+	Plans       map[string]*Plan    `json:"plans"`
+	Metaplans   map[string][]string `json:"metaplans"`
+	RawImports  json.RawMessage     `json:"import"`
+	RawExports  json.RawMessage     `json:"export"`
+	RawExcludes json.RawMessage     `json:"exclude"`
 
 	Imports  []string
 	Exports  []string
@@ -25,6 +27,10 @@ func (c *Config) Validate() error {
 	}
 
 	if err := c.resolveTasks(); err != nil {
+		return err
+	}
+
+	if err := c.validatePlanNames(); err != nil {
 		return err
 	}
 
@@ -85,4 +91,39 @@ func (c *Config) resolveTasks() error {
 	}
 
 	return nil
+}
+
+func (c *Config) validatePlanNames() error {
+	for name, plans := range c.Metaplans {
+		if _, ok := c.Plans[name]; ok {
+			return fmt.Errorf(
+				"plan is %s defined twice",
+				name,
+			)
+		}
+
+		for _, plan := range plans {
+			if !c.IsPlanDefined(plan) {
+				return fmt.Errorf(
+					"unknown plan name %s referenced in metaplan %s",
+					plan,
+					name,
+				)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (c *Config) IsPlanDefined(name string) bool {
+	if _, ok := c.Plans[name]; ok {
+		return true
+	}
+
+	if _, ok := c.Metaplans[name]; ok {
+		return true
+	}
+
+	return false
 }

@@ -146,7 +146,7 @@ func loadConfig() (*config.Config, bool) {
 	}
 
 	for _, name := range *plans {
-		if _, ok := config.Plans[name]; !ok {
+		if !config.IsPlanDefined(name) {
 			logging.EmergencyLog(
 				"error: unknown plan %s",
 				name,

@@ -16,7 +16,7 @@ type (
 		Script                    string          `json:"script"`
 		Entrypoint                string          `json:"entrypoint"`
 		User                      string          `json:"user"`
-		WorkspacePath             string          `json:"workspace"`
+		Workspace                 string          `json:"workspace"`
 		Hostname                  string          `json:"hostname"`
 		Detach                    bool            `json:"detach"`
 		Healthcheck               *Healthcheck    `json:"healthcheck"`

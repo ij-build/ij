@@ -27,17 +27,14 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 		return nil, err
 	}
 
-	child := &config.Config{}
+	child := &config.Config{
+		Tasks:     map[string]*config.Task{},
+		Plans:     map[string]*config.Plan{},
+		Metaplans: map[string][]string{},
+	}
+
 	if err := json.Unmarshal(data, child); err != nil {
 		return nil, err
-	}
-
-	if child.Tasks == nil {
-		child.Tasks = map[string]*config.Task{}
-	}
-
-	if child.Plans == nil {
-		child.Plans = map[string]*config.Plan{}
 	}
 
 	if err := unmarshalFileList(child); err != nil {

@@ -141,8 +141,11 @@ definitions:
 type: object
 properties:
   extends:
+    description: TODO
     type: string
-    minLength: 1
+  workspace:
+    description: TODO
+    type: string
   environment:
     $ref: '#/definitions/environment'
   import:
@@ -176,4 +179,12 @@ properties:
     type: object
     additionalProperties:
       $ref: '#/definitions/plan'
+  metaplans:
+    description: TODO
+    type: object
+    additionalProperties:
+      type: array
+      items:
+        description: TODO
+        type: string
 additionalProperties: false

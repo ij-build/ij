@@ -5,7 +5,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/logging"
 	"github.com/efritz/ij/paths"
 )
@@ -64,21 +63,9 @@ func (r *PlanRunner) Run() bool {
 	}
 
 	for _, name := range r.state.plans {
-		prefix := logging.NewPrefix(name)
-
-		if !r.runPlan(r.state.config.Plans[name], prefix) {
-			r.state.logger.Error(
-				prefix,
-				"Plan failed",
-			)
-
+		if !r.runPlanOrMetaplan(name, logging.NewPrefix()) {
 			return false
 		}
-
-		r.state.logger.Info(
-			prefix,
-			"Plan completed successfully",
-		)
 	}
 
 	if err := transferer.Export(r.state.config.Exports); err != nil {
@@ -112,14 +99,52 @@ func (r *PlanRunner) watchSignals() {
 	}
 }
 
-func (r *PlanRunner) runPlan(
-	plan *config.Plan,
+func (r *PlanRunner) runPlanOrMetaplan(
+	name string,
 	prefix *logging.Prefix,
 ) bool {
+	prefix = prefix.Append(name)
+
 	r.state.logger.Info(
 		prefix,
 		"Beginning plan",
 	)
+
+	ok := true
+
+	if plans, ok := r.state.config.Metaplans[name]; ok {
+		for _, plan := range plans {
+			if !r.runPlanOrMetaplan(plan, prefix.Append(plan)) {
+				ok = false
+				break
+			}
+		}
+	} else {
+		ok = r.runPlan(name, prefix)
+	}
+
+	if !ok {
+		r.state.logger.Error(
+			prefix,
+			"Plan failed",
+		)
+
+		return false
+	}
+
+	r.state.logger.Info(
+		prefix,
+		"Plan completed successfully",
+	)
+
+	return true
+}
+
+func (r *PlanRunner) runPlan(
+	name string,
+	prefix *logging.Prefix,
+) bool {
+	plan := r.state.config.Plans[name]
 
 	for _, stage := range plan.Stages {
 		stagePrefix := prefix.Append(stage.Name)
