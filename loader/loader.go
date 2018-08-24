@@ -27,23 +27,31 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 		return nil, err
 	}
 
-	config := &config.Config{}
-	if err := json.Unmarshal(data, config); err != nil {
+	child := &config.Config{}
+	if err := json.Unmarshal(data, child); err != nil {
 		return nil, err
 	}
 
-	if err := unmarshalFileList(config); err != nil {
+	if child.Tasks == nil {
+		child.Tasks = map[string]*config.Task{}
+	}
+
+	if child.Plans == nil {
+		child.Plans = map[string]*config.Plan{}
+	}
+
+	if err := unmarshalFileList(child); err != nil {
 		return nil, err
 	}
 
-	if err := unmarshalStageTasks(config); err != nil {
+	if err := unmarshalStageTasks(child); err != nil {
 		return nil, err
 	}
 
-	populateTaskNames(config)
-	populatePlanNames(config)
+	populateTaskNames(child)
+	populatePlanNames(child)
 
-	return l.resolveParent(config)
+	return l.resolveParent(child)
 }
 
 func (l *Loader) resolveParent(config *config.Config) (*config.Config, error) {
@@ -65,7 +73,7 @@ func (l *Loader) resolveParent(config *config.Config) (*config.Config, error) {
 		return nil, err
 	}
 
-	if err := merge(config, parent); err != nil {
+	if err := mergeConfigs(config, parent); err != nil {
 		return nil, err
 	}
 

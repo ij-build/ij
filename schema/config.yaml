@@ -84,6 +84,9 @@ definitions:
     description: TODO
     type: object
     properties:
+      extend:
+        description: TODO
+        type: boolean
       stages:
         description: TODO
         type: array
@@ -98,6 +101,12 @@ definitions:
     type: object
     properties:
       name:
+        description: TODO
+        type: string
+      before_stage:
+        description: TODO
+        type: string
+      after_stage:
         description: TODO
         type: string
       tasks:
