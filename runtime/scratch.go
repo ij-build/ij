@@ -12,16 +12,27 @@ import (
 )
 
 type ScratchSpace struct {
-	runID     string
-	project   string
-	scratch   string
-	runpath   string
-	workspace string
+	runID         string
+	keepWorkspace bool
+	project       string
+	scratch       string
+	runpath       string
+	workspace     string
 }
 
-func NewScratchSpace(runID string) *ScratchSpace {
+const (
+	ScratchDir   = ".ij"
+	WorkspaceDir = "workspace"
+	ScriptsDir   = "scripts"
+	LogsDir      = "logs"
+	OutLogSuffix = ".out.log"
+	ErrLogSuffix = ".err.log"
+)
+
+func NewScratchSpace(runID string, keepWorkspace bool) *ScratchSpace {
 	return &ScratchSpace{
-		runID: runID,
+		runID:         runID,
+		keepWorkspace: keepWorkspace,
 	}
 }
 
@@ -32,9 +43,9 @@ func (s *ScratchSpace) Setup() error {
 	}
 
 	s.project = pwd
-	s.scratch = filepath.Join(s.project, ".ij")
+	s.scratch = filepath.Join(s.project, ScratchDir)
 	s.runpath = filepath.Join(s.scratch, s.runID)
-	s.workspace = filepath.Join(s.runpath, "workspace")
+	s.workspace = filepath.Join(s.runpath, WorkspaceDir)
 
 	return paths.EnsureDirExists(s.workspace, os.ModePerm)
 }
@@ -78,7 +89,7 @@ func (s *ScratchSpace) WriteScript(script string) (string, error) {
 		return "", err
 	}
 
-	path, err := buildPath(filepath.Join(s.runpath, "scripts", scriptID))
+	path, err := buildPath(filepath.Join(s.runpath, ScriptsDir, scriptID))
 	if err != nil {
 		return "", err
 	}
@@ -91,12 +102,12 @@ func (s *ScratchSpace) WriteScript(script string) (string, error) {
 }
 
 func (s *ScratchSpace) MakeLogFiles(prefix string) (io.WriteCloser, io.WriteCloser, error) {
-	outpath, err := buildPath(filepath.Join(s.runpath, "logs", prefix+".out.log"))
+	outpath, err := buildPath(filepath.Join(s.runpath, LogsDir, prefix+OutLogSuffix))
 	if err != nil {
 		return nil, nil, err
 	}
 
-	errpath, err := buildPath(filepath.Join(s.runpath, "logs", prefix+".err.log"))
+	errpath, err := buildPath(filepath.Join(s.runpath, LogsDir, prefix+ErrLogSuffix))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -116,8 +127,18 @@ func (s *ScratchSpace) MakeLogFiles(prefix string) (io.WriteCloser, io.WriteClos
 }
 
 func (s *ScratchSpace) Prune() error {
+	if !s.keepWorkspace {
+		if err := os.RemoveAll(s.workspace); err != nil {
+			return err
+		}
+
+		if err := os.RemoveAll(filepath.Join(s.runpath, ScriptsDir)); err != nil {
+			return err
+		}
+	}
+
 	return filepath.Walk(s.runpath, func(path string, _ os.FileInfo, err error) error {
-		if strings.HasSuffix(path, ".err.log") {
+		if strings.HasSuffix(path, ErrLogSuffix) {
 			info, err := os.Stat(path)
 			if err != nil {
 				return err

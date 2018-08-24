@@ -13,39 +13,40 @@ import (
 type State struct {
 	config              *config.Config
 	plans               []string
-	env                 []string
-	forceSequential     bool
-	enableSSHAgent      bool
-	healthcheckInterval time.Duration
-	cpuShares           string
-	memory              string
-	cleanup             *Cleanup
-	ctx                 context.Context
-	cancel              func()
-	once                sync.Once
 	runID               string
-	scratch             *ScratchSpace
-	logProcessor        logging.Processor
-	logger              logging.Logger
-	containerStopper    *ContainerList
-	networkDisconnector *ContainerList
-	network             *Network
 	exportedEnv         []string
 	envMutex            sync.RWMutex
+	cpuShares           string
+	ctx                 context.Context
+	enableSSHAgent      bool
+	env                 []string
+	forceSequential     bool
+	healthcheckInterval time.Duration
+	memory              string
+	cancel              func()
+	once                sync.Once
+	cleanup             *Cleanup
+	containerStopper    *ContainerList
+	logger              logging.Logger
+	logProcessor        logging.Processor
+	network             *Network
+	networkDisconnector *ContainerList
+	scratch             *ScratchSpace
 }
 
 func NewState(
 	config *config.Config,
 	plans []string,
-	env []string,
-	verbose bool,
 	colorize bool,
-	forceSequential bool,
-	enableSSHAgent bool,
-	healthcheckInterval time.Duration,
 	cpuShares string,
+	enableSSHAgent bool,
+	env []string,
+	forceSequential bool,
+	healthcheckInterval time.Duration,
+	keepWorkspace bool,
 	memory string,
 	planTimeout time.Duration,
+	verbose bool,
 ) (s *State, err error) {
 	ctx, cancel := makeContext(planTimeout)
 
@@ -53,14 +54,14 @@ func NewState(
 		config:              config,
 		plans:               plans,
 		env:                 env,
-		forceSequential:     forceSequential,
-		enableSSHAgent:      enableSSHAgent,
-		healthcheckInterval: healthcheckInterval,
 		cpuShares:           cpuShares,
+		enableSSHAgent:      enableSSHAgent,
+		forceSequential:     forceSequential,
+		healthcheckInterval: healthcheckInterval,
 		memory:              memory,
-		cleanup:             NewCleanup(),
 		ctx:                 ctx,
 		cancel:              cancel,
+		cleanup:             NewCleanup(),
 	}
 
 	//
@@ -76,21 +77,30 @@ func NewState(
 	}
 
 	//
-	// Generate a build directory
+	// Generate a scratch directory
 
-	s.scratch = NewScratchSpace(s.runID)
+	s.scratch = NewScratchSpace(s.runID, keepWorkspace)
 
 	if err = s.scratch.Setup(); err != nil {
 		logging.EmergencyLog(
-			"error: failed to create build directory: %s",
+			"error: failed to create scratch directory: %s",
 			err.Error(),
 		)
 
 		return
 	}
 
+	s.cleanup.Register(func() {
+		if err := s.scratch.Prune(); err != nil {
+			logging.EmergencyLog(
+				"error: failed to clean up scratch directory: %s",
+				err.Error(),
+			)
+		}
+	})
+
 	// If any of the remaining initialization fails, we
-	// don't want to keep a build directory around so
+	// don't want to keep a scratch directory around so
 	// we destory it at the end of the function on a
 	// non-nil error return.
 
@@ -101,7 +111,7 @@ func NewState(
 
 		if err := s.scratch.Teardown(); err != nil {
 			logging.EmergencyLog(
-				"error: failed to teardown build directory: %s",
+				"error: failed to teardown scratch directory: %s",
 				err.Error(),
 			)
 		}
