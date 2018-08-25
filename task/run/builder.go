@@ -7,17 +7,17 @@ import (
 
 	"github.com/kballard/go-shellquote"
 
+	"github.com/efritz/ij/command"
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/state"
 )
 
-type Builder struct {
+type builder struct {
 	state         *state.State
 	task          *config.RunTask
 	containerName string
 	env           environment.Environment
-	args          []string
 	command       []string
 }
 
@@ -26,29 +26,20 @@ const (
 	ScriptPath           = "/tmp/ij/script"
 )
 
-func NewBuilder(
+func Build(
 	state *state.State,
 	task *config.RunTask,
 	containerName string,
 	env environment.Environment,
-) *Builder {
-	args := []string{
-		"docker",
-		"run",
-		"--rm",
-	}
-
-	return &Builder{
+) ([]string, error) {
+	b := &builder{
 		state:         state,
 		task:          task,
 		containerName: containerName,
 		env:           env,
-		args:          args,
 	}
-}
 
-func (b *Builder) Build() ([]string, error) {
-	builders := []func() error{
+	builderFuncs := []command.BuildFunc{
 		b.addCommandOptions,
 		b.addContainerName,
 		b.addDetachOptions,
@@ -62,10 +53,15 @@ func (b *Builder) Build() ([]string, error) {
 		b.addWorkspaceOptions,
 	}
 
-	for _, builder := range builders {
-		if err := builder(); err != nil {
-			return nil, err
-		}
+	args := []string{
+		"docker",
+		"run",
+		"--rm",
+	}
+
+	args, err := command.NewBuilder(builderFuncs, args).Build()
+	if err != nil {
+		return nil, err
 	}
 
 	image, err := b.env.ExpandString(b.task.Image)
@@ -73,13 +69,13 @@ func (b *Builder) Build() ([]string, error) {
 		return nil, err
 	}
 
-	return append(append(b.args, image), b.command...), nil
+	return append(append(args, image), b.command...), nil
 }
 
 //
 // Builders
 
-func (b *Builder) addCommandOptions() error {
+func (b *builder) addCommandOptions(cb *command.Builder) error {
 	if b.task.Script != "" {
 		return nil
 	}
@@ -99,55 +95,55 @@ func (b *Builder) addCommandOptions() error {
 		return err
 	}
 
-	b.addFlagValue("--entrypoint", entrypoint)
+	cb.AddFlagValue("--entrypoint", entrypoint)
 	b.command = commandArgs
 	return nil
 }
 
-func (b *Builder) addContainerName() error {
+func (b *builder) addContainerName(cb *command.Builder) error {
 	containerName, err := b.env.ExpandString(b.containerName)
 	if err != nil {
 		return err
 	}
 
-	b.addFlagValue("--name", containerName)
+	cb.AddFlagValue("--name", containerName)
 	return nil
 }
 
-func (b *Builder) addDetachOptions() error {
+func (b *builder) addDetachOptions(cb *command.Builder) error {
 	if b.task.Detach {
-		b.addFlag("-d")
+		cb.AddFlag("-d")
 	}
 
 	return nil
 }
 
-func (b *Builder) addEnvironmentOptions() error {
+func (b *builder) addEnvironmentOptions(cb *command.Builder) error {
 	for _, line := range b.env.Serialize() {
 		expanded, err := b.env.ExpandString(line)
 		if err != nil {
 			return err
 		}
 
-		b.addFlagValue("-e", expanded)
+		cb.AddFlagValue("-e", expanded)
 	}
 
 	return nil
 }
 
-func (b *Builder) addHealthCheckOptions() error {
+func (b *builder) addHealthCheckOptions(cb *command.Builder) error {
 	command, err := b.env.ExpandString(b.task.Healthcheck.Command)
 	if err != nil {
 		return err
 	}
 
-	b.addFlagValue("--health-cmd", command)
-	b.addFlagValue("--health-interval", b.task.Healthcheck.Interval.String())
-	b.addFlagValue("--health-start-period", b.task.Healthcheck.StartPeriod.String())
-	b.addFlagValue("--health-timeout", b.task.Healthcheck.Timeout.String())
+	cb.AddFlagValue("--health-cmd", command)
+	cb.AddFlagValue("--health-interval", b.task.Healthcheck.Interval.String())
+	cb.AddFlagValue("--health-start-period", b.task.Healthcheck.StartPeriod.String())
+	cb.AddFlagValue("--health-timeout", b.task.Healthcheck.Timeout.String())
 
 	if b.task.Healthcheck.Retries > 0 {
-		b.addFlagValue("--health-retries", fmt.Sprintf(
+		cb.AddFlagValue("--health-retries", fmt.Sprintf(
 			"%d",
 			b.task.Healthcheck.Retries,
 		))
@@ -156,24 +152,24 @@ func (b *Builder) addHealthCheckOptions() error {
 	return nil
 }
 
-func (b *Builder) addLimitOptions() error {
-	b.addFlagValue("--cpu-shares", b.state.CPUShares)
-	b.addFlagValue("--memory", b.state.Memory)
+func (b *builder) addLimitOptions(cb *command.Builder) error {
+	cb.AddFlagValue("--cpu-shares", b.state.CPUShares)
+	cb.AddFlagValue("--memory", b.state.Memory)
 	return nil
 }
 
-func (b *Builder) addNetworkOptions() error {
+func (b *builder) addNetworkOptions(cb *command.Builder) error {
 	hostname, err := b.env.ExpandString(b.task.Hostname)
 	if err != nil {
 		return err
 	}
 
-	b.addFlagValue("--network", b.state.RunID)
-	b.addFlagValue("--network-alias", hostname)
+	cb.AddFlagValue("--network", b.state.RunID)
+	cb.AddFlagValue("--network-alias", hostname)
 	return nil
 }
 
-func (b *Builder) addScriptOptions() error {
+func (b *builder) addScriptOptions(cb *command.Builder) error {
 	if b.task.Script == "" {
 		return nil
 	}
@@ -203,13 +199,13 @@ func (b *Builder) addScriptOptions() error {
 		shell = "/bin/sh"
 	}
 
-	b.addFlagValue("-v", mount)
-	b.addFlagValue("--entrypoint", shell)
+	cb.AddFlagValue("-v", mount)
+	cb.AddFlagValue("--entrypoint", shell)
 	b.command = []string{ScriptPath}
 	return nil
 }
 
-func (b *Builder) addUserOptions() error {
+func (b *builder) addUserOptions(cb *command.Builder) error {
 	user, err := user.Current()
 	if err != nil {
 		return err
@@ -220,24 +216,24 @@ func (b *Builder) addUserOptions() error {
 		return err
 	}
 
-	b.addFlagValue("--user", username)
-	b.addFlagValue("-e", fmt.Sprintf("UID=%s", user.Uid))
-	b.addFlagValue("-e", fmt.Sprintf("GID=%s", user.Gid))
+	cb.AddFlagValue("--user", username)
+	cb.AddFlagValue("-e", fmt.Sprintf("UID=%s", user.Uid))
+	cb.AddFlagValue("-e", fmt.Sprintf("GID=%s", user.Gid))
 	return nil
 }
 
-func (b *Builder) addSSHOptions() error {
+func (b *builder) addSSHOptions(cb *command.Builder) error {
 	if !b.state.EnableSSHAgent {
 		return nil
 	}
 
 	authSock := os.Getenv("SSH_AUTH_SOCK")
-	b.addFlagValue("-e", "SSH_AUTH_SOCK")
-	b.addFlagValue("-v", authSock+":"+authSock)
+	cb.AddFlagValue("-e", "SSH_AUTH_SOCK")
+	cb.AddFlagValue("-v", authSock+":"+authSock)
 	return nil
 }
 
-func (b *Builder) addWorkspaceOptions() error {
+func (b *builder) addWorkspaceOptions(cb *command.Builder) error {
 	workspace, err := b.env.ExpandString(b.task.Workspace)
 	if err != nil {
 		return err
@@ -258,20 +254,7 @@ func (b *Builder) addWorkspaceOptions() error {
 		workspace,
 	)
 
-	b.addFlagValue("-v", mount)
-	b.addFlagValue("-w", workspace)
+	cb.AddFlagValue("-v", mount)
+	cb.AddFlagValue("-w", workspace)
 	return nil
-}
-
-//
-// Helpers
-
-func (b *Builder) addFlag(flag string) {
-	b.args = append(b.args, flag)
-}
-
-func (b *Builder) addFlagValue(flag, value string) {
-	if value != "" {
-		b.args = append(b.args, flag, value)
-	}
 }

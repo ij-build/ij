@@ -69,12 +69,6 @@ func (c *Config) Validate() error {
 		}
 	}
 
-	for _, task := range c.Tasks {
-		if err := task.Validate(); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 

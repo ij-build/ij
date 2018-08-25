@@ -75,14 +75,7 @@ func (r *Runner) Run() bool {
 		containerName,
 	)
 
-	builder := NewBuilder(
-		r.state,
-		r.task,
-		containerName,
-		r.env,
-	)
-
-	args, err := builder.Build()
+	args, err := Build(r.state, r.task, containerName, r.env)
 	if err != nil {
 		r.state.Logger.Error(
 			r.prefix,

@@ -36,17 +36,6 @@ func (t *RunTask) GetEnvironment() []string {
 	return t.Environment
 }
 
-func (t *RunTask) Validate() error {
-	if t.Image == "" {
-		return fmt.Errorf(
-			"no image supplied for task %s",
-			t.Name,
-		)
-	}
-
-	return nil
-}
-
 func (t *RunTask) Extend(task Task) error {
 	parent, ok := task.(*RunTask)
 	if !ok {

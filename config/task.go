@@ -5,7 +5,6 @@ type (
 		GetName() string
 		GetExtends() string
 		GetEnvironment() []string
-		Validate() error
 		Extend(parent Task) error
 	}
 
@@ -15,5 +14,6 @@ type (
 	}
 )
 
-func (t *TaskMeta) GetName() string    { return t.Name }
-func (t *TaskMeta) GetExtends() string { return t.Extends }
+func (t *TaskMeta) GetName() string          { return t.Name }
+func (t *TaskMeta) GetExtends() string       { return t.Extends }
+func (t *TaskMeta) GetEnvironment() []string { return nil }

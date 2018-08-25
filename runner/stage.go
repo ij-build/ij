@@ -7,6 +7,7 @@ import (
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
 	"github.com/efritz/ij/state"
+	"github.com/efritz/ij/task/build"
 	"github.com/efritz/ij/task/run"
 	"github.com/efritz/ij/util"
 )
@@ -115,6 +116,8 @@ func (r *StageRunner) buildRunner(
 	switch t := task.(type) {
 	case *config.RunTask:
 		return run.NewRunner(r.state, t, taskPrefix, env)
+	case *config.BuildTask:
+		return build.NewRunner(r.state, t, taskPrefix, env)
 	}
 
 	panic("unexpected task type")
