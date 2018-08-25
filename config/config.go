@@ -3,20 +3,28 @@ package config
 import "fmt"
 
 type Config struct {
-	Extends     string
-	Workspace   string
-	Environment []string
-	Tasks       map[string]Task
-	Plans       map[string]*Plan
-	Metaplans   map[string][]string
-	Imports     []string
-	Exports     []string
-	Excludes    []string
+	Extends       string
 	SSHIdentities []string
+	Workspace     string
+	Environment   []string
+	Tasks         map[string]Task
+	Plans         map[string]*Plan
+	Metaplans     map[string][]string
+	Imports       []string
+	Exports       []string
+	Excludes      []string
 }
 
 func (c *Config) Merge(child *Config) error {
+	c.SSHIdentities = append(c.SSHIdentities, child.SSHIdentities...)
 	c.Environment = append(c.Environment, child.Environment...)
+	c.Imports = append(c.Imports, child.Imports...)
+	c.Exports = append(c.Exports, child.Exports...)
+	c.Excludes = append(c.Excludes, child.Excludes...)
+
+	if child.Workspace != "" {
+		c.Workspace = child.Workspace
+	}
 
 	for name, task := range child.Tasks {
 		c.Tasks[name] = task
@@ -41,6 +49,10 @@ func (c *Config) Merge(child *Config) error {
 		}
 
 		c.Plans[name] = parentPlan
+	}
+
+	for name, plans := range child.Metaplans {
+		c.Metaplans[name] = plans
 	}
 
 	return nil
