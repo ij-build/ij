@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/loader/jsonconfig"
 )
 
 type Loader struct {
@@ -27,26 +28,20 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 		return nil, err
 	}
 
-	child := &config.Config{
-		Tasks:     map[string]*config.Task{},
-		Plans:     map[string]*config.Plan{},
+	payload := &jsonconfig.Config{
+		Tasks:     map[string]json.RawMessage{},
+		Plans:     map[string]*jsonconfig.Plan{},
 		Metaplans: map[string][]string{},
 	}
 
-	if err := json.Unmarshal(data, child); err != nil {
+	if err := json.Unmarshal(data, payload); err != nil {
 		return nil, err
 	}
 
-	if err := unmarshalFileList(child); err != nil {
+	child, err := payload.Translate()
+	if err != nil {
 		return nil, err
 	}
-
-	if err := unmarshalStageTasks(child); err != nil {
-		return nil, err
-	}
-
-	populateTaskNames(child)
-	populatePlanNames(child)
 
 	return l.resolveParent(child)
 }
@@ -70,7 +65,7 @@ func (l *Loader) resolveParent(config *config.Config) (*config.Config, error) {
 		return nil, err
 	}
 
-	if err := mergeConfigs(config, parent); err != nil {
+	if err := parent.Merge(config); err != nil {
 		return nil, err
 	}
 

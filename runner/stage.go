@@ -19,6 +19,10 @@ type (
 		prefix *logging.Prefix
 	}
 
+	Runner interface {
+		Run() bool
+	}
+
 	RunnerFunc func() bool
 )
 
@@ -44,7 +48,7 @@ func (r *StageRunner) Run() bool {
 
 	runners := []RunnerFunc{}
 	for i, stageTask := range r.stage.Tasks {
-		runners = append(runners, r.buildRunner(
+		runners = append(runners, r.buildRunnerFunc(
 			stageTask,
 			i,
 			r.state.Config.Tasks[stageTask.Name],
@@ -58,36 +62,19 @@ func (r *StageRunner) Run() bool {
 	return runParallel(runners)
 }
 
-func (r *StageRunner) buildRunner(
+func (r *StageRunner) buildRunnerFunc(
 	stageTask *config.StageTask,
 	index int,
-	task *config.Task,
+	task config.Task,
 ) RunnerFunc {
 	taskPrefix := r.prefix.Append(fmt.Sprintf(
 		"%s.%d",
-		task.Name,
+		task.GetName(),
 		index,
 	))
 
 	return func() bool {
-		env := environment.Merge(
-			environment.New(r.state.Config.Environment),
-			environment.New(task.Environment),
-			environment.New(r.plan.Environment),
-			environment.New(r.stage.Environment),
-			environment.New(stageTask.Environment),
-			environment.New(r.state.GetExportedEnv()),
-			environment.New(r.state.Env),
-		)
-
-		runner := run.NewRunner(
-			r.state,
-			task,
-			taskPrefix,
-			env,
-		)
-
-		if !runner.Run() {
+		if !r.buildRunner(task, taskPrefix, r.buildEnvironment(stageTask, task)).Run() {
 			r.state.ReportError(
 				taskPrefix,
 				"Task has failed",
@@ -103,6 +90,34 @@ func (r *StageRunner) buildRunner(
 
 		return true
 	}
+}
+
+func (r *StageRunner) buildEnvironment(
+	stageTask *config.StageTask,
+	task config.Task,
+) environment.Environment {
+	return environment.Merge(
+		environment.New(r.state.Config.Environment),
+		environment.New(task.GetEnvironment()),
+		environment.New(r.plan.Environment),
+		environment.New(r.stage.Environment),
+		environment.New(stageTask.Environment),
+		environment.New(r.state.GetExportedEnv()),
+		environment.New(r.state.Env),
+	)
+}
+
+func (r *StageRunner) buildRunner(
+	task config.Task,
+	taskPrefix *logging.Prefix,
+	env environment.Environment,
+) Runner {
+	switch t := task.(type) {
+	case *config.RunTask:
+		return run.NewRunner(r.state, t, taskPrefix, env)
+	}
+
+	panic("unexpected task type")
 }
 
 //

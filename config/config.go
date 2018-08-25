@@ -1,49 +1,102 @@
 package config
 
-import (
-	"encoding/json"
-	"fmt"
-)
+import "fmt"
 
 type Config struct {
-	Extends     string              `json:"extends"`
-	Workspace   string              `json:"workspace"`
-	Environment []string            `json:"environment"`
-	Tasks       map[string]*Task    `json:"tasks"`
-	Plans       map[string]*Plan    `json:"plans"`
-	Metaplans   map[string][]string `json:"metaplans"`
-	RawImports  json.RawMessage     `json:"import"`
-	RawExports  json.RawMessage     `json:"export"`
-	RawExcludes json.RawMessage     `json:"exclude"`
-
-	Imports  []string
-	Exports  []string
-	Excludes []string
+	Extends     string
+	Workspace   string
+	Environment []string
+	Tasks       map[string]Task
+	Plans       map[string]*Plan
+	Metaplans   map[string][]string
+	Imports     []string
+	Exports     []string
+	Excludes    []string
 }
 
-func (c *Config) Validate() error {
-	if err := c.validateTaskNames(); err != nil {
-		return err
+func (c *Config) Merge(child *Config) error {
+	c.Environment = append(c.Environment, child.Environment...)
+
+	for name, task := range child.Tasks {
+		c.Tasks[name] = task
 	}
 
-	if err := c.resolveTasks(); err != nil {
-		return err
-	}
+	for name, plan := range child.Plans {
+		if !plan.Extend {
+			c.Plans[name] = plan
+			continue
+		}
 
-	if err := c.validatePlanNames(); err != nil {
-		return err
+		parentPlan, ok := c.Plans[name]
+		if !ok {
+			return fmt.Errorf(
+				"plan %s extends unknown plan in parent",
+				name,
+			)
+		}
+
+		if err := parentPlan.Merge(plan); err != nil {
+			return err
+		}
+
+		c.Plans[name] = parentPlan
 	}
 
 	return nil
 }
 
+func (c *Config) Resolve() error {
+	resolver := NewTaskExtendsResolver(c)
+
+	for _, task := range c.Tasks {
+		if task.GetExtends() != "" {
+			resolver.Add(task)
+		}
+	}
+
+	return resolver.Resolve()
+}
+
+func (c *Config) Validate() error {
+	validators := []func() error{
+		c.validateTaskNames,
+		c.validatePlanNames,
+	}
+
+	for _, validator := range validators {
+		if err := validator(); err != nil {
+			return err
+		}
+	}
+
+	for _, task := range c.Tasks {
+		if err := task.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Config) IsPlanDefined(name string) bool {
+	if _, ok := c.Plans[name]; ok {
+		return true
+	}
+
+	if _, ok := c.Metaplans[name]; ok {
+		return true
+	}
+
+	return false
+}
+
 func (c *Config) validateTaskNames() error {
 	for _, task := range c.Tasks {
-		if _, ok := c.Tasks[task.Extends]; task.Extends != "" && !ok {
+		if _, ok := c.Tasks[task.GetExtends()]; task.GetExtends() != "" && !ok {
 			return fmt.Errorf(
 				"unknown task name %s referenced in task %s",
-				task.Extends,
-				task.Name,
+				task.GetExtends(),
+				task.GetName(),
 			)
 		}
 	}
@@ -62,31 +115,6 @@ func (c *Config) validateTaskNames() error {
 					)
 				}
 			}
-		}
-	}
-
-	return nil
-}
-
-func (c *Config) resolveTasks() error {
-	resolver := NewTaskExtendsResolver(c)
-
-	for _, task := range c.Tasks {
-		if task.Extends != "" {
-			resolver.Add(task)
-		}
-	}
-
-	if err := resolver.Resolve(); err != nil {
-		return err
-	}
-
-	for _, task := range c.Tasks {
-		if task.Image == "" {
-			return fmt.Errorf(
-				"no image supplied for task %s",
-				task.Name,
-			)
 		}
 	}
 
@@ -114,16 +142,4 @@ func (c *Config) validatePlanNames() error {
 	}
 
 	return nil
-}
-
-func (c *Config) IsPlanDefined(name string) bool {
-	if _, ok := c.Plans[name]; ok {
-		return true
-	}
-
-	if _, ok := c.Metaplans[name]; ok {
-		return true
-	}
-
-	return false
 }

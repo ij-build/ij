@@ -18,14 +18,14 @@ import (
 
 type Runner struct {
 	state  *state.State
-	task   *config.Task
+	task   *config.RunTask
 	prefix *logging.Prefix
 	env    environment.Environment
 }
 
 func NewRunner(
 	state *state.State,
-	task *config.Task,
+	task *config.RunTask,
 	prefix *logging.Prefix,
 	env environment.Environment,
 ) *Runner {

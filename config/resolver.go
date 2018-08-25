@@ -4,7 +4,7 @@ import "fmt"
 
 type TaskExtendsResolver struct {
 	config    *Config
-	tasks     []*Task
+	tasks     []Task
 	resolved  map[string]struct{}
 	resolving map[string]struct{}
 }
@@ -12,13 +12,13 @@ type TaskExtendsResolver struct {
 func NewTaskExtendsResolver(config *Config) *TaskExtendsResolver {
 	return &TaskExtendsResolver{
 		config:    config,
-		tasks:     []*Task{},
+		tasks:     []Task{},
 		resolved:  map[string]struct{}{},
 		resolving: map[string]struct{}{},
 	}
 }
 
-func (r *TaskExtendsResolver) Add(task *Task) {
+func (r *TaskExtendsResolver) Add(task Task) {
 	r.tasks = append(r.tasks, task)
 }
 
@@ -32,103 +32,29 @@ func (r *TaskExtendsResolver) Resolve() error {
 	return nil
 }
 
-func (r *TaskExtendsResolver) resolve(task *Task) error {
-	if _, ok := r.resolved[task.Name]; task.Extends == "" || ok {
+func (r *TaskExtendsResolver) resolve(task Task) error {
+	if _, ok := r.resolved[task.GetName()]; task.GetExtends() == "" || ok {
 		return nil
 	}
 
-	if _, ok := r.resolving[task.Name]; ok {
+	if _, ok := r.resolving[task.GetName()]; ok {
 		return fmt.Errorf(
 			"failed to extend task %s (extension is cyclic)",
-			task.Name,
+			task.GetName(),
 		)
 	}
 
-	r.resolving[task.Extends] = struct{}{}
+	r.resolving[task.GetExtends()] = struct{}{}
 
-	parent := r.config.Tasks[task.Extends]
+	parent := r.config.Tasks[task.GetExtends()]
 	if err := r.resolve(parent); err != nil {
 		return err
 	}
 
-	mergeTask(task, parent)
-	r.resolved[task.Extends] = struct{}{}
+	if err := task.Extend(parent); err != nil {
+		return err
+	}
+
+	r.resolved[task.GetExtends()] = struct{}{}
 	return nil
-}
-
-func mergeTask(child, parent *Task) {
-	if child.Image == "" {
-		child.Image = parent.Image
-	}
-
-	if child.Command == "" {
-		child.Command = parent.Command
-	}
-
-	if child.Shell == "" {
-		child.Shell = parent.Shell
-	}
-
-	if child.Script == "" {
-		child.Script = parent.Script
-	}
-
-	if child.Entrypoint == "" {
-		child.Entrypoint = parent.Entrypoint
-	}
-
-	if child.Hostname == "" {
-		child.Hostname = parent.Hostname
-	}
-
-	if parent.Detach {
-		child.Detach = true
-	}
-
-	child.Healthcheck = mergeHealthcheck(
-		child.Healthcheck,
-		parent.Healthcheck,
-	)
-
-	child.Environment = append(
-		parent.Environment,
-		child.Environment...,
-	)
-
-	child.RequiredEnvironment = append(
-		parent.RequiredEnvironment,
-		child.RequiredEnvironment...,
-	)
-}
-
-func mergeHealthcheck(child, parent *Healthcheck) *Healthcheck {
-	if child == nil {
-		return parent
-	}
-
-	if parent == nil {
-		return child
-	}
-
-	if child.Command == "" {
-		child.Command = parent.Command
-	}
-
-	if child.Interval == ZeroDuration {
-		child.Interval = parent.Interval
-	}
-
-	if child.Retries == 0 {
-		child.Retries = parent.Retries
-	}
-
-	if child.StartPeriod == ZeroDuration {
-		child.StartPeriod = parent.StartPeriod
-	}
-
-	if child.Timeout == ZeroDuration {
-		child.Timeout = parent.Timeout
-	}
-
-	return child
 }

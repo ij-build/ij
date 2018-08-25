@@ -137,6 +137,15 @@ func loadConfig() (*config.Config, bool) {
 		return nil, false
 	}
 
+	if err := config.Resolve(); err != nil {
+		logging.EmergencyLog(
+			"error: failed to resolve config: %s",
+			err.Error(),
+		)
+
+		return nil, false
+	}
+
 	if err := config.Validate(); err != nil {
 		logging.EmergencyLog(
 			"error: failed to validate config: %s",

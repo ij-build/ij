@@ -14,7 +14,7 @@ import (
 
 type Builder struct {
 	state         *state.State
-	task          *config.Task
+	task          *config.RunTask
 	containerName string
 	env           environment.Environment
 	args          []string
@@ -28,7 +28,7 @@ const (
 
 func NewBuilder(
 	state *state.State,
-	task *config.Task,
+	task *config.RunTask,
 	containerName string,
 	env environment.Environment,
 ) *Builder {
@@ -136,23 +136,21 @@ func (b *Builder) addEnvironmentOptions() error {
 }
 
 func (b *Builder) addHealthCheckOptions() error {
-	hc := b.task.Healthcheck
-	if hc == nil {
-		return nil
-	}
-
-	command, err := b.env.ExpandString(hc.Command)
+	command, err := b.env.ExpandString(b.task.Healthcheck.Command)
 	if err != nil {
 		return err
 	}
 
 	b.addFlagValue("--health-cmd", command)
-	b.addFlagValue("--health-interval", hc.Interval.String())
-	b.addFlagValue("--health-start-period", hc.StartPeriod.String())
-	b.addFlagValue("--health-timeout", hc.Timeout.String())
+	b.addFlagValue("--health-interval", b.task.Healthcheck.Interval.String())
+	b.addFlagValue("--health-start-period", b.task.Healthcheck.StartPeriod.String())
+	b.addFlagValue("--health-timeout", b.task.Healthcheck.Timeout.String())
 
-	if hc.Retries > 0 {
-		b.addFlagValue("--health-retries", fmt.Sprintf("%d", hc.Retries))
+	if b.task.Healthcheck.Retries > 0 {
+		b.addFlagValue("--health-retries", fmt.Sprintf(
+			"%d",
+			b.task.Healthcheck.Retries,
+		))
 	}
 
 	return nil
