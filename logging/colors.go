@@ -1,8 +1,6 @@
 package logging
 
-import (
-	"github.com/mgutz/ansi"
-)
+import "github.com/mgutz/ansi"
 
 var colors = []string{
 	ansi.Red,

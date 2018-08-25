@@ -75,7 +75,7 @@ func (r *Runner) Run() bool {
 		containerName,
 	)
 
-	args, err := Build(r.state, r.task, containerName, r.env)
+	args, err := build(r.state, r.task, containerName, r.env)
 	if err != nil {
 		r.state.Logger.Error(
 			r.prefix,
@@ -117,18 +117,18 @@ func (r *Runner) runInForeground(containerName string, args []string) bool {
 	r.state.NetworkDisconnector.Add(containerName)
 	defer r.state.NetworkDisconnector.Remove(containerName)
 
-	commandErr := command.Run(
+	err = command.Run(
 		r.state.Context,
 		args,
 		logger,
 		r.prefix,
 	)
 
-	if commandErr != nil {
+	if err != nil {
 		r.state.ReportError(
 			r.prefix,
 			"Command failed: %s",
-			commandErr.Error(),
+			err.Error(),
 		)
 
 		return false

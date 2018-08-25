@@ -1,4 +1,4 @@
-package build
+package push
 
 import (
 	"github.com/efritz/ij/command"
@@ -10,14 +10,14 @@ import (
 
 type Runner struct {
 	state  *state.State
-	task   *config.BuildTask
+	task   *config.PushTask
 	prefix *logging.Prefix
 	env    environment.Environment
 }
 
 func NewRunner(
 	state *state.State,
-	task *config.BuildTask,
+	task *config.PushTask,
 	prefix *logging.Prefix,
 	env environment.Environment,
 ) *Runner {
@@ -35,7 +35,7 @@ func (r *Runner) Run() bool {
 		"Beginning task",
 	)
 
-	args, err := Build(r.state, r.task, r.env)
+	images, err := r.env.ExpandSlice(r.task.Images)
 	if err != nil {
 		r.state.Logger.Error(
 			r.prefix,
@@ -46,21 +46,23 @@ func (r *Runner) Run() bool {
 		return false
 	}
 
-	commandErr := command.Run(
-		r.state.Context,
-		args,
-		r.state.Logger,
-		r.prefix,
-	)
-
-	if commandErr != nil {
-		r.state.ReportError(
+	for _, image := range images {
+		err := command.Run(
+			r.state.Context,
+			[]string{"docker", "push", image},
+			r.state.Logger,
 			r.prefix,
-			"Command failed: %s",
-			commandErr.Error(),
 		)
 
-		return false
+		if err != nil {
+			r.state.ReportError(
+				r.prefix,
+				"Command failed: %s",
+				err.Error(),
+			)
+
+			return false
+		}
 	}
 
 	return true

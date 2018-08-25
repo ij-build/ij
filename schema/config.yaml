@@ -12,6 +12,8 @@ definitions:
     oneOf:
       - $ref: '#/definitions/runTask'
       - $ref: '#/definitions/buildTask'
+      - $ref: '#/definitions/pushTask'
+      - $ref: '#/definitions/removeTask'
 
   runTask:
     description: TODO
@@ -72,6 +74,27 @@ definitions:
     required:
       - image
 
+  healthcheck:
+    description: TODO
+    type: object
+    properties:
+      command:
+        description: TODO
+        type: string
+      interval:
+        description: TODO
+        type: string
+      retries:
+        description: TODO
+        type: integer
+      start_period:
+        description: TODO
+        type: string
+      timeout:
+        description: TODO
+        type: string
+    additionalProperties: false
+
   buildTask:
     description: TODO
     type: object
@@ -109,26 +132,45 @@ definitions:
     required:
       - type
 
-  healthcheck:
+  pushTask:
     description: TODO
     type: object
     properties:
-      command:
+      type:
         description: TODO
         type: string
-      interval:
+        enum:
+          - push
+      images:
         description: TODO
-        type: string
-      retries:
-        description: TODO
-        type: integer
-      start_period:
-        description: TODO
-        type: string
-      timeout:
-        description: TODO
-        type: string
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
     additionalProperties: false
+    required:
+      - type
+
+  removeTask:
+    description: TODO
+    type: object
+    properties:
+      type:
+        description: TODO
+        type: string
+        enum:
+          - remove
+      images:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+    additionalProperties: false
+    required:
+      - type
 
   plan:
     description: TODO

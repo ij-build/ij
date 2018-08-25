@@ -1,18 +1,14 @@
 package config
 
-import (
-	"fmt"
-)
+import "fmt"
 
-type (
-	BuildTask struct {
-		TaskMeta
-		Dockerfile string
-		Tags       []string
-		Labels     []string
-		Arguments  []string
-	}
-)
+type BuildTask struct {
+	TaskMeta
+	Dockerfile string
+	Tags       []string
+	Labels     []string
+	Arguments  []string
+}
 
 func (t *BuildTask) Extend(task Task) error {
 	parent, ok := task.(*BuildTask)
@@ -28,6 +24,5 @@ func (t *BuildTask) Extend(task Task) error {
 	t.Tags = append(parent.Tags, t.Tags...)
 	t.Labels = append(parent.Labels, t.Labels...)
 	t.Arguments = append(parent.Arguments, t.Arguments...)
-
 	return nil
 }

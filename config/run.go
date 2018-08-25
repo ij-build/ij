@@ -56,7 +56,6 @@ func (t *RunTask) Extend(task Task) error {
 	t.Healthcheck.Extend(parent.Healthcheck)
 	t.Environment = append(parent.Environment, t.Environment...)
 	t.RequiredEnvironment = append(parent.RequiredEnvironment, t.RequiredEnvironment...)
-
 	return nil
 }
 

@@ -26,7 +26,7 @@ const (
 	ScriptPath           = "/tmp/ij/script"
 )
 
-func Build(
+func build(
 	state *state.State,
 	task *config.RunTask,
 	containerName string,

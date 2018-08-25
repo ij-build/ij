@@ -111,20 +111,20 @@ func (r *PlanRunner) runPlanOrMetaplan(
 		"Beginning plan",
 	)
 
-	ok := true
+	result := true
 
 	if plans, ok := r.state.Config.Metaplans[name]; ok {
 		for _, plan := range plans {
 			if !r.runPlanOrMetaplan(plan, prefix.Append(plan)) {
-				ok = false
+				result = false
 				break
 			}
 		}
 	} else {
-		ok = r.runPlan(name, prefix)
+		result = r.runPlan(name, prefix)
 	}
 
-	if !ok {
+	if !result {
 		r.state.Logger.Error(
 			prefix,
 			"Plan failed",

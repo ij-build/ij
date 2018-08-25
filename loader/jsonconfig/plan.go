@@ -1,8 +1,6 @@
 package jsonconfig
 
-import (
-	"github.com/efritz/ij/config"
-)
+import "github.com/efritz/ij/config"
 
 type Plan struct {
 	Extend      bool     `json:"extend"`

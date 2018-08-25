@@ -24,8 +24,10 @@ func translateTask(name string, data json.RawMessage) (config.Task, error) {
 	}
 
 	structMap := map[string]Task{
-		"run":   &RunTask{},
-		"build": &BuildTask{},
+		"run":    &RunTask{},
+		"build":  &BuildTask{},
+		"push":   &PushTask{},
+		"remove": &RemoveTask{},
 	}
 
 	if task, ok := structMap[hint.Type]; ok {

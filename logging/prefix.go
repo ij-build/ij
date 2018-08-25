@@ -1,8 +1,6 @@
 package logging
 
-import (
-	"strings"
-)
+import "strings"
 
 type Prefix struct {
 	parts []string

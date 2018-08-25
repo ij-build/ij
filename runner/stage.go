@@ -6,9 +6,11 @@ import (
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
+	"github.com/efritz/ij/runner/task/build"
+	"github.com/efritz/ij/runner/task/push"
+	"github.com/efritz/ij/runner/task/remove"
+	"github.com/efritz/ij/runner/task/run"
 	"github.com/efritz/ij/state"
-	"github.com/efritz/ij/task/build"
-	"github.com/efritz/ij/task/run"
 	"github.com/efritz/ij/util"
 )
 
@@ -118,6 +120,10 @@ func (r *StageRunner) buildRunner(
 		return run.NewRunner(r.state, t, taskPrefix, env)
 	case *config.BuildTask:
 		return build.NewRunner(r.state, t, taskPrefix, env)
+	case *config.PushTask:
+		return push.NewRunner(r.state, t, taskPrefix, env)
+	case *config.RemoveTask:
+		return remove.NewRunner(r.state, t, taskPrefix, env)
 	}
 
 	panic("unexpected task type")
