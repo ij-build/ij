@@ -1,4 +1,4 @@
-package runtime
+package state
 
 import (
 	"context"
@@ -11,27 +11,27 @@ import (
 )
 
 type State struct {
-	config              *config.Config
-	plans               []string
-	runID               string
+	Config              *config.Config
+	Plans               []string
+	RunID               string
 	exportedEnv         []string
 	envMutex            sync.RWMutex
-	cpuShares           string
-	ctx                 context.Context
-	enableSSHAgent      bool
-	env                 []string
-	forceSequential     bool
-	healthcheckInterval time.Duration
-	memory              string
-	cancel              func()
-	once                sync.Once
-	cleanup             *Cleanup
-	containerStopper    *ContainerList
-	logger              logging.Logger
-	logProcessor        logging.Processor
-	network             *Network
-	networkDisconnector *ContainerList
-	scratch             *ScratchSpace
+	CPUShares           string
+	Context             context.Context
+	EnableSSHAgent      bool
+	Env                 []string
+	ForceSequential     bool
+	HealthcheckInterval time.Duration
+	Memory              string
+	Cancel              func()
+	Once                sync.Once
+	Cleanup             *Cleanup
+	ContainerStopper    *ContainerList
+	Logger              logging.Logger
+	LogProcessor        logging.Processor
+	Network             *Network
+	NetworkDisconnector *ContainerList
+	Scratch             *ScratchSpace
 }
 
 func NewState(
@@ -51,23 +51,23 @@ func NewState(
 	ctx, cancel := makeContext(planTimeout)
 
 	s = &State{
-		config:              config,
-		plans:               plans,
-		env:                 env,
-		cpuShares:           cpuShares,
-		enableSSHAgent:      enableSSHAgent,
-		forceSequential:     forceSequential,
-		healthcheckInterval: healthcheckInterval,
-		memory:              memory,
-		ctx:                 ctx,
-		cancel:              cancel,
-		cleanup:             NewCleanup(),
+		Config:              config,
+		Plans:               plans,
+		Env:                 env,
+		CPUShares:           cpuShares,
+		EnableSSHAgent:      enableSSHAgent,
+		ForceSequential:     forceSequential,
+		HealthcheckInterval: healthcheckInterval,
+		Memory:              memory,
+		Context:             ctx,
+		Cancel:              cancel,
+		Cleanup:             NewCleanup(),
 	}
 
 	//
 	// Generate a unique Run ID
 
-	if s.runID, err = util.MakeID(); err != nil {
+	if s.RunID, err = util.MakeID(); err != nil {
 		logging.EmergencyLog(
 			"error: failed to generate run id: %s",
 			err.Error(),
@@ -79,9 +79,9 @@ func NewState(
 	//
 	// Generate a scratch directory
 
-	s.scratch = NewScratchSpace(s.runID, keepWorkspace)
+	s.Scratch = NewScratchSpace(s.RunID, keepWorkspace)
 
-	if err = s.scratch.Setup(); err != nil {
+	if err = s.Scratch.Setup(); err != nil {
 		logging.EmergencyLog(
 			"error: failed to create scratch directory: %s",
 			err.Error(),
@@ -90,8 +90,8 @@ func NewState(
 		return
 	}
 
-	s.cleanup.Register(func() {
-		if err := s.scratch.Prune(); err != nil {
+	s.Cleanup.Register(func() {
+		if err := s.Scratch.Prune(); err != nil {
 			logging.EmergencyLog(
 				"error: failed to clean up scratch directory: %s",
 				err.Error(),
@@ -109,7 +109,7 @@ func NewState(
 			return
 		}
 
-		if err := s.scratch.Teardown(); err != nil {
+		if err := s.Scratch.Teardown(); err != nil {
 			logging.EmergencyLog(
 				"error: failed to teardown scratch directory: %s",
 				err.Error(),
@@ -120,14 +120,14 @@ func NewState(
 	//
 	// Setup Logging and start log processor
 
-	s.logProcessor = logging.NewProcessor(verbose, colorize)
-	s.logProcessor.Start()
-	s.cleanup.Register(s.logProcessor.Shutdown)
+	s.LogProcessor = logging.NewProcessor(verbose, colorize)
+	s.LogProcessor.Start()
+	s.Cleanup.Register(s.LogProcessor.Shutdown)
 
 	//
 	// Create Base Logger
 
-	outfile, errfile, err := s.scratch.MakeLogFiles("ij")
+	outfile, errfile, err := s.Scratch.MakeLogFiles("ij")
 	if err != nil {
 		logging.EmergencyLog(
 			"error: failed to create log files: %s",
@@ -137,7 +137,7 @@ func NewState(
 		return nil, err
 	}
 
-	s.logger = s.logProcessor.Logger(
+	s.Logger = s.LogProcessor.Logger(
 		outfile,
 		errfile,
 		true,
@@ -146,22 +146,22 @@ func NewState(
 	//
 	// Create Container Lists
 
-	s.containerStopper = NewContainerStopper(
-		s.logger,
+	s.ContainerStopper = NewContainerStopper(
+		s.Logger,
 	)
 
-	s.networkDisconnector = NewNetworkDisconnector(
-		s.runID,
-		s.logger,
+	s.NetworkDisconnector = NewNetworkDisconnector(
+		s.RunID,
+		s.Logger,
 	)
 
-	s.cleanup.Register(s.containerStopper.Execute)
-	s.cleanup.Register(s.networkDisconnector.Execute)
+	s.Cleanup.Register(s.ContainerStopper.Execute)
+	s.Cleanup.Register(s.NetworkDisconnector.Execute)
 
 	//
 	// Create Network
 
-	if s.network, err = NewNetwork(s.ctx, s.runID, s.logger); err != nil {
+	if s.Network, err = NewNetwork(s.Context, s.RunID, s.Logger); err != nil {
 		s.ReportError(
 			nil,
 			"error: failed to create network: %s",
@@ -171,7 +171,7 @@ func NewState(
 		return
 	}
 
-	s.cleanup.Register(s.network.Teardown)
+	s.Cleanup.Register(s.Network.Teardown)
 	return
 }
 
@@ -199,12 +199,12 @@ func (s *State) ReportError(
 	args ...interface{},
 ) {
 	select {
-	case <-s.ctx.Done():
+	case <-s.Context.Done():
 		return
 	default:
 	}
 
-	s.logger.Error(prefix, format, args...)
+	s.Logger.Error(prefix, format, args...)
 }
 
 func makeContext(timeout time.Duration) (context.Context, func()) {

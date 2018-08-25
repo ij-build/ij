@@ -1,4 +1,4 @@
-package runtime
+package run
 
 import (
 	"fmt"
@@ -9,10 +9,11 @@ import (
 
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
+	"github.com/efritz/ij/state"
 )
 
-type TaskBuilder struct {
-	state         *State
+type Builder struct {
+	state         *state.State
 	task          *config.Task
 	containerName string
 	env           environment.Environment
@@ -25,19 +26,19 @@ const (
 	ScriptPath           = "/tmp/ij/script"
 )
 
-func NewTaskBuilder(
-	state *State,
+func NewBuilder(
+	state *state.State,
 	task *config.Task,
 	containerName string,
 	env environment.Environment,
-) *TaskBuilder {
+) *Builder {
 	args := []string{
 		"docker",
 		"run",
 		"--rm",
 	}
 
-	return &TaskBuilder{
+	return &Builder{
 		state:         state,
 		task:          task,
 		containerName: containerName,
@@ -46,7 +47,7 @@ func NewTaskBuilder(
 	}
 }
 
-func (b *TaskBuilder) Build() ([]string, error) {
+func (b *Builder) Build() ([]string, error) {
 	builders := []func() error{
 		b.addCommandOptions,
 		b.addContainerName,
@@ -78,7 +79,7 @@ func (b *TaskBuilder) Build() ([]string, error) {
 //
 // Builders
 
-func (b *TaskBuilder) addCommandOptions() error {
+func (b *Builder) addCommandOptions() error {
 	if b.task.Script != "" {
 		return nil
 	}
@@ -103,7 +104,7 @@ func (b *TaskBuilder) addCommandOptions() error {
 	return nil
 }
 
-func (b *TaskBuilder) addContainerName() error {
+func (b *Builder) addContainerName() error {
 	containerName, err := b.env.ExpandString(b.containerName)
 	if err != nil {
 		return err
@@ -113,7 +114,7 @@ func (b *TaskBuilder) addContainerName() error {
 	return nil
 }
 
-func (b *TaskBuilder) addDetachOptions() error {
+func (b *Builder) addDetachOptions() error {
 	if b.task.Detach {
 		b.addFlag("-d")
 	}
@@ -121,7 +122,7 @@ func (b *TaskBuilder) addDetachOptions() error {
 	return nil
 }
 
-func (b *TaskBuilder) addEnvironmentOptions() error {
+func (b *Builder) addEnvironmentOptions() error {
 	for _, line := range b.env.Serialize() {
 		expanded, err := b.env.ExpandString(line)
 		if err != nil {
@@ -134,7 +135,7 @@ func (b *TaskBuilder) addEnvironmentOptions() error {
 	return nil
 }
 
-func (b *TaskBuilder) addHealthCheckOptions() error {
+func (b *Builder) addHealthCheckOptions() error {
 	hc := b.task.Healthcheck
 	if hc == nil {
 		return nil
@@ -157,24 +158,24 @@ func (b *TaskBuilder) addHealthCheckOptions() error {
 	return nil
 }
 
-func (b *TaskBuilder) addLimitOptions() error {
-	b.addFlagValue("--cpu-shares", b.state.cpuShares)
-	b.addFlagValue("--memory", b.state.memory)
+func (b *Builder) addLimitOptions() error {
+	b.addFlagValue("--cpu-shares", b.state.CPUShares)
+	b.addFlagValue("--memory", b.state.Memory)
 	return nil
 }
 
-func (b *TaskBuilder) addNetworkOptions() error {
+func (b *Builder) addNetworkOptions() error {
 	hostname, err := b.env.ExpandString(b.task.Hostname)
 	if err != nil {
 		return err
 	}
 
-	b.addFlagValue("--network", b.state.runID)
+	b.addFlagValue("--network", b.state.RunID)
 	b.addFlagValue("--network-alias", hostname)
 	return nil
 }
 
-func (b *TaskBuilder) addScriptOptions() error {
+func (b *Builder) addScriptOptions() error {
 	if b.task.Script == "" {
 		return nil
 	}
@@ -184,7 +185,7 @@ func (b *TaskBuilder) addScriptOptions() error {
 		return err
 	}
 
-	path, err := b.state.scratch.WriteScript(script)
+	path, err := b.state.Scratch.WriteScript(script)
 	if err != nil {
 		return err
 	}
@@ -210,7 +211,7 @@ func (b *TaskBuilder) addScriptOptions() error {
 	return nil
 }
 
-func (b *TaskBuilder) addUserOptions() error {
+func (b *Builder) addUserOptions() error {
 	user, err := user.Current()
 	if err != nil {
 		return err
@@ -227,8 +228,8 @@ func (b *TaskBuilder) addUserOptions() error {
 	return nil
 }
 
-func (b *TaskBuilder) addSSHOptions() error {
-	if !b.state.enableSSHAgent {
+func (b *Builder) addSSHOptions() error {
+	if !b.state.EnableSSHAgent {
 		return nil
 	}
 
@@ -238,13 +239,13 @@ func (b *TaskBuilder) addSSHOptions() error {
 	return nil
 }
 
-func (b *TaskBuilder) addWorkspaceOptions() error {
+func (b *Builder) addWorkspaceOptions() error {
 	workspace, err := b.env.ExpandString(b.task.Workspace)
 	if err != nil {
 		return err
 	}
 
-	workspace, err = b.env.ExpandString(b.state.config.Workspace)
+	workspace, err = b.env.ExpandString(b.state.Config.Workspace)
 	if err != nil {
 		return err
 	}
@@ -255,7 +256,7 @@ func (b *TaskBuilder) addWorkspaceOptions() error {
 
 	mount := fmt.Sprintf(
 		"%s:%s",
-		b.state.scratch.Workspace(),
+		b.state.Scratch.Workspace(),
 		workspace,
 	)
 
@@ -267,11 +268,11 @@ func (b *TaskBuilder) addWorkspaceOptions() error {
 //
 // Helpers
 
-func (b *TaskBuilder) addFlag(flag string) {
+func (b *Builder) addFlag(flag string) {
 	b.args = append(b.args, flag)
 }
 
-func (b *TaskBuilder) addFlagValue(flag, value string) {
+func (b *Builder) addFlagValue(flag, value string) {
 	if value != "" {
 		b.args = append(b.args, flag, value)
 	}

@@ -1,4 +1,4 @@
-package runtime
+package run
 
 import (
 	"context"
@@ -12,23 +12,24 @@ import (
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
+	"github.com/efritz/ij/state"
 	"github.com/efritz/ij/util"
 )
 
-type TaskRunner struct {
-	state  *State
+type Runner struct {
+	state  *state.State
 	task   *config.Task
 	prefix *logging.Prefix
 	env    environment.Environment
 }
 
-func NewTaskRunner(
-	state *State,
+func NewRunner(
+	state *state.State,
 	task *config.Task,
 	prefix *logging.Prefix,
 	env environment.Environment,
-) *TaskRunner {
-	return &TaskRunner{
+) *Runner {
+	return &Runner{
 		state:  state,
 		task:   task,
 		prefix: prefix,
@@ -36,8 +37,8 @@ func NewTaskRunner(
 	}
 }
 
-func (r *TaskRunner) Run() bool {
-	r.state.logger.Info(
+func (r *Runner) Run() bool {
+	r.state.Logger.Info(
 		r.prefix,
 		"Beginning task",
 	)
@@ -48,7 +49,7 @@ func (r *TaskRunner) Run() bool {
 	)
 
 	if !ok {
-		r.state.logger.Error(
+		r.state.Logger.Error(
 			r.prefix,
 			"Missing environment values: %s",
 			strings.Join(missing, ", "),
@@ -59,7 +60,7 @@ func (r *TaskRunner) Run() bool {
 
 	containerName, err := util.MakeID()
 	if err != nil {
-		r.state.logger.Error(
+		r.state.Logger.Error(
 			r.prefix,
 			"Failed to generate container id: %s",
 			err.Error(),
@@ -68,13 +69,13 @@ func (r *TaskRunner) Run() bool {
 		return false
 	}
 
-	r.state.logger.Info(
+	r.state.Logger.Info(
 		r.prefix,
 		"Launching container %s",
 		containerName,
 	)
 
-	builder := NewTaskBuilder(
+	builder := NewBuilder(
 		r.state,
 		r.task,
 		containerName,
@@ -83,7 +84,7 @@ func (r *TaskRunner) Run() bool {
 
 	args, err := builder.Build()
 	if err != nil {
-		r.state.logger.Error(
+		r.state.Logger.Error(
 			r.prefix,
 			"Failed to build command args: %s",
 			err.Error(),
@@ -99,13 +100,13 @@ func (r *TaskRunner) Run() bool {
 	return r.runInBackground(containerName, args)
 }
 
-func (r *TaskRunner) runInForeground(containerName string, args []string) bool {
-	outfile, errfile, err := r.state.scratch.MakeLogFiles(
+func (r *Runner) runInForeground(containerName string, args []string) bool {
+	outfile, errfile, err := r.state.Scratch.MakeLogFiles(
 		r.prefix.Serialize(nil),
 	)
 
 	if err != nil {
-		r.state.logger.Error(
+		r.state.Logger.Error(
 			r.prefix,
 			"Failed to create task run log files: %s",
 			err.Error(),
@@ -114,17 +115,17 @@ func (r *TaskRunner) runInForeground(containerName string, args []string) bool {
 		return false
 	}
 
-	logger := r.state.logProcessor.Logger(
+	logger := r.state.LogProcessor.Logger(
 		outfile,
 		errfile,
 		false,
 	)
 
-	r.state.networkDisconnector.Add(containerName)
-	defer r.state.networkDisconnector.Remove(containerName)
+	r.state.NetworkDisconnector.Add(containerName)
+	defer r.state.NetworkDisconnector.Remove(containerName)
 
 	commandErr := command.Run(
-		r.state.ctx,
+		r.state.Context,
 		args,
 		logger,
 		r.prefix,
@@ -143,7 +144,7 @@ func (r *TaskRunner) runInForeground(containerName string, args []string) bool {
 	return r.exportEnvironmentFiles()
 }
 
-func (r *TaskRunner) exportEnvironmentFiles() bool {
+func (r *Runner) exportEnvironmentFiles() bool {
 	paths, err := r.env.ExpandSlice(r.task.ExportEnvironmentFiles)
 	if err != nil {
 		r.state.ReportError(
@@ -164,9 +165,9 @@ func (r *TaskRunner) exportEnvironmentFiles() bool {
 	return true
 }
 
-func (r *TaskRunner) exportEnvironmentFile(path string) bool {
+func (r *Runner) exportEnvironmentFile(path string) bool {
 	realPath, err := filepath.Abs(filepath.Join(
-		r.state.scratch.Workspace(),
+		r.state.Scratch.Workspace(),
 		path,
 	))
 
@@ -180,7 +181,7 @@ func (r *TaskRunner) exportEnvironmentFile(path string) bool {
 		return false
 	}
 
-	workspace := r.state.scratch.Workspace()
+	workspace := r.state.Scratch.Workspace()
 
 	if !strings.HasPrefix(realPath, workspace) {
 		r.state.ReportError(
@@ -192,7 +193,7 @@ func (r *TaskRunner) exportEnvironmentFile(path string) bool {
 		return false
 	}
 
-	r.state.logger.Info(
+	r.state.Logger.Info(
 		r.prefix,
 		"Injecting environment from file %s",
 		fmt.Sprintf("~%s", realPath[len(workspace):]),
@@ -200,7 +201,7 @@ func (r *TaskRunner) exportEnvironmentFile(path string) bool {
 
 	data, err := ioutil.ReadFile(realPath)
 	if err != nil {
-		r.state.logger.Error(
+		r.state.Logger.Error(
 			r.prefix,
 			"Failed to read environment file: %s",
 			err.Error(),
@@ -217,7 +218,7 @@ func (r *TaskRunner) exportEnvironmentFile(path string) bool {
 		}
 
 		if !strings.Contains(line, "=") {
-			r.state.logger.Error(
+			r.state.Logger.Error(
 				r.prefix,
 				"Malformed entry in environments file: %s",
 				line,
@@ -232,13 +233,13 @@ func (r *TaskRunner) exportEnvironmentFile(path string) bool {
 	return true
 }
 
-func (r *TaskRunner) runInBackground(containerName string, args []string) bool {
-	r.state.containerStopper.Add(containerName)
+func (r *Runner) runInBackground(containerName string, args []string) bool {
+	r.state.ContainerStopper.Add(containerName)
 
 	_, _, err := command.RunForOutput(
 		context.Background(),
 		args,
-		r.state.logger,
+		r.state.Logger,
 	)
 
 	if err != nil {
@@ -252,9 +253,9 @@ func (r *TaskRunner) runInBackground(containerName string, args []string) bool {
 	}
 
 	hasHealthcheck, err := hasHealthCheck(
-		r.state.ctx,
+		r.state.Context,
 		containerName,
-		r.state.logger,
+		r.state.Logger,
 		r.prefix,
 	)
 
@@ -275,12 +276,12 @@ func (r *TaskRunner) runInBackground(containerName string, args []string) bool {
 	return r.monitor(containerName)
 }
 
-func (r *TaskRunner) monitor(containerName string) bool {
+func (r *Runner) monitor(containerName string) bool {
 	for {
 		status, err := getHealthStatus(
-			r.state.ctx,
+			r.state.Context,
 			containerName,
-			r.state.logger,
+			r.state.Logger,
 			r.prefix,
 		)
 
@@ -295,7 +296,7 @@ func (r *TaskRunner) monitor(containerName string) bool {
 		}
 
 		if status == "healthy" {
-			r.state.logger.Info(
+			r.state.Logger.Info(
 				r.prefix,
 				"Container is healthy",
 			)
@@ -303,15 +304,15 @@ func (r *TaskRunner) monitor(containerName string) bool {
 			return true
 		}
 
-		r.state.logger.Info(
+		r.state.Logger.Info(
 			r.prefix,
 			"Container is not yet healthy (currently %s)",
 			status,
 		)
 
 		select {
-		case <-time.After(r.state.healthcheckInterval):
-		case <-r.state.ctx.Done():
+		case <-time.After(r.state.HealthcheckInterval):
+		case <-r.state.Context.Done():
 			return false
 		}
 	}

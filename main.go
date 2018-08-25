@@ -12,8 +12,9 @@ import (
 	"github.com/efritz/ij/loader"
 	"github.com/efritz/ij/logging"
 	"github.com/efritz/ij/paths"
-	"github.com/efritz/ij/runtime"
+	"github.com/efritz/ij/runner"
 	"github.com/efritz/ij/ssh"
+	"github.com/efritz/ij/state"
 )
 
 const Version = "0.1.0"
@@ -79,7 +80,7 @@ func run() bool {
 		return false
 	}
 
-	state, err := runtime.NewState(
+	state, err := state.NewState(
 		config,
 		*plans,
 		*colorize,
@@ -98,7 +99,7 @@ func run() bool {
 		return false
 	}
 
-	return runtime.NewPlanRunner(state).Run()
+	return runner.NewPlanRunner(state).Run()
 }
 
 func parseArgs() error {

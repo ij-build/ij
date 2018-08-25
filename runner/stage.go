@@ -1,4 +1,4 @@
-package runtime
+package runner
 
 import (
 	"fmt"
@@ -6,12 +6,14 @@ import (
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
+	"github.com/efritz/ij/state"
+	"github.com/efritz/ij/task/run"
 	"github.com/efritz/ij/util"
 )
 
 type (
 	StageRunner struct {
-		state  *State
+		state  *state.State
 		plan   *config.Plan
 		stage  *config.Stage
 		prefix *logging.Prefix
@@ -21,7 +23,7 @@ type (
 )
 
 func NewStageRunner(
-	state *State,
+	state *state.State,
 	plan *config.Plan,
 	stage *config.Stage,
 	prefix *logging.Prefix,
@@ -35,7 +37,7 @@ func NewStageRunner(
 }
 
 func (r *StageRunner) Run() bool {
-	r.state.logger.Info(
+	r.state.Logger.Info(
 		r.prefix,
 		"Beginning stage",
 	)
@@ -45,11 +47,11 @@ func (r *StageRunner) Run() bool {
 		runners = append(runners, r.buildRunner(
 			stageTask,
 			i,
-			r.state.config.Tasks[stageTask.Name],
+			r.state.Config.Tasks[stageTask.Name],
 		))
 	}
 
-	if !r.stage.Parallel || r.state.forceSequential {
+	if !r.stage.Parallel || r.state.ForceSequential {
 		return runSequential(runners)
 	}
 
@@ -69,16 +71,16 @@ func (r *StageRunner) buildRunner(
 
 	return func() bool {
 		env := environment.Merge(
-			environment.New(r.state.config.Environment),
+			environment.New(r.state.Config.Environment),
 			environment.New(task.Environment),
 			environment.New(r.plan.Environment),
 			environment.New(r.stage.Environment),
 			environment.New(stageTask.Environment),
 			environment.New(r.state.GetExportedEnv()),
-			environment.New(r.state.env),
+			environment.New(r.state.Env),
 		)
 
-		runner := NewTaskRunner(
+		runner := run.NewRunner(
 			r.state,
 			task,
 			taskPrefix,
@@ -94,7 +96,7 @@ func (r *StageRunner) buildRunner(
 			return false
 		}
 
-		r.state.logger.Info(
+		r.state.Logger.Info(
 			taskPrefix,
 			"Task has completed successfully",
 		)
