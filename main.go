@@ -22,6 +22,7 @@ const Version = "0.1.0"
 var (
 	app = kingpin.New("ij", "ij is a build tool built with Docker.").Version(Version)
 
+	plans               = app.Arg("plans", "The name of the plans to execute.").Default("default").Strings()
 	colorize            = app.Flag("color", "Enable colorized output.").Default("true").Bool()
 	configPath          = app.Flag("config", "The path to the config file.").Short('f').String()
 	cpuShares           = app.Flag("cpu-shares", "The amount of cpu shares to give to each container.").Short('c').String()
@@ -30,7 +31,6 @@ var (
 	healthcheckInterval = app.Flag("healthcheck-interval", "The interval between service container healthchecks.").Default("5s").Duration()
 	keepWorkspace       = app.Flag("keep-workspace", "Do not delete the workspace").Short('k').Default("false").Bool()
 	memory              = app.Flag("memory", "The amount of memory to give each container.").Short('m').String()
-	plans               = app.Arg("plans", "The name of the plans to execute.").Default("default").Strings()
 	planTimeout         = app.Flag("timeout", "Maximum amount of time a plan can run. 0 to disable.").Default("15m").Duration()
 	sshIdentities       = app.Flag("ssh-identity", "Enable ssh-agent for the given identities.").Strings()
 	verbose             = app.Flag("verbose", "Output debug logs.").Short('v').Default("false").Bool()
@@ -70,7 +70,11 @@ func run() bool {
 		return false
 	}
 
-	enableAgent, err := ssh.EnureKeysAvailable(*sshIdentities)
+	enableAgent, err := ssh.EnureKeysAvailable(append(
+		config.SSHIdentities,
+		*sshIdentities...,
+	))
+
 	if err != nil {
 		logging.EmergencyLog(
 			"error: failed to validate ssh keys: %s",

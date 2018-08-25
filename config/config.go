@@ -12,6 +12,7 @@ type Config struct {
 	Imports     []string
 	Exports     []string
 	Excludes    []string
+	SSHIdentities []string
 }
 
 func (c *Config) Merge(child *Config) error {

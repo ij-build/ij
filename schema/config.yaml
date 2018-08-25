@@ -238,6 +238,13 @@ properties:
   workspace:
     description: TODO
     type: string
+  ssh-identities:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
   environment:
     $ref: '#/definitions/environment'
   import:

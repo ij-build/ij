@@ -7,18 +7,24 @@ import (
 )
 
 type Config struct {
-	Extends     string                     `json:"extends"`
-	Workspace   string                     `json:"workspace"`
-	Environment []string                   `json:"environment"`
-	Tasks       map[string]json.RawMessage `json:"tasks"`
-	Plans       map[string]*Plan           `json:"plans"`
-	Metaplans   map[string][]string        `json:"metaplans"`
-	Imports     json.RawMessage            `json:"import"`
-	Exports     json.RawMessage            `json:"export"`
-	Excludes    json.RawMessage            `json:"exclude"`
+	Extends       string                     `json:"extends"`
+	SSHIdentities json.RawMessage            `json:"ssh-identities"`
+	Workspace     string                     `json:"workspace"`
+	Environment   []string                   `json:"environment"`
+	Tasks         map[string]json.RawMessage `json:"tasks"`
+	Plans         map[string]*Plan           `json:"plans"`
+	Metaplans     map[string][]string        `json:"metaplans"`
+	Imports       json.RawMessage            `json:"import"`
+	Exports       json.RawMessage            `json:"export"`
+	Excludes      json.RawMessage            `json:"exclude"`
 }
 
 func (c *Config) Translate() (*config.Config, error) {
+	sshIdentities, err := unmarshalStringList(c.SSHIdentities)
+	if err != nil {
+		return nil, err
+	}
+
 	tasks := map[string]config.Task{}
 	for name, task := range c.Tasks {
 		translated, err := translateTask(name, task)
@@ -55,14 +61,15 @@ func (c *Config) Translate() (*config.Config, error) {
 	}
 
 	return &config.Config{
-		Extends:     c.Extends,
-		Workspace:   c.Workspace,
-		Environment: c.Environment,
-		Tasks:       tasks,
-		Plans:       plans,
-		Metaplans:   c.Metaplans,
-		Imports:     imports,
-		Exports:     exports,
-		Excludes:    excludes,
+		Extends:       c.Extends,
+		SSHIdentities: sshIdentities,
+		Workspace:     c.Workspace,
+		Environment:   c.Environment,
+		Tasks:         tasks,
+		Plans:         plans,
+		Metaplans:     c.Metaplans,
+		Imports:       imports,
+		Exports:       exports,
+		Excludes:      excludes,
 	}, nil
 }
