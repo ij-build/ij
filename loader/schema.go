@@ -24,9 +24,25 @@ func validateWithSchema(data []byte) error {
 	if !result.Valid() {
 		errors := []string{}
 		for _, err := range result.Errors() {
+			resultError, ok := err.(gojsonschema.ResultError)
+			if !ok {
+				continue
+			}
+
+			switch resultError.(type) {
+			case *gojsonschema.NumberOneOfError:
+				continue
+			case *gojsonschema.NumberAnyOfError:
+				continue
+			case *gojsonschema.NumberAllOfError:
+				continue
+			default:
+			}
+
 			errors = append(errors, fmt.Sprintf(
-				"\t%s",
-				err.(gojsonschema.ResultError),
+				"\t%s\n\t\t%s",
+				resultError.Context().String(),
+				resultError.Description(),
 			))
 		}
 

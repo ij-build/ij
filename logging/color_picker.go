@@ -8,21 +8,29 @@ import (
 	"github.com/mgutz/ansi"
 )
 
-type colorPicker struct {
-	enabled bool
-	cache   map[string]string
-	mutex   sync.RWMutex
-}
+type (
+	ColorPicker interface {
+		Colorize(val string) string
+	}
 
-func newColorPicker(enabled bool) *colorPicker {
+	colorPicker struct {
+		enabled bool
+		cache   map[string]string
+		mutex   sync.RWMutex
+	}
+)
+
+var NilColorPicker = newColorPicker(false)
+
+func newColorPicker(enabled bool) ColorPicker {
 	return &colorPicker{
 		enabled: enabled,
 		cache:   map[string]string{},
 	}
 }
 
-func (p *colorPicker) colorize(val string) string {
-	if p == nil || !p.enabled {
+func (p *colorPicker) Colorize(val string) string {
+	if !p.enabled {
 		return val
 	}
 

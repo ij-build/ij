@@ -1,8 +1,6 @@
 package state
 
-import (
-	"sync"
-)
+import "sync"
 
 type Cleanup struct {
 	funcs []func()

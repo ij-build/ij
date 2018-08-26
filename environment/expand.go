@@ -18,8 +18,10 @@ func (e Environment) ExpandSlice(templates []string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		expanded = append(expanded, val)
 	}
+
 	return expanded, nil
 }
 
@@ -29,8 +31,7 @@ func (e Environment) ExpandSlice(templates []string) ([]string, error) {
 func (e Environment) expandString(template string, count int) (string, error) {
 	if count == 0 {
 		return "", fmt.Errorf(
-			"exceeded %d iterations while expanding environment: current template is `%s`",
-			ExpandMaxIterations,
+			"failed to expand environment: current template is `%s`",
 			template,
 		)
 	}

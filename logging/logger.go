@@ -21,7 +21,11 @@ type (
 		errfile     io.Writer
 		writePrefix bool
 	}
+
+	nilLogger struct{}
 )
+
+var NilLogger = &nilLogger{}
 
 func newLogger(processor *processor, outfile, errfile io.Writer, writePrefix bool) Logger {
 	return &logger{
@@ -74,3 +78,7 @@ func (l *logger) getTargets(level LogLevel) (io.Writer, io.Writer) {
 
 	return os.Stdout, l.outfile
 }
+
+func (l *nilLogger) Debug(*Prefix, string, ...interface{}) {}
+func (l *nilLogger) Info(*Prefix, string, ...interface{})  {}
+func (l *nilLogger) Error(*Prefix, string, ...interface{}) {}

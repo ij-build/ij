@@ -2,6 +2,7 @@ package paths
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -96,4 +97,37 @@ func (c *Copier) copyAll(src, dest string, info os.FileInfo) error {
 
 func (c *Copier) displayPath(path string) string {
 	return fmt.Sprintf("~%s", path[len(c.project):])
+}
+
+//
+// Helpers
+
+func copyFile(src, dest string, info os.FileInfo) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+
+	defer srcFile.Close()
+
+	if err := EnsureParentExists(dest, os.ModePerm); err != nil {
+		return err
+	}
+
+	destFile, err := os.OpenFile(dest, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+
+	defer destFile.Close()
+
+	if _, err := io.Copy(destFile, srcFile); err != nil {
+		return err
+	}
+
+	if err := os.Chmod(destFile.Name(), info.Mode()); err != nil {
+		return err
+	}
+
+	return nil
 }

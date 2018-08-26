@@ -95,7 +95,7 @@ func (r *Runner) Run() bool {
 
 func (r *Runner) runInForeground(containerName string, args []string) bool {
 	outfile, errfile, err := r.state.Scratch.MakeLogFiles(
-		r.prefix.Serialize(nil),
+		r.prefix.Serialize(logging.NilColorPicker),
 	)
 
 	if err != nil {

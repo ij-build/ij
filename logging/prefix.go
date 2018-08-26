@@ -21,10 +21,10 @@ func (p *Prefix) Append(part string) *Prefix {
 	return NewPrefix(append(parts, part)...)
 }
 
-func (p *Prefix) Serialize(picker *colorPicker) string {
+func (p *Prefix) Serialize(picker ColorPicker) string {
 	colorized := []string{}
 	for _, part := range p.parts {
-		colorized = append(colorized, picker.colorize(part))
+		colorized = append(colorized, picker.Colorize(part))
 	}
 
 	return strings.Join(colorized, "/")

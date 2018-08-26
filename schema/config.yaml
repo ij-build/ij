@@ -7,6 +7,10 @@ definitions:
     items:
       type: string
 
+  #
+  # TODO - for extend, infer type from parent
+  #
+
   task:
     description: TODO
     oneOf:

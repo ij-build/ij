@@ -18,7 +18,7 @@ type (
 	processor struct {
 		verbose     bool
 		colorize    bool
-		colorPicker *colorPicker
+		colorPicker ColorPicker
 		queue       chan *message
 		handles     []io.Closer
 		mutex       sync.Mutex
@@ -135,5 +135,5 @@ func (p *processor) buildPrefixForFile(prefix *Prefix, writePrefix bool) string 
 		return ""
 	}
 
-	return fmt.Sprintf("%s: ", prefix.Serialize(nil))
+	return fmt.Sprintf("%s: ", prefix.Serialize(NilColorPicker))
 }
