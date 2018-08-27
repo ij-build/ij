@@ -1,4 +1,4 @@
-package logging
+package jsonconfig
 
 import (
 	"testing"
@@ -14,9 +14,13 @@ func TestMain(m *testing.M) {
 	sweet.Run(m, func(s *sweet.S) {
 		s.RegisterPlugin(junit.NewPlugin())
 
-		s.AddSuite(&PrefixSuite{})
-		s.AddSuite(&ColorPickerSuite{})
-		s.AddSuite(&ProcessorSuite{})
-		s.AddSuite(&UtilSuite{})
+		s.AddSuite(&BuildSuite{})
+		s.AddSuite(&ConfigSuite{})
+		s.AddSuite(&PlanSuite{})
+		s.AddSuite(&PushSuite{})
+		s.AddSuite(&RemoveSuite{})
+		s.AddSuite(&RunSuite{})
+		s.AddSuite(&StageSuite{})
+		s.AddSuite(&TaskSuite{})
 	})
 }

@@ -16,7 +16,7 @@ func hasHealthCheck(
 ) (bool, error) {
 	logger.Debug(prefix, "Checking if container has a healthcheck")
 
-	out, _, err := command.RunForOutput(
+	out, _, err := command.NewRunner(logger).RunForOutput(
 		ctx,
 		[]string{
 			"docker",
@@ -25,7 +25,6 @@ func hasHealthCheck(
 			"{{if .Config.Healthcheck}}true{{else}}false{{end}}",
 			containerName,
 		},
-		logger,
 	)
 
 	if err != nil {
@@ -43,7 +42,7 @@ func getHealthStatus(
 ) (string, error) {
 	logger.Debug(prefix, "Checking container health")
 
-	out, _, err := command.RunForOutput(
+	out, _, err := command.NewRunner(logger).RunForOutput(
 		ctx,
 		[]string{
 			"docker",
@@ -52,7 +51,6 @@ func getHealthStatus(
 			"{{.State.Health.Status}}",
 			containerName,
 		},
-		logger,
 	)
 
 	if err != nil {

@@ -1,0 +1,41 @@
+package jsonconfig
+
+import (
+	"encoding/json"
+
+	"github.com/aphistic/sweet"
+	"github.com/efritz/ij/config"
+	. "github.com/onsi/gomega"
+)
+
+type StageSuite struct{}
+
+func (s *StageSuite) TestTranslate(t sweet.T) {
+	stage := &Stage{
+		Name:        "s",
+		BeforeStage: "b",
+		AfterStage:  "a",
+		Tasks: []json.RawMessage{
+			json.RawMessage(`"t1"`),
+			json.RawMessage(`{"name": "t2"}`),
+			json.RawMessage(`{"name": "t3", "environment": ["X=4", "Y=5"]}`),
+		},
+		Parallel:    true,
+		Environment: []string{"X=1", "Y=2", "Z=3"},
+	}
+
+	translated, err := stage.Translate()
+	Expect(err).To(BeNil())
+	Expect(translated).To(Equal(&config.Stage{
+		Name:        "s",
+		BeforeStage: "b",
+		AfterStage:  "a",
+		Tasks: []*config.StageTask{
+			&config.StageTask{Name: "t1"},
+			&config.StageTask{Name: "t2"},
+			&config.StageTask{Name: "t3", Environment: []string{"X=4", "Y=5"}},
+		},
+		Parallel:    true,
+		Environment: []string{"X=1", "Y=2", "Z=3"},
+	}))
+}

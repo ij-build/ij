@@ -1,0 +1,95 @@
+package loader
+
+import (
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+
+	"github.com/aphistic/sweet"
+	"github.com/efritz/ij/config"
+	. "github.com/onsi/gomega"
+)
+
+type LoaderSuite struct{}
+
+func (s *LoaderSuite) TestLoad(t sweet.T) {
+	loaded, err := NewLoader().Load("./test-configs/basic.yaml")
+	Expect(err).To(BeNil())
+	Expect(loaded).To(Equal(&config.Config{
+		Environment: []string{"X=1", "Y=2", "Z=3"},
+		Tasks: map[string]config.Task{
+			"x": &config.BuildTask{TaskMeta: config.TaskMeta{Name: "x"}, Dockerfile: "Dockerfile.x"},
+			"y": &config.BuildTask{TaskMeta: config.TaskMeta{Name: "y"}, Dockerfile: "Dockerfile.y"},
+			"z": &config.BuildTask{TaskMeta: config.TaskMeta{Name: "z"}, Dockerfile: "Dockerfile.z"},
+		},
+		Plans: map[string]*config.Plan{
+			"a": &config.Plan{
+				Name: "a",
+				Stages: []*config.Stage{
+					&config.Stage{
+						Name: "w",
+						Tasks: []*config.StageTask{
+							&config.StageTask{Name: "x"},
+							&config.StageTask{Name: "y"},
+							&config.StageTask{Name: "z"},
+						},
+					},
+				},
+			},
+			"b": &config.Plan{
+				Name: "b",
+				Stages: []*config.Stage{
+					&config.Stage{
+						Name: "q",
+						Tasks: []*config.StageTask{
+							&config.StageTask{Name: "x", Environment: []string{"Z=4"}},
+						},
+					},
+				},
+			},
+		},
+		Metaplans: map[string][]string{
+			"default": []string{"a", "b"},
+		},
+	}))
+}
+
+func (s *LoaderSuite) TestLoadFromURL(t sweet.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		content, _ := ioutil.ReadFile("./test-configs/parent.yaml")
+		w.WriteHeader(http.StatusOK)
+		w.Write(content)
+	}))
+
+	defer ts.Close()
+
+	loaded, err := NewLoader().Load(ts.URL)
+	Expect(err).To(BeNil())
+	Expect(loaded).To(Equal(&config.Config{
+		Environment: []string{"X=1", "Y=2", "Z=3"},
+		Tasks:       map[string]config.Task{},
+		Plans:       map[string]*config.Plan{},
+		Metaplans:   map[string][]string{},
+	}))
+}
+
+func (s *LoaderSuite) TestLoadExtends(t sweet.T) {
+	loaded, err := NewLoader().Load("./test-configs/child.yaml")
+	Expect(err).To(BeNil())
+	Expect(loaded).To(Equal(&config.Config{
+		Environment: []string{"X=1", "Y=2", "Z=3", "X=10", "W=20"},
+		Tasks:       map[string]config.Task{},
+		Plans:       map[string]*config.Plan{},
+		Metaplans:   map[string][]string{},
+	}))
+}
+
+func (s *LoaderSuite) TestLoadInvalidSchema(t sweet.T) {
+	_, err := NewLoader().Load("./test-configs/invalid.yaml")
+	Expect(err).NotTo(BeNil())
+}
+
+func (s *LoaderSuite) TestLoadExtendsCycle(t sweet.T) {
+	_, err := NewLoader().Load("./test-configs/a.yaml")
+	Expect(err).To(MatchError("failed to extend from b.yaml (extension is cyclic)"))
+}

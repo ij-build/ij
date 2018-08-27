@@ -3,6 +3,7 @@ package loader
 import (
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -18,7 +19,7 @@ func readPath(path string) ([]byte, error) {
 }
 
 func chooseReader(path string) func(string) ([]byte, error) {
-	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
+	if isURL(path) {
 		return readRemoteFile
 	}
 
@@ -39,4 +40,16 @@ func readRemoteFile(path string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	return ioutil.ReadAll(resp.Body)
+}
+
+func buildPath(path, source string) string {
+	if isURL(path) || isURL(source) {
+		return path
+	}
+
+	return filepath.Join(filepath.Dir(source), path)
+}
+
+func isURL(path string) bool {
+	return strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://")
 }

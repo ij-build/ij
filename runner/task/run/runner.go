@@ -117,10 +117,9 @@ func (r *Runner) runInForeground(containerName string, args []string) bool {
 	r.state.NetworkDisconnector.Add(containerName)
 	defer r.state.NetworkDisconnector.Remove(containerName)
 
-	err = command.Run(
+	err = command.NewRunner(logger).Run(
 		r.state.Context,
 		args,
-		logger,
 		r.prefix,
 	)
 
@@ -229,10 +228,9 @@ func (r *Runner) exportEnvironmentFile(path string) bool {
 func (r *Runner) runInBackground(containerName string, args []string) bool {
 	r.state.ContainerStopper.Add(containerName)
 
-	_, _, err := command.RunForOutput(
+	_, _, err := command.NewRunner(r.state.Logger).RunForOutput(
 		context.Background(),
 		args,
-		r.state.Logger,
 	)
 
 	if err != nil {

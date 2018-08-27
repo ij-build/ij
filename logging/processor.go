@@ -5,6 +5,7 @@ import (
 	"io"
 	"sync"
 
+	"github.com/efritz/glock"
 	"github.com/mgutz/ansi"
 )
 
@@ -18,6 +19,7 @@ type (
 	processor struct {
 		verbose     bool
 		colorize    bool
+		clock       glock.Clock
 		colorPicker ColorPicker
 		queue       chan *message
 		handles     []io.Closer
@@ -33,9 +35,14 @@ const (
 )
 
 func NewProcessor(verbose, colorize bool) Processor {
+	return newProcessor(verbose, colorize, glock.NewRealClock())
+}
+
+func newProcessor(verbose, colorize bool, clock glock.Clock) Processor {
 	return &processor{
 		verbose:     verbose,
 		colorize:    colorize,
+		clock:       clock,
 		colorPicker: newColorPicker(colorize),
 		queue:       make(chan *message),
 	}

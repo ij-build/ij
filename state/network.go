@@ -29,7 +29,7 @@ func NewNetwork(
 		"Creating network",
 	)
 
-	_, _, err := command.RunForOutput(
+	_, _, err := command.NewRunner(logger).RunForOutput(
 		ctx,
 		[]string{
 			"docker",
@@ -37,7 +37,6 @@ func NewNetwork(
 			"create",
 			n.runID,
 		},
-		logger,
 	)
 
 	if err != nil {
@@ -53,7 +52,7 @@ func (n *Network) Teardown() {
 		"Removing network",
 	)
 
-	_, _, err := command.RunForOutput(
+	_, _, err := command.NewRunner(n.logger).RunForOutput(
 		context.Background(),
 		[]string{
 			"docker",
@@ -61,7 +60,6 @@ func (n *Network) Teardown() {
 			"rm",
 			n.runID,
 		},
-		n.logger,
 	)
 
 	if err != nil {

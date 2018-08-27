@@ -49,10 +49,9 @@ func (r *Runner) Run() bool {
 	}
 
 	for _, image := range images {
-		_, stderr, err := command.RunForOutput(
+		_, stderr, err := command.NewRunner(r.state.Logger).RunForOutput(
 			r.state.Context,
 			[]string{"docker", "rmi", image},
-			r.state.Logger,
 		)
 
 		if err != nil {

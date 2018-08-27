@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 )
 
-func EnureKeysAvailable(identities []string) (bool, error) {
+func EnsureKeysAvailable(identities []string) (bool, error) {
 	if len(identities) == 0 {
 		return false, nil
 	}

@@ -3,6 +3,7 @@ package command
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"os/exec"
 	"strings"
@@ -12,52 +13,69 @@ import (
 	"github.com/efritz/ij/util"
 )
 
-func Run(
+type (
+	Runner interface {
+		Run(ctx context.Context, args []string, prefix *logging.Prefix) error
+		RunForOutput(ctx context.Context, args []string) (string, string, error)
+	}
+
+	runner struct {
+		logger  logging.Logger
+		testing bool
+	}
+)
+
+const TestEnvFlag = "TEST_OS_EXEC"
+
+func NewRunner(logger logging.Logger) Runner {
+	return newRunner(logger, false)
+}
+
+func newRunner(logger logging.Logger, testing bool) *runner {
+	return &runner{
+		logger:  logger,
+		testing: testing,
+	}
+}
+
+func (r *runner) Run(
 	ctx context.Context,
 	args []string,
-	logger logging.Logger,
 	prefix *logging.Prefix,
 ) error {
-	return run(
+	return r.run(
 		ctx,
 		args,
-		newLogProcessor(prefix, logger.Info),
-		newLogProcessor(prefix, logger.Error),
-		logger,
+		newLogProcessor(prefix, r.logger.Info),
+		newLogProcessor(prefix, r.logger.Error),
 	)
 }
 
-func RunForOutput(
+func (r *runner) RunForOutput(
 	ctx context.Context,
 	args []string,
-	logger logging.Logger,
 ) (string, string, error) {
 	outProcessor := newStringProcessor()
 	errProcessor := newStringProcessor()
 
-	err := run(
+	err := r.run(
 		ctx,
 		args,
 		outProcessor,
 		errProcessor,
-		logger,
 	)
 
 	return outProcessor.String(), errProcessor.String(), err
 }
 
-//
-//
-
-func run(
+func (r *runner) run(
 	ctx context.Context,
 	args []string,
 	outProcessor outputProcessor,
 	errProcessor outputProcessor,
-	logger logging.Logger,
 ) error {
-	if logger != nil {
-		logger.Debug(
+	if r.logger != nil {
+		r.logger.Debug(
 			nil,
 			"Running command: %s", strings.Join(args, " "),
 		)
@@ -68,6 +86,12 @@ func run(
 		args[0],
 		args[1:]...,
 	)
+
+	if r.testing {
+		command.Env = []string{
+			fmt.Sprintf("%s=1", TestEnvFlag),
+		}
+	}
 
 	command.SysProcAttr = &syscall.SysProcAttr{
 		Setpgid: true,

@@ -70,7 +70,7 @@ func run() bool {
 		return false
 	}
 
-	enableAgent, err := ssh.EnureKeysAvailable(append(
+	enableAgent, err := ssh.EnsureKeysAvailable(append(
 		config.SSHIdentities,
 		*sshIdentities...,
 	))
@@ -174,14 +174,13 @@ func loadConfig() (*config.Config, bool) {
 }
 
 func ensureDocker(ctx context.Context) bool {
-	_, _, err := command.RunForOutput(
+	_, _, err := command.NewRunner(nil).RunForOutput(
 		ctx,
 		[]string{
 			"docker",
 			"ps",
 			"-q",
 		},
-		nil,
 	)
 
 	return err == nil

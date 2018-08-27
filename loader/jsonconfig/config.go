@@ -9,18 +9,33 @@ import (
 type Config struct {
 	Extends       string                     `json:"extends"`
 	SSHIdentities json.RawMessage            `json:"ssh-identities"`
-	Workspace     string                     `json:"workspace"`
 	Environment   []string                   `json:"environment"`
-	Tasks         map[string]json.RawMessage `json:"tasks"`
-	Plans         map[string]*Plan           `json:"plans"`
-	Metaplans     map[string][]string        `json:"metaplans"`
 	Imports       json.RawMessage            `json:"import"`
 	Exports       json.RawMessage            `json:"export"`
 	Excludes      json.RawMessage            `json:"exclude"`
+	Workspace     string                     `json:"workspace"`
+	Tasks         map[string]json.RawMessage `json:"tasks"`
+	Plans         map[string]*Plan           `json:"plans"`
+	Metaplans     map[string][]string        `json:"metaplans"`
 }
 
 func (c *Config) Translate() (*config.Config, error) {
 	sshIdentities, err := unmarshalStringList(c.SSHIdentities)
+	if err != nil {
+		return nil, err
+	}
+
+	imports, err := unmarshalStringList(c.Imports)
+	if err != nil {
+		return nil, err
+	}
+
+	exports, err := unmarshalStringList(c.Exports)
+	if err != nil {
+		return nil, err
+	}
+
+	excludes, err := unmarshalStringList(c.Excludes)
 	if err != nil {
 		return nil, err
 	}
@@ -43,21 +58,6 @@ func (c *Config) Translate() (*config.Config, error) {
 		}
 
 		plans[name] = translated
-	}
-
-	imports, err := unmarshalStringList(c.Imports)
-	if err != nil {
-		return nil, err
-	}
-
-	exports, err := unmarshalStringList(c.Exports)
-	if err != nil {
-		return nil, err
-	}
-
-	excludes, err := unmarshalStringList(c.Excludes)
-	if err != nil {
-		return nil, err
 	}
 
 	return &config.Config{

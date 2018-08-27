@@ -16,6 +16,7 @@ func (p *Plan) Merge(child *Plan) error {
 		}
 	}
 
+	p.Environment = append(p.Environment, child.Environment...)
 	return nil
 }
 

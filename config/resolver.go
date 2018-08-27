@@ -33,20 +33,25 @@ func (r *TaskExtendsResolver) Resolve() error {
 }
 
 func (r *TaskExtendsResolver) resolve(task Task) error {
-	if _, ok := r.resolved[task.GetName()]; task.GetExtends() == "" || ok {
+	var (
+		name    = task.GetName()
+		extends = task.GetExtends()
+		parent  = r.config.Tasks[extends]
+	)
+
+	if _, ok := r.resolved[name]; extends == "" || ok {
 		return nil
 	}
 
-	if _, ok := r.resolving[task.GetName()]; ok {
+	if _, ok := r.resolving[name]; ok {
 		return fmt.Errorf(
 			"failed to extend task %s (extension is cyclic)",
-			task.GetName(),
+			name,
 		)
 	}
 
-	r.resolving[task.GetExtends()] = struct{}{}
+	r.resolving[name] = struct{}{}
 
-	parent := r.config.Tasks[task.GetExtends()]
 	if err := r.resolve(parent); err != nil {
 		return err
 	}
@@ -55,6 +60,7 @@ func (r *TaskExtendsResolver) resolve(task Task) error {
 		return err
 	}
 
-	r.resolved[task.GetExtends()] = struct{}{}
+	delete(r.resolving, name)
+	r.resolved[name] = struct{}{}
 	return nil
 }

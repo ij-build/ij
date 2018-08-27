@@ -67,14 +67,14 @@ func NewContainerStopper(logger logging.Logger) *ContainerList {
 			containerName,
 		)
 
-		_, _, err := command.RunForOutput(
+		// TODO - abstract this into state?
+		_, _, err := command.NewRunner(logger).RunForOutput(
 			context.Background(),
 			[]string{
 				"docker",
 				"kill",
 				containerName,
 			},
-			logger,
 		)
 
 		if err != nil {
@@ -110,7 +110,7 @@ func NewNetworkDisconnector(runID string, logger logging.Logger) *ContainerList 
 			containerName,
 		)
 
-		_, _, err := command.RunForOutput(
+		_, _, err := command.NewRunner(logger).RunForOutput(
 			context.Background(),
 			[]string{
 				"docker",
@@ -120,7 +120,6 @@ func NewNetworkDisconnector(runID string, logger logging.Logger) *ContainerList 
 				runID,
 				containerName,
 			},
-			logger,
 		)
 
 		if err != nil {

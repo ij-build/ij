@@ -5,14 +5,14 @@ import "fmt"
 type Config struct {
 	Extends       string
 	SSHIdentities []string
-	Workspace     string
 	Environment   []string
-	Tasks         map[string]Task
-	Plans         map[string]*Plan
-	Metaplans     map[string][]string
 	Imports       []string
 	Exports       []string
 	Excludes      []string
+	Workspace     string
+	Tasks         map[string]Task
+	Plans         map[string]*Plan
+	Metaplans     map[string][]string
 }
 
 func (c *Config) Merge(child *Config) error {
@@ -110,15 +110,13 @@ func (c *Config) validateTaskNames() error {
 
 	for _, plan := range c.Plans {
 		for _, stage := range plan.Stages {
-			for i, stageTask := range stage.Tasks {
+			for _, stageTask := range stage.Tasks {
 				if _, ok := c.Tasks[stageTask.Name]; !ok {
 					return fmt.Errorf(
-						"unknown task name %s referenced in %s/%s/%s #(%d)",
+						"unknown task name %s referenced in %s/%s",
 						stageTask.Name,
 						plan.Name,
 						stage.Name,
-						stageTask.Name,
-						i,
 					)
 				}
 			}
@@ -132,7 +130,7 @@ func (c *Config) validatePlanNames() error {
 	for name, plans := range c.Metaplans {
 		if _, ok := c.Plans[name]; ok {
 			return fmt.Errorf(
-				"plan is %s defined twice",
+				"plan %s is defined twice",
 				name,
 			)
 		}

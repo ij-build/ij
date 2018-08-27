@@ -239,9 +239,6 @@ properties:
   extends:
     description: TODO
     type: string
-  workspace:
-    description: TODO
-    type: string
   ssh-identities:
     description: TODO
     oneOf:
@@ -272,6 +269,9 @@ properties:
       - type: array
         items:
           type: string
+  workspace:
+    description: TODO
+    type: string
   tasks:
     description: TODO
     type: object

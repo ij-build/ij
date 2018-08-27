@@ -43,10 +43,13 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 		return nil, err
 	}
 
-	return l.resolveParent(child)
+	return l.resolveParent(child, path)
 }
 
-func (l *Loader) resolveParent(config *config.Config) (*config.Config, error) {
+func (l *Loader) resolveParent(
+	config *config.Config,
+	childPath string,
+) (*config.Config, error) {
 	if config.Extends == "" {
 		return config, nil
 	}
@@ -60,7 +63,7 @@ func (l *Loader) resolveParent(config *config.Config) (*config.Config, error) {
 
 	l.loaded[config.Extends] = struct{}{}
 
-	parent, err := l.Load(config.Extends)
+	parent, err := l.Load(buildPath(config.Extends, childPath))
 	if err != nil {
 		return nil, err
 	}

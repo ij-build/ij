@@ -16,7 +16,7 @@ func (t *BuildTask) Extend(task Task) error {
 		return fmt.Errorf(
 			"task %s extends %s, but they have different types",
 			t.Name,
-			parent.GetName(),
+			task.GetName(),
 		)
 	}
 

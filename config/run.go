@@ -42,7 +42,7 @@ func (t *RunTask) Extend(task Task) error {
 		return fmt.Errorf(
 			"task %s extends %s, but they have different types",
 			t.Name,
-			parent.GetName(),
+			task.GetName(),
 		)
 	}
 
@@ -51,11 +51,14 @@ func (t *RunTask) Extend(task Task) error {
 	t.Shell = extendString(t.Shell, parent.Shell)
 	t.Script = extendString(t.Script, parent.Script)
 	t.Entrypoint = extendString(t.Entrypoint, parent.Entrypoint)
+	t.User = extendString(t.User, parent.User)
+	t.Workspace = extendString(t.Workspace, parent.Workspace)
 	t.Hostname = extendString(t.Hostname, parent.Hostname)
 	t.Detach = extendBool(t.Detach, parent.Detach)
 	t.Healthcheck.Extend(parent.Healthcheck)
 	t.Environment = append(parent.Environment, t.Environment...)
 	t.RequiredEnvironment = append(parent.RequiredEnvironment, t.RequiredEnvironment...)
+	t.ExportEnvironmentFiles = append(parent.ExportEnvironmentFiles, t.ExportEnvironmentFiles...)
 	return nil
 }
 
