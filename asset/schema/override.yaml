@@ -1,0 +1,27 @@
+---
+
+title: TODO
+description: TODO
+type: object
+properties:
+  ssh-identities:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+  environment:
+    description: TODO
+    type: array
+    items:
+      type: string
+  exclude:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+
+# TODO - other options such as workspace configs, force sequential, etc

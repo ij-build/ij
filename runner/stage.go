@@ -6,10 +6,6 @@ import (
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/runner/task/build"
-	"github.com/efritz/ij/runner/task/push"
-	"github.com/efritz/ij/runner/task/remove"
-	"github.com/efritz/ij/runner/task/run"
 	"github.com/efritz/ij/state"
 	"github.com/efritz/ij/util"
 )
@@ -20,10 +16,6 @@ type (
 		plan   *config.Plan
 		stage  *config.Stage
 		prefix *logging.Prefix
-	}
-
-	Runner interface {
-		Run() bool
 	}
 
 	RunnerFunc func() bool
@@ -117,13 +109,17 @@ func (r *StageRunner) buildRunner(
 ) Runner {
 	switch t := task.(type) {
 	case *config.RunTask:
-		return run.NewRunner(r.state, t, taskPrefix, env)
+		return NewRunCommandRunner(r.state, t, taskPrefix, env)
 	case *config.BuildTask:
-		return build.NewRunner(r.state, t, taskPrefix, env)
+		return NewBuildCommandRunner(r.state, t, taskPrefix, env)
 	case *config.PushTask:
-		return push.NewRunner(r.state, t, taskPrefix, env)
+		return NewPushCommandRunner(r.state, t, taskPrefix, env)
 	case *config.RemoveTask:
-		return remove.NewRunner(r.state, t, taskPrefix, env)
+		return NewRemoveCommandRunner(r.state, t, taskPrefix, env)
+	case *config.LoginTask:
+		return NewLoginCommandRunner(r.state, t, taskPrefix, env)
+	case *config.LogoutTask:
+		return NewLogoutCommandRunner(r.state, t, taskPrefix, env)
 	}
 
 	panic("unexpected task type")

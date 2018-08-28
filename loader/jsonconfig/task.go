@@ -61,6 +61,8 @@ func translateTask(
 		"build":  &BuildTask{},
 		"push":   &PushTask{},
 		"remove": &RemoveTask{},
+		"login":  &LoginTask{},
+		"logout": &LogoutTask{},
 	}
 
 	task, ok := structMap[typeHint.Type]

@@ -7,24 +7,27 @@ package mocks
 import (
 	"context"
 	logging "github.com/efritz/ij/logging"
+	"io"
 	"sync"
 )
 
 type MockRunner struct {
-	RunFunc          func(context.Context, []string, *logging.Prefix) error
+	RunFunc          func(context.Context, []string, io.ReadCloser, *logging.Prefix) error
 	histRun          []RunnerRunParamSet
-	RunForOutputFunc func(context.Context, []string) (string, string, error)
+	RunForOutputFunc func(context.Context, []string, io.ReadCloser) (string, string, error)
 	histRunForOutput []RunnerRunForOutputParamSet
 	mutex            sync.RWMutex
 }
 type RunnerRunParamSet struct {
 	Arg0 context.Context
 	Arg1 []string
-	Arg2 *logging.Prefix
+	Arg2 io.ReadCloser
+	Arg3 *logging.Prefix
 }
 type RunnerRunForOutputParamSet struct {
 	Arg0 context.Context
 	Arg1 []string
+	Arg2 io.ReadCloser
 }
 
 func NewMockRunner() *MockRunner {
@@ -33,11 +36,11 @@ func NewMockRunner() *MockRunner {
 	m.RunForOutputFunc = m.defaultRunForOutputFunc
 	return m
 }
-func (m *MockRunner) Run(v0 context.Context, v1 []string, v2 *logging.Prefix) error {
+func (m *MockRunner) Run(v0 context.Context, v1 []string, v2 io.ReadCloser, v3 *logging.Prefix) error {
 	m.mutex.Lock()
-	m.histRun = append(m.histRun, RunnerRunParamSet{v0, v1, v2})
+	m.histRun = append(m.histRun, RunnerRunParamSet{v0, v1, v2, v3})
 	m.mutex.Unlock()
-	return m.RunFunc(v0, v1, v2)
+	return m.RunFunc(v0, v1, v2, v3)
 }
 func (m *MockRunner) RunFuncCallCount() int {
 	m.mutex.RLock()
@@ -50,11 +53,11 @@ func (m *MockRunner) RunFuncCallParams() []RunnerRunParamSet {
 	return m.histRun
 }
 
-func (m *MockRunner) RunForOutput(v0 context.Context, v1 []string) (string, string, error) {
+func (m *MockRunner) RunForOutput(v0 context.Context, v1 []string, v2 io.ReadCloser) (string, string, error) {
 	m.mutex.Lock()
-	m.histRunForOutput = append(m.histRunForOutput, RunnerRunForOutputParamSet{v0, v1})
+	m.histRunForOutput = append(m.histRunForOutput, RunnerRunForOutputParamSet{v0, v1, v2})
 	m.mutex.Unlock()
-	return m.RunForOutputFunc(v0, v1)
+	return m.RunForOutputFunc(v0, v1, v2)
 }
 func (m *MockRunner) RunForOutputFuncCallCount() int {
 	m.mutex.RLock()
@@ -67,9 +70,9 @@ func (m *MockRunner) RunForOutputFuncCallParams() []RunnerRunForOutputParamSet {
 	return m.histRunForOutput
 }
 
-func (m *MockRunner) defaultRunFunc(v0 context.Context, v1 []string, v2 *logging.Prefix) error {
+func (m *MockRunner) defaultRunFunc(v0 context.Context, v1 []string, v2 io.ReadCloser, v3 *logging.Prefix) error {
 	return nil
 }
-func (m *MockRunner) defaultRunForOutputFunc(v0 context.Context, v1 []string) (string, string, error) {
+func (m *MockRunner) defaultRunForOutputFunc(v0 context.Context, v1 []string, v2 io.ReadCloser) (string, string, error) {
 	return "", "", nil
 }

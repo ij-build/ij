@@ -38,9 +38,17 @@ func newNetwork(
 		"Creating network",
 	)
 
+	args := []string{
+		"docker",
+		"network",
+		"create",
+		runID,
+	}
+
 	_, _, err := runner.RunForOutput(
 		ctx,
-		[]string{"docker", "network", "create", runID},
+		args,
+		nil,
 	)
 
 	if err != nil {
@@ -61,9 +69,17 @@ func (n *Network) Teardown() {
 		"Removing network",
 	)
 
+	args := []string{
+		"docker",
+		"network",
+		"rm",
+		n.runID,
+	}
+
 	_, _, err := n.runner.RunForOutput(
 		context.Background(),
-		[]string{"docker", "network", "rm", n.runID},
+		args,
+		nil,
 	)
 
 	if err != nil {

@@ -43,6 +43,11 @@ func TestOutput(t *testing.T) {
 		return
 	}
 
+	buffer := make([]byte, 64)
+	if n, _ := os.Stdin.Read(buffer); n > 0 {
+		fmt.Printf("x > %s\n", string(buffer[:n]))
+	}
+
 	for i, arg := range os.Args[3:] {
 		if strings.ToUpper(arg) != arg {
 			fmt.Printf("%d > %s\n", i, arg)

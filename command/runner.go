@@ -15,8 +15,8 @@ import (
 
 type (
 	Runner interface {
-		Run(ctx context.Context, args []string, prefix *logging.Prefix) error
-		RunForOutput(ctx context.Context, args []string) (string, string, error)
+		Run(ctx context.Context, args []string, stdin io.ReadCloser, prefix *logging.Prefix) error
+		RunForOutput(ctx context.Context, args []string, stdin io.ReadCloser) (string, string, error)
 	}
 
 	runner struct {
@@ -41,11 +41,13 @@ func newRunner(logger logging.Logger, testing bool) *runner {
 func (r *runner) Run(
 	ctx context.Context,
 	args []string,
+	stdin io.ReadCloser,
 	prefix *logging.Prefix,
 ) error {
 	return r.run(
 		ctx,
 		args,
+		stdin,
 		newLogProcessor(prefix, r.logger.Info),
 		newLogProcessor(prefix, r.logger.Error),
 	)
@@ -54,6 +56,7 @@ func (r *runner) Run(
 func (r *runner) RunForOutput(
 	ctx context.Context,
 	args []string,
+	stdin io.ReadCloser,
 ) (string, string, error) {
 	outProcessor := newStringProcessor()
 	errProcessor := newStringProcessor()
@@ -61,6 +64,7 @@ func (r *runner) RunForOutput(
 	err := r.run(
 		ctx,
 		args,
+		stdin,
 		outProcessor,
 		errProcessor,
 	)
@@ -71,6 +75,7 @@ func (r *runner) RunForOutput(
 func (r *runner) run(
 	ctx context.Context,
 	args []string,
+	stdin io.ReadCloser,
 	outProcessor outputProcessor,
 	errProcessor outputProcessor,
 ) error {
@@ -86,6 +91,11 @@ func (r *runner) run(
 		args[0],
 		args[1:]...,
 	)
+
+	if stdin != nil {
+		defer stdin.Close()
+		command.Stdin = stdin
+	}
 
 	if r.testing {
 		command.Env = []string{

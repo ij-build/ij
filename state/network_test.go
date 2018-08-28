@@ -5,6 +5,7 @@ package state
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"github.com/aphistic/sweet"
 	"github.com/efritz/ij/logging"
@@ -39,7 +40,7 @@ func (s *NetworkSuite) TestSetupTeardown(t sweet.T) {
 
 func (s *NetworkSuite) TestSetupError(t sweet.T) {
 	runner := mocks.NewMockRunner()
-	runner.RunForOutputFunc = func(_ context.Context, args []string) (string, string, error) {
+	runner.RunForOutputFunc = func(_ context.Context, args []string, _ io.ReadCloser) (string, string, error) {
 		return "", "", fmt.Errorf("utoh")
 	}
 
@@ -58,7 +59,7 @@ func (s *NetworkSuite) TestCancelSetup(t sweet.T) {
 	cancel()
 
 	runner := mocks.NewMockRunner()
-	runner.RunForOutputFunc = func(ctx context.Context, args []string) (string, string, error) {
+	runner.RunForOutputFunc = func(ctx context.Context, args []string, _ io.ReadCloser) (string, string, error) {
 		select {
 		case <-ctx.Done():
 			return "", "", fmt.Errorf("context canceled")

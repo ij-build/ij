@@ -67,14 +67,17 @@ func NewContainerStopper(logger logging.Logger) *ContainerList {
 			containerName,
 		)
 
+		args := []string{
+			"docker",
+			"kill",
+			containerName,
+		}
+
 		// TODO - abstract this into state?
 		_, _, err := command.NewRunner(logger).RunForOutput(
 			context.Background(),
-			[]string{
-				"docker",
-				"kill",
-				containerName,
-			},
+			args,
+			nil,
 		)
 
 		if err != nil {
@@ -110,16 +113,19 @@ func NewNetworkDisconnector(runID string, logger logging.Logger) *ContainerList 
 			containerName,
 		)
 
+		args := []string{
+			"docker",
+			"network",
+			"disconnect",
+			"--force",
+			runID,
+			containerName,
+		}
+
 		_, _, err := command.NewRunner(logger).RunForOutput(
 			context.Background(),
-			[]string{
-				"docker",
-				"network",
-				"disconnect",
-				"--force",
-				runID,
-				containerName,
-			},
+			args,
+			nil,
 		)
 
 		if err != nil {

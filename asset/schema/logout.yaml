@@ -1,0 +1,22 @@
+---
+
+title: TODO
+description: TODO
+type: object
+properties:
+  type:
+    description: TODO
+    type: string
+    enum:
+      - logout
+  extends:
+    description: TODO
+    type: string
+  servers:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+additionalProperties: false

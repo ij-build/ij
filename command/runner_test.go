@@ -3,7 +3,9 @@ package command
 //go:generate go-mockgen github.com/efritz/ij/logging -i Logger -o mock_logger_test.go -f
 
 import (
+	"bytes"
 	"context"
+	"io/ioutil"
 
 	"github.com/aphistic/sweet"
 	"github.com/efritz/ij/logging"
@@ -15,14 +17,17 @@ type RunnerSuite struct{}
 func (s *RunnerSuite) TestRun(t sweet.T) {
 	logger := NewMockLogger()
 
+	args := append(
+		testArgs,
+		"foo",
+		"bar",
+		"baz",
+	)
+
 	err := newRunner(logger, true).Run(
 		context.Background(),
-		append(
-			testArgs,
-			"foo",
-			"bar",
-			"baz",
-		),
+		args,
+		nil,
 		nil,
 	)
 
@@ -36,20 +41,51 @@ func (s *RunnerSuite) TestRun(t sweet.T) {
 	Expect(params[2].Arg1).To(Equal("2 > baz"))
 }
 
-func (s *RunnerSuite) TestRunErrorOutput(t sweet.T) {
+func (s *RunnerSuite) TestRunWithStdin(t sweet.T) {
 	logger := NewMockLogger()
+
+	args := append(
+		testArgs,
+		"foo",
+		"bar",
+		"baz",
+	)
 
 	err := newRunner(logger, true).Run(
 		context.Background(),
-		append(
-			testArgs,
-			"foo",
-			"FOO",
-			"bar",
-			"BAR",
-			"baz",
-			"BAZ",
-		),
+		args,
+		ioutil.NopCloser(bytes.NewReader([]byte("XXX"))),
+		nil,
+	)
+
+	Expect(err).To(BeNil())
+	Expect(logger.InfoFuncCallCount()).To(Equal(4))
+	Expect(logger.ErrorFuncCallCount()).To(Equal(0))
+
+	params := logger.InfoFuncCallParams()
+	Expect(params[0].Arg1).To(Equal("x > XXX"))
+	Expect(params[1].Arg1).To(Equal("0 > foo"))
+	Expect(params[2].Arg1).To(Equal("1 > bar"))
+	Expect(params[3].Arg1).To(Equal("2 > baz"))
+}
+
+func (s *RunnerSuite) TestRunErrorOutput(t sweet.T) {
+	logger := NewMockLogger()
+
+	args := append(
+		testArgs,
+		"foo",
+		"FOO",
+		"bar",
+		"BAR",
+		"baz",
+		"BAZ",
+	)
+
+	err := newRunner(logger, true).Run(
+		context.Background(),
+		args,
+		nil,
 		nil,
 	)
 
@@ -71,14 +107,17 @@ func (s *RunnerSuite) TestRunErrorOutput(t sweet.T) {
 func (s *RunnerSuite) TestRunForOutput(t sweet.T) {
 	runner := newRunner(logging.NilLogger, true)
 
+	args := append(
+		testArgs,
+		"foo",
+		"bar",
+		"baz",
+	)
+
 	outText, errText, err := runner.RunForOutput(
 		context.Background(),
-		append(
-			testArgs,
-			"foo",
-			"bar",
-			"baz",
-		),
+		args,
+		nil,
 	)
 
 	Expect(err).To(BeNil())
@@ -89,7 +128,7 @@ func (s *RunnerSuite) TestRunForOutput(t sweet.T) {
 func (s *RunnerSuite) TestRunForOutputErrorOutput(t sweet.T) {
 	runner := newRunner(logging.NilLogger, true)
 
-	outText, errText, err := runner.RunForOutput(context.Background(), append(
+	args := append(
 		testArgs,
 		"foo",
 		"FOO",
@@ -97,7 +136,13 @@ func (s *RunnerSuite) TestRunForOutputErrorOutput(t sweet.T) {
 		"BAR",
 		"baz",
 		"BAZ",
-	))
+	)
+
+	outText, errText, err := runner.RunForOutput(
+		context.Background(),
+		args,
+		nil,
+	)
 
 	Expect(err).To(BeNil())
 	Expect(outText).To(Equal("0 > foo\n2 > bar\n4 > baz\n"))

@@ -2,7 +2,10 @@
 // sources:
 // schema/build.yaml
 // schema/config.yaml
+// schema/login.yaml
+// schema/logout.yaml
 // schema/metaplan.yaml
+// schema/override.yaml
 // schema/plan.yaml
 // schema/push.yaml
 // schema/run.yaml
@@ -173,7 +176,90 @@ func schemaConfigYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/config.yaml", size: 918, mode: os.FileMode(420), modTime: time.Unix(1535420626, 0)}
+	info := bindataFileInfo{name: "schema/config.yaml", size: 918, mode: os.FileMode(420), modTime: time.Unix(1535481396, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _schemaLoginYaml = []byte(`---
+
+title: TODO
+description: TODO
+type: object
+properties:
+  type:
+    description: TODO
+    type: string
+    enum:
+      - login
+  extends:
+    description: TODO
+    type: string
+  server:
+    description: TODO
+    type: string
+  username:
+    description: TODO
+    type: string
+  password:
+    description: TODO
+    type: string
+  password_file:
+    description: TODO
+    type: string
+additionalProperties: false
+`)
+
+func schemaLoginYamlBytes() ([]byte, error) {
+	return _schemaLoginYaml, nil
+}
+
+func schemaLoginYaml() (*asset, error) {
+	bytes, err := schemaLoginYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "schema/login.yaml", size: 416, mode: os.FileMode(420), modTime: time.Unix(1535476091, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _schemaLogoutYaml = []byte(`---
+
+title: TODO
+description: TODO
+type: object
+properties:
+  type:
+    description: TODO
+    type: string
+    enum:
+      - logout
+  extends:
+    description: TODO
+    type: string
+  servers:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+additionalProperties: false
+`)
+
+func schemaLogoutYamlBytes() ([]byte, error) {
+	return _schemaLogoutYaml, nil
+}
+
+func schemaLogoutYaml() (*asset, error) {
+	bytes, err := schemaLogoutYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "schema/logout.yaml", size: 333, mode: os.FileMode(420), modTime: time.Unix(1535481404, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -199,6 +285,50 @@ func schemaMetaplanYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "schema/metaplan.yaml", size: 89, mode: os.FileMode(420), modTime: time.Unix(1535420628, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _schemaOverrideYaml = []byte(`---
+
+title: TODO
+description: TODO
+type: object
+properties:
+  ssh-identities:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+  environment:
+    description: TODO
+    type: array
+    items:
+      type: string
+  exclude:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+
+# TODO - other options such as workspace configs, force sequential, etc
+`)
+
+func schemaOverrideYamlBytes() ([]byte, error) {
+	return _schemaOverrideYaml, nil
+}
+
+func schemaOverrideYaml() (*asset, error) {
+	bytes, err := schemaOverrideYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "schema/override.yaml", size: 469, mode: os.FileMode(420), modTime: time.Unix(1535466859, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -517,7 +647,10 @@ func AssetNames() []string {
 var _bindata = map[string]func() (*asset, error){
 	"schema/build.yaml": schemaBuildYaml,
 	"schema/config.yaml": schemaConfigYaml,
+	"schema/login.yaml": schemaLoginYaml,
+	"schema/logout.yaml": schemaLogoutYaml,
 	"schema/metaplan.yaml": schemaMetaplanYaml,
+	"schema/override.yaml": schemaOverrideYaml,
 	"schema/plan.yaml": schemaPlanYaml,
 	"schema/push.yaml": schemaPushYaml,
 	"schema/run.yaml": schemaRunYaml,
@@ -567,7 +700,10 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"schema": &bintree{nil, map[string]*bintree{
 		"build.yaml": &bintree{schemaBuildYaml, map[string]*bintree{}},
 		"config.yaml": &bintree{schemaConfigYaml, map[string]*bintree{}},
+		"login.yaml": &bintree{schemaLoginYaml, map[string]*bintree{}},
+		"logout.yaml": &bintree{schemaLogoutYaml, map[string]*bintree{}},
 		"metaplan.yaml": &bintree{schemaMetaplanYaml, map[string]*bintree{}},
+		"override.yaml": &bintree{schemaOverrideYaml, map[string]*bintree{}},
 		"plan.yaml": &bintree{schemaPlanYaml, map[string]*bintree{}},
 		"push.yaml": &bintree{schemaPushYaml, map[string]*bintree{}},
 		"run.yaml": &bintree{schemaRunYaml, map[string]*bintree{}},

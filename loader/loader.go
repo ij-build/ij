@@ -9,9 +9,10 @@ import (
 	"strings"
 
 	"github.com/efritz/ij/config"
+	"github.com/ghodss/yaml"
+
 	"github.com/efritz/ij/loader/jsonconfig"
 	"github.com/efritz/ij/loader/schema"
-	"github.com/ghodss/yaml"
 )
 
 type (

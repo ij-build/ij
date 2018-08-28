@@ -174,13 +174,16 @@ func loadConfig() (*config.Config, bool) {
 }
 
 func ensureDocker(ctx context.Context) bool {
+	args := []string{
+		"docker",
+		"ps",
+		"-q",
+	}
+
 	_, _, err := command.NewRunner(nil).RunForOutput(
 		ctx,
-		[]string{
-			"docker",
-			"ps",
-			"-q",
-		},
+		args,
+		nil,
 	)
 
 	return err == nil
