@@ -1,0 +1,55 @@
+---
+
+title: TODO
+description: TODO
+type: object
+properties:
+  extends:
+    description: TODO
+    type: string
+  ssh-identities:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+  environment:
+    description: TODO
+    type: array
+    items:
+      type: string
+  import:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+  export:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+  exclude:
+    description: TODO
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+  workspace:
+    description: TODO
+    type: string
+  tasks:
+    description: TODO
+    type: object
+  plans:
+    description: TODO
+    type: object
+  metaplans:
+    description: TODO
+    type: object
+additionalProperties: false

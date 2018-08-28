@@ -1,0 +1,63 @@
+---
+
+title: TODO
+description: TODO
+type: object
+properties:
+  extend:
+    description: TODO
+    type: boolean
+  stages:
+    description: TODO
+    type: array
+    items:
+      description: TODO
+      type: object
+      properties:
+        name:
+          description: TODO
+          type: string
+        before_stage:
+          description: TODO
+          type: string
+        after_stage:
+          description: TODO
+          type: string
+        tasks:
+          description: TODO
+          type: array
+          items:
+            stage_task:
+              description: TODO
+              oneOf:
+                - type: string
+                - type: object
+                  properties:
+                    name:
+                      description: TODO
+                      type: string
+                    environment:
+                      description: TODO
+                      type: array
+                      items:
+                        type: string
+                  additionalProperties: false
+                  required:
+                    - name
+        concurrent:
+          description: TODO
+          type: boolean
+        environment:
+          description: TODO
+          type: array
+          items:
+            type: string
+      additionalProperties: false
+      required:
+        - name
+  environment:
+    description: TODO
+    type: array
+    items:
+      type: string
+additionalProperties: false
