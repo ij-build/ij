@@ -63,10 +63,15 @@ func (r *PlanRunner) Run() bool {
 		return false
 	}
 
+	failure := false
 	for _, name := range r.state.Plans {
-		if !r.runPlanOrMetaplan(name, logging.NewPrefix()) {
-			return false
+		if !r.runPlanOrMetaplan(name, logging.NewPrefix(), failure) {
+			failure = true
 		}
+	}
+
+	if failure {
+		return false
 	}
 
 	if err := transferer.Export(r.state.Config.Exports); err != nil {
@@ -103,52 +108,68 @@ func (r *PlanRunner) watchSignals() {
 func (r *PlanRunner) runPlanOrMetaplan(
 	name string,
 	prefix *logging.Prefix,
+	failure bool,
 ) bool {
 	prefix = prefix.Append(name)
 
 	r.state.Logger.Info(
 		prefix,
-		"Beginning plan",
+		"Beginning plan with flag %#v", failure,
 	)
 
-	result := true
+	// Stash this so we know if we failed due to a new
+	// error or to a failure of a previously failed plan.
+	previousFailure := failure
 
 	if plans, ok := r.state.Config.Metaplans[name]; ok {
 		for _, plan := range plans {
-			if !r.runPlanOrMetaplan(plan, prefix.Append(plan)) {
-				result = false
-				break
+			if !r.runPlanOrMetaplan(plan, prefix.Append(plan), failure) {
+				failure = true
 			}
 		}
 	} else {
-		result = r.runPlan(name, prefix)
+		failure = !r.runPlan(name, prefix, failure)
 	}
 
-	if !result {
+	if failure {
+		suffix := ""
+		if previousFailure {
+			suffix = " (due to previous failure)"
+		}
+
 		r.state.Logger.Error(
 			prefix,
-			"Plan failed",
+			"Plan failed%s",
+			suffix,
 		)
-
-		return false
+	} else {
+		r.state.Logger.Info(
+			prefix,
+			"Plan completed successfully",
+		)
 	}
 
-	r.state.Logger.Info(
-		prefix,
-		"Plan completed successfully",
-	)
-
-	return true
+	return !failure
 }
 
 func (r *PlanRunner) runPlan(
 	name string,
 	prefix *logging.Prefix,
+	failure bool,
 ) bool {
 	plan := r.state.Config.Plans[name]
 
 	for _, stage := range plan.Stages {
 		stagePrefix := prefix.Append(stage.Name)
+
+		if !stage.ShouldRun(failure) {
+			r.state.Logger.Info(
+				stagePrefix,
+				"Skipping stage",
+			)
+
+			continue
+		}
 
 		if !NewStageRunner(r.state, plan, stage, stagePrefix).Run() {
 			r.state.Logger.Error(
@@ -156,7 +177,8 @@ func (r *PlanRunner) runPlan(
 				"Stage failed",
 			)
 
-			return false
+			failure = true
+			continue
 		}
 
 		r.state.Logger.Info(
@@ -165,5 +187,5 @@ func (r *PlanRunner) runPlan(
 		)
 	}
 
-	return true
+	return !failure
 }

@@ -40,18 +40,21 @@ func (s *PlanSuite) TestTranslate(t sweet.T) {
 		Extend: true,
 		Stages: []*config.Stage{
 			&config.Stage{
-				Name:     "bar",
-				Parallel: true,
+				Name: "bar",
 				Tasks: []*config.StageTask{
 					&config.StageTask{Name: "t1"},
 					&config.StageTask{Name: "t2", Environment: []string{"W=5"}},
 				},
+				RunMode:  config.RunModeOnSuccess,
+				Parallel: true,
 			},
 			&config.Stage{
-				Name:        "baz",
-				Environment: []string{"Z=4"},
+				Name: "baz",
 				Tasks: []*config.StageTask{
-					&config.StageTask{Name: "t3"}},
+					&config.StageTask{Name: "t3"},
+				},
+				RunMode:     config.RunModeOnSuccess,
+				Environment: []string{"Z=4"},
 			},
 		},
 		Environment: []string{"X=1", "Y=2", "Z=3"},

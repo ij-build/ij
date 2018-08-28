@@ -249,6 +249,13 @@ properties:
                   additionalProperties: false
                   required:
                     - name
+        run-mode:
+          description: TODO
+          type: string
+          enum:
+            - always
+            - on-success
+            - on-failure
         concurrent:
           description: TODO
           type: boolean
@@ -278,7 +285,7 @@ func schemaPlanYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/plan.yaml", size: 1427, mode: os.FileMode(420), modTime: time.Unix(1535423123, 0)}
+	info := bindataFileInfo{name: "schema/plan.yaml", size: 1583, mode: os.FileMode(420), modTime: time.Unix(1535464102, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

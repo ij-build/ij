@@ -21,6 +21,7 @@ func TestMain(m *testing.M) {
 		s.AddSuite(&RemoveSuite{})
 		s.AddSuite(&ResolverSuite{})
 		s.AddSuite(&RunSuite{})
+		s.AddSuite(&StageSuite{})
 		s.AddSuite(&UtilSuite{})
 	})
 }

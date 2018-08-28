@@ -44,6 +44,13 @@ properties:
                   additionalProperties: false
                   required:
                     - name
+        run-mode:
+          description: TODO
+          type: string
+          enum:
+            - always
+            - on-success
+            - on-failure
         concurrent:
           description: TODO
           type: boolean

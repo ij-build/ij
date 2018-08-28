@@ -59,7 +59,8 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 				Name: "p1",
 				Stages: []*config.Stage{
 					&config.Stage{
-						Tasks: []*config.StageTask{&config.StageTask{Name: "t1"}},
+						Tasks:   []*config.StageTask{&config.StageTask{Name: "t1"}},
+						RunMode: config.RunModeOnSuccess,
 					},
 				},
 			},
@@ -67,7 +68,8 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 				Name: "p2",
 				Stages: []*config.Stage{
 					&config.Stage{
-						Tasks: []*config.StageTask{&config.StageTask{Name: "t2"}},
+						Tasks:   []*config.StageTask{&config.StageTask{Name: "t2"}},
+						RunMode: config.RunModeOnSuccess,
 					},
 				},
 			},
