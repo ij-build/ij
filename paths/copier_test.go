@@ -109,7 +109,7 @@ func (s *CopierSuite) TestCopyBlacklistedFile(t sweet.T) {
 	Expect(err).To(BeNil())
 
 	_, err = os.Stat(filepath.Join(destRoot, "foo", "bar", "b.txt"))
-	Expect(err).NotTo(BeNil())
+	Expect(os.IsNotExist(err)).To(BeTrue())
 
 	_, err = os.Stat(filepath.Join(destRoot, "foo", "bar", "baz", "c.txt"))
 	Expect(err).To(BeNil())
@@ -145,7 +145,7 @@ func (s *CopierSuite) TestCopyBlacklistedDirectory(t sweet.T) {
 	_, err = os.Stat(filepath.Join(destRoot, "foo", "a.txt"))
 	Expect(err).To(BeNil())
 	_, err = os.Stat(filepath.Join(destRoot, "foo", "bar", "b.txt"))
-	Expect(err).NotTo(BeNil())
+	Expect(os.IsNotExist(err)).To(BeTrue())
 	_, err = os.Stat(filepath.Join(destRoot, "foo", "bar", "baz", "c.txt"))
-	Expect(err).NotTo(BeNil())
+	Expect(os.IsNotExist(err)).To(BeTrue())
 }

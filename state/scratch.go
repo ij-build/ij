@@ -1,7 +1,6 @@
 package state
 
 import (
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,12 +11,13 @@ import (
 )
 
 type ScratchSpace struct {
-	runID         string
-	keepWorkspace bool
-	project       string
-	scratch       string
-	runpath       string
-	workspace     string
+	runID          string
+	keepWorkspace  bool
+	project        string
+	rootDirFactory func() (string, error)
+	scratch        string
+	runpath        string
+	workspace      string
 }
 
 const (
@@ -30,14 +30,27 @@ const (
 )
 
 func NewScratchSpace(runID string, keepWorkspace bool) *ScratchSpace {
+	return newScratchSpace(
+		runID,
+		keepWorkspace,
+		os.Getwd,
+	)
+}
+
+func newScratchSpace(
+	runID string,
+	keepWorkspace bool,
+	rootDirFactory func() (string, error),
+) *ScratchSpace {
 	return &ScratchSpace{
-		runID:         runID,
-		keepWorkspace: keepWorkspace,
+		runID:          runID,
+		keepWorkspace:  keepWorkspace,
+		rootDirFactory: rootDirFactory,
 	}
 }
 
 func (s *ScratchSpace) Setup() error {
-	pwd, err := os.Getwd()
+	pwd, err := s.rootDirFactory()
 	if err != nil {
 		return err
 	}
@@ -101,7 +114,7 @@ func (s *ScratchSpace) WriteScript(script string) (string, error) {
 	return path, nil
 }
 
-func (s *ScratchSpace) MakeLogFiles(prefix string) (io.WriteCloser, io.WriteCloser, error) {
+func (s *ScratchSpace) MakeLogFiles(prefix string) (*os.File, *os.File, error) {
 	outpath, err := buildPath(filepath.Join(s.runpath, LogsDir, prefix+OutLogSuffix))
 	if err != nil {
 		return nil, nil, err

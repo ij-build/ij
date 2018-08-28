@@ -66,15 +66,15 @@ func (s *TransfererSuite) TestImport(t sweet.T) {
 
 	// Omitted
 	_, err = os.Stat(filepath.Join(destRoot, "workspace", "bar", "junit-other.xml"))
-	Expect(err).NotTo(BeNil())
+	Expect(os.IsNotExist(err)).To(BeTrue())
 	_, err = os.Stat(filepath.Join(destRoot, "workspace", "bar", "junit.xml"))
-	Expect(err).NotTo(BeNil())
+	Expect(os.IsNotExist(err)).To(BeTrue())
 	_, err = os.Stat(filepath.Join(destRoot, "workspace", "baz", "c.txt"))
-	Expect(err).NotTo(BeNil())
+	Expect(os.IsNotExist(err)).To(BeTrue())
 	_, err = os.Stat(filepath.Join(destRoot, "workspace", "baz", "junit.xml"))
-	Expect(err).NotTo(BeNil())
+	Expect(os.IsNotExist(err)).To(BeTrue())
 	_, err = os.Stat(filepath.Join(destRoot, "workspace", "foo", "junit.xml"))
-	Expect(err).NotTo(BeNil())
+	Expect(os.IsNotExist(err)).To(BeTrue())
 }
 
 func (s *TransfererSuite) TestImportOutsideProjectPath(t sweet.T) {
@@ -137,9 +137,9 @@ func (s *TransfererSuite) TestExport(t sweet.T) {
 
 	// Omitted
 	_, err = os.Stat(filepath.Join(srcRoot, "baz.pdf"))
-	Expect(err).NotTo(BeNil())
+	Expect(os.IsNotExist(err)).To(BeTrue())
 	_, err = os.Stat(filepath.Join(srcRoot, "sub", "foo.txt"))
-	Expect(err).NotTo(BeNil())
+	Expect(os.IsNotExist(err)).To(BeTrue())
 }
 
 func (s *TransfererSuite) TestExportOutsideWorkspacePath(t sweet.T) {
