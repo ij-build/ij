@@ -33,6 +33,7 @@ func (s *LoaderSuite) TestLoad(t sweet.T) {
 							&config.StageTask{Name: "y"},
 							&config.StageTask{Name: "z"},
 						},
+						RunMode: config.RunModeOnSuccess,
 					},
 				},
 			},
@@ -44,6 +45,7 @@ func (s *LoaderSuite) TestLoad(t sweet.T) {
 						Tasks: []*config.StageTask{
 							&config.StageTask{Name: "x", Environment: []string{"Z=4"}},
 						},
+						RunMode: config.RunModeOnSuccess,
 					},
 				},
 			},
