@@ -3,6 +3,7 @@ package config
 type (
 	Task interface {
 		GetName() string
+		GetType() string
 		GetExtends() string
 		GetEnvironment() []string
 		Extend(parent Task) error

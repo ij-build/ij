@@ -3,14 +3,28 @@ package loader
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/loader/jsonconfig"
+	"github.com/efritz/ij/loader/schema"
+	"github.com/ghodss/yaml"
 )
 
-type Loader struct {
-	loaded map[string]struct{}
-}
+type (
+	Loader struct {
+		loaded map[string]struct{}
+	}
+
+	jsonEnvelope struct {
+		Tasks     map[string]json.RawMessage `json:"tasks"`
+		Plans     map[string]json.RawMessage `json:"plans"`
+		Metaplans map[string]json.RawMessage `json:"metaplans"`
+	}
+)
 
 func NewLoader() *Loader {
 	return &Loader{
@@ -24,7 +38,7 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 		return nil, err
 	}
 
-	if err := validateWithSchema(data); err != nil {
+	if err := validate(data); err != nil {
 		return nil, err
 	}
 
@@ -38,20 +52,20 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 		return nil, err
 	}
 
-	child, err := payload.Translate()
-	if err != nil {
-		return nil, err
-	}
-
-	return l.resolveParent(child, path)
+	return l.resolveParent(payload, path)
 }
 
 func (l *Loader) resolveParent(
-	config *config.Config,
+	config *jsonconfig.Config,
 	childPath string,
 ) (*config.Config, error) {
 	if config.Extends == "" {
-		return config, nil
+		child, err := config.Translate(nil)
+		if err != nil {
+			return nil, err
+		}
+
+		return child, nil
 	}
 
 	if _, ok := l.loaded[config.Extends]; ok {
@@ -68,9 +82,92 @@ func (l *Loader) resolveParent(
 		return nil, err
 	}
 
-	if err := parent.Merge(config); err != nil {
+	child, err := config.Translate(parent)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := parent.Merge(child); err != nil {
 		return nil, err
 	}
 
 	return parent, nil
+}
+
+//
+// Helpers
+
+func readPath(path string) ([]byte, error) {
+	data, err := chooseReader(path)(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return yaml.YAMLToJSON(data)
+}
+
+func chooseReader(path string) func(string) ([]byte, error) {
+	if isURL(path) {
+		return readRemoteFile
+	}
+
+	return ioutil.ReadFile
+}
+
+func readRemoteFile(path string) ([]byte, error) {
+	req, err := http.NewRequest("GET", path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
+}
+
+func buildPath(path, source string) string {
+	if isURL(path) || isURL(source) {
+		return path
+	}
+
+	return filepath.Join(filepath.Dir(source), path)
+}
+
+func isURL(path string) bool {
+	return strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://")
+}
+
+func validate(data []byte) error {
+	if err := schema.Validate("schema/config.yaml", data); err != nil {
+		return fmt.Errorf("failed to validate config: %s", err.Error())
+	}
+
+	payload := &jsonEnvelope{
+		Tasks:     map[string]json.RawMessage{},
+		Plans:     map[string]json.RawMessage{},
+		Metaplans: map[string]json.RawMessage{},
+	}
+
+	if err := json.Unmarshal(data, payload); err != nil {
+		return err
+	}
+
+	for name, plan := range payload.Plans {
+		if err := schema.Validate("schema/plan.yaml", plan); err != nil {
+			return fmt.Errorf("failed to validate plan %s: %s", name, err.Error())
+		}
+	}
+
+	for name, metaplan := range payload.Metaplans {
+		if err := schema.Validate("schema/metaplan.yaml", metaplan); err != nil {
+			return fmt.Errorf("failed to validate metaplan %s: %s", name, err.Error())
+		}
+	}
+
+	return nil
 }

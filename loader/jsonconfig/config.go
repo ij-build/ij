@@ -19,7 +19,7 @@ type Config struct {
 	Metaplans     map[string][]string        `json:"metaplans"`
 }
 
-func (c *Config) Translate() (*config.Config, error) {
+func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 	sshIdentities, err := unmarshalStringList(c.SSHIdentities)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (c *Config) Translate() (*config.Config, error) {
 
 	tasks := map[string]config.Task{}
 	for name, task := range c.Tasks {
-		translated, err := translateTask(name, task)
+		translated, err := translateTask(parent, name, task)
 		if err != nil {
 			return nil, err
 		}

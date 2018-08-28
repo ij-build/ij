@@ -32,6 +32,10 @@ type (
 	}
 )
 
+func (t *RunTask) GetType() string {
+	return "run"
+}
+
 func (t *RunTask) GetEnvironment() []string {
 	return t.Environment
 }

@@ -84,9 +84,19 @@ func (s *LoaderSuite) TestLoadExtends(t sweet.T) {
 	}))
 }
 
-func (s *LoaderSuite) TestLoadInvalidSchema(t sweet.T) {
-	_, err := NewLoader().Load("./test-configs/invalid.yaml")
-	Expect(err).NotTo(BeNil())
+func (s *LoaderSuite) TestLoadInvalidSchemaTask(t sweet.T) {
+	_, err := NewLoader().Load("./test-configs/invalid-task.yaml")
+	Expect(err).To(MatchError("failed to validate task foo: Additional property image is not allowed"))
+}
+
+func (s *LoaderSuite) TestLoadInvalidSchemaPlan(t sweet.T) {
+	_, err := NewLoader().Load("./test-configs/invalid-plan.yaml")
+	Expect(err).To(MatchError("failed to validate plan foo: Invalid type. Expected: object, given: string"))
+}
+
+func (s *LoaderSuite) TestLoadInvalidSchemaMetaplan(t sweet.T) {
+	_, err := NewLoader().Load("./test-configs/invalid-metaplan.yaml")
+	Expect(err).To(MatchError("failed to validate metaplan foo: Invalid type. Expected: string, given: object"))
 }
 
 func (s *LoaderSuite) TestLoadExtendsCycle(t sweet.T) {

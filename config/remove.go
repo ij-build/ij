@@ -7,6 +7,10 @@ type RemoveTask struct {
 	Images []string
 }
 
+func (t *RemoveTask) GetType() string {
+	return "remove"
+}
+
 func (t *RemoveTask) Extend(task Task) error {
 	parent, ok := task.(*RemoveTask)
 	if !ok {

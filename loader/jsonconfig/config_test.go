@@ -32,7 +32,7 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 		},
 	}
 
-	translated, err := jsonConfig.Translate()
+	translated, err := jsonConfig.Translate(nil)
 	Expect(err).To(BeNil())
 	Expect(translated).To(Equal(&config.Config{
 		Extends:       "parent",
@@ -89,7 +89,7 @@ func (s *ConfigSuite) TestTranslateArrays(t sweet.T) {
 		Metaplans:     map[string][]string{},
 	}
 
-	translated, err := jsonConfig.Translate()
+	translated, err := jsonConfig.Translate(nil)
 	Expect(err).To(BeNil())
 	Expect(translated).To(Equal(&config.Config{
 		SSHIdentities: []string{"fp1", "fp2"},

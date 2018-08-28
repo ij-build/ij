@@ -7,6 +7,10 @@ type PushTask struct {
 	Images []string
 }
 
+func (t *PushTask) GetType() string {
+	return "push"
+}
+
 func (t *PushTask) Extend(task Task) error {
 	parent, ok := task.(*PushTask)
 	if !ok {

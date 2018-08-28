@@ -10,6 +10,10 @@ type BuildTask struct {
 	Arguments  []string
 }
 
+func (t *BuildTask) GetType() string {
+	return "build"
+}
+
 func (t *BuildTask) Extend(task Task) error {
 	parent, ok := task.(*BuildTask)
 	if !ok {

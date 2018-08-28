@@ -1,0 +1,3 @@
+package asset
+
+//go:generate go-bindata -pkg asset -nocompress schema/...
