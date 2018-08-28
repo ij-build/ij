@@ -25,7 +25,15 @@ type (
 	}
 )
 
-const TestEnvFlag = "TEST_OS_EXEC"
+const (
+	SecretMask  = "*****"
+	TestEnvFlag = "TEST_OS_EXEC"
+)
+
+var OutputBlacklist = []string{
+	"pass",
+	"secret",
+}
 
 func NewRunner(logger logging.Logger) Runner {
 	return newRunner(logger, false)
@@ -82,7 +90,8 @@ func (r *runner) run(
 	if r.logger != nil {
 		r.logger.Debug(
 			nil,
-			"Running command: %s", strings.Join(args, " "),
+			"Running command: %s",
+			strings.Join(maskSecrets(args), " "),
 		)
 	}
 
@@ -136,4 +145,34 @@ func processOutput(r io.Reader, p outputProcessor) {
 	for scanner.Scan() {
 		p.Process(scanner.Text())
 	}
+}
+
+func maskSecrets(args []string) []string {
+	masked := []string{}
+	for _, arg := range args {
+		masked = append(masked, maskSecret(arg))
+	}
+
+	return masked
+}
+
+func maskSecret(value string) string {
+	if parts := strings.SplitN(value, "=", 2); len(parts) == 2 {
+		if isBlacklistedName(parts[0]) {
+			return fmt.Sprintf("%s=%s", parts[0], SecretMask)
+		}
+	}
+
+	return value
+}
+
+func isBlacklistedName(value string) bool {
+	value = strings.ToLower(value)
+	for _, substr := range OutputBlacklist {
+		if strings.Contains(value, substr) {
+			return true
+		}
+	}
+
+	return false
 }

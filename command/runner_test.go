@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"io/ioutil"
+	"strings"
 
 	"github.com/aphistic/sweet"
 	"github.com/efritz/ij/logging"
@@ -67,6 +68,37 @@ func (s *RunnerSuite) TestRunWithStdin(t sweet.T) {
 	Expect(params[1].Arg1).To(Equal("0 > foo"))
 	Expect(params[2].Arg1).To(Equal("1 > bar"))
 	Expect(params[3].Arg1).To(Equal("2 > baz"))
+}
+
+func (s *RunnerSuite) TestRunWithMaskedSecrets(t sweet.T) {
+	logger := NewMockLogger()
+
+	args := append(
+		testArgs,
+		"arg=plaintext",
+		"api_password=secret",
+		"AWS_SECRET_PASSWORD=hidden",
+	)
+
+	expectedArgs := append(
+		testArgs,
+		"arg=plaintext",
+		"api_password=*****",
+		"AWS_SECRET_PASSWORD=*****",
+	)
+
+	err := newRunner(logger, true).Run(
+		context.Background(),
+		args,
+		nil,
+		nil,
+	)
+
+	Expect(err).To(BeNil())
+	Expect(logger.DebugFuncCallCount()).To(Equal(1))
+
+	params := logger.DebugFuncCallParams()
+	Expect(params[0].Arg2).To(Equal([]interface{}{strings.Join(expectedArgs, " ")}))
 }
 
 func (s *RunnerSuite) TestRunErrorOutput(t sweet.T) {
