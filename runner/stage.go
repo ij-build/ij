@@ -116,10 +116,6 @@ func (r *StageRunner) buildRunner(
 		return NewPushCommandRunner(r.state, t, taskPrefix, env)
 	case *config.RemoveTask:
 		return NewRemoveCommandRunner(r.state, t, taskPrefix, env)
-	case *config.LoginTask:
-		return NewLoginCommandRunner(r.state, t, taskPrefix, env)
-	case *config.LogoutTask:
-		return NewLogoutCommandRunner(r.state, t, taskPrefix, env)
 	}
 
 	panic("unexpected task type")
