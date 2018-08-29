@@ -8,6 +8,7 @@ import (
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
+	"github.com/efritz/ij/registry"
 	"github.com/efritz/ij/util"
 )
 
@@ -31,7 +32,7 @@ type State struct {
 	Logger              logging.Logger
 	LogProcessor        logging.Processor
 	NetworkDisconnector *ContainerList
-	RegistryList        *RegistryList
+	RegistrySet         *registry.RegistrySet
 	Scratch             *ScratchSpace
 }
 
@@ -169,25 +170,35 @@ func NewState(
 			environment.New(s.Env),
 		)
 
-		registryList, registryErr := NewRegistryList(
+		registrySet, setupErr := registry.NewRegistrySet(
 			s.Context,
 			s.Logger,
 			registryEnv,
 			s.Config.Registries,
 		)
 
-		if registryErr != nil {
+		if setupErr != nil {
+			s.ReportError(
+				nil,
+				"error: failed to resolve registries: %s",
+				err.Error(),
+			)
+
+			err = setupErr
+			return
+		}
+
+		if err = registrySet.Login(); err != nil {
 			s.ReportError(
 				nil,
 				"error: failed to log into registries: %s",
 				err.Error(),
 			)
 
-			err = registryErr
 			return
 		}
 
-		s.Cleanup.Register(registryList.Teardown)
+		s.Cleanup.Register(registrySet.Logout)
 	}
 
 	//

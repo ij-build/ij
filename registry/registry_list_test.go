@@ -1,4 +1,4 @@
-package state
+package registry
 
 //go:generate go-mockgen github.com/efritz/ij/registry -i Login -d mocks -f
 
@@ -12,13 +12,14 @@ import (
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/registry"
 	"github.com/efritz/ij/state/mocks"
 )
 
-type RegistryListSuite struct{}
+type RegistrySetSuite struct{}
 
-func (s *RegistryListSuite) TestSetupTeardown(t sweet.T) {
+// TODO _ break it up
+
+func (s *RegistrySetSuite) TestLoginLogout(t sweet.T) {
 	var (
 		login   = mocks.NewMockLogin()
 		runner  = mocks.NewMockRunner()
@@ -42,7 +43,7 @@ func (s *RegistryListSuite) TestSetupTeardown(t sweet.T) {
 		_ logging.Logger,
 		_ environment.Environment,
 		arg config.Registry,
-	) registry.Login {
+	) Login {
 		args = append(args, arg)
 		return login
 	}
@@ -51,7 +52,7 @@ func (s *RegistryListSuite) TestSetupTeardown(t sweet.T) {
 		return <-servers, nil
 	}
 
-	registryList, err := newRegistryList(
+	registrySet, err := newRegistrySet(
 		context.Background(),
 		logging.NilLogger,
 		environment.New(nil),
@@ -61,17 +62,61 @@ func (s *RegistryListSuite) TestSetupTeardown(t sweet.T) {
 	)
 
 	Expect(err).To(BeNil())
+	Expect(registrySet.Login()).To(BeNil())
 	Expect(args).To(ConsistOf(registries[0], registries[1], registries[2]))
 	Expect(login.LoginFuncCallCount()).To(Equal(3))
 
-	registryList.Teardown()
+	registrySet.Logout()
 	Expect(runner.RunFuncCallCount()).To(Equal(3))
 	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{"docker", "logout", "x"}))
 	Expect(runner.RunFuncCallParams()[1].Arg1).To(Equal([]string{"docker", "logout", "y"}))
 	Expect(runner.RunFuncCallParams()[2].Arg1).To(Equal([]string{"docker", "logout", "z"}))
 }
 
-func (s *RegistryListSuite) TestSetupError(t sweet.T) {
+func (s *RegistrySetSuite) TestSetupError(t sweet.T) {
+	var (
+		login  = mocks.NewMockLogin()
+		runner = mocks.NewMockRunner()
+		errors = make(chan error, 3)
+	)
+
+	errors <- nil
+	errors <- nil
+	errors <- fmt.Errorf("utoh")
+	close(errors)
+
+	registries := []config.Registry{
+		&config.GCRRegistry{KeyFile: "a"},
+		&config.GCRRegistry{KeyFile: "b"},
+		&config.GCRRegistry{KeyFile: "c"},
+	}
+
+	factory := func(
+		_ context.Context,
+		_ logging.Logger,
+		_ environment.Environment,
+		arg config.Registry,
+	) Login {
+		return login
+	}
+
+	login.GetServerFunc = func() (string, error) {
+		return "", <-errors
+	}
+
+	_, err := newRegistrySet(
+		context.Background(),
+		logging.NilLogger,
+		environment.New(nil),
+		registries,
+		factory,
+		runner,
+	)
+
+	Expect(err).To(MatchError("utoh"))
+}
+
+func (s *RegistrySetSuite) TestLoginError(t sweet.T) {
 	var (
 		login   = mocks.NewMockLogin()
 		runner  = mocks.NewMockRunner()
@@ -101,7 +146,7 @@ func (s *RegistryListSuite) TestSetupError(t sweet.T) {
 		_ logging.Logger,
 		_ environment.Environment,
 		arg config.Registry,
-	) registry.Login {
+	) Login {
 		args = append(args, arg)
 		return login
 	}
@@ -114,7 +159,7 @@ func (s *RegistryListSuite) TestSetupError(t sweet.T) {
 		return <-errors
 	}
 
-	_, err := newRegistryList(
+	registrySet, err := newRegistrySet(
 		context.Background(),
 		logging.NilLogger,
 		environment.New(nil),
@@ -123,13 +168,14 @@ func (s *RegistryListSuite) TestSetupError(t sweet.T) {
 		runner,
 	)
 
-	Expect(err).To(MatchError("utoh"))
+	Expect(err).To(BeNil())
+	Expect(registrySet.Login()).To(MatchError("utoh"))
 	Expect(runner.RunFuncCallCount()).To(Equal(2))
 	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{"docker", "logout", "x"}))
 	Expect(runner.RunFuncCallParams()[1].Arg1).To(Equal([]string{"docker", "logout", "y"}))
 }
 
-func (s *RegistryListSuite) TestCancelSetup(t sweet.T) {
+func (s *RegistrySetSuite) TestCancelSetup(t sweet.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
@@ -139,7 +185,7 @@ func (s *RegistryListSuite) TestCancelSetup(t sweet.T) {
 		&config.GCRRegistry{KeyFile: "c"},
 	}
 
-	_, err := newRegistryList(
+	registrySet, err := newRegistrySet(
 		ctx,
 		logging.NilLogger,
 		environment.New(nil),
@@ -148,10 +194,11 @@ func (s *RegistryListSuite) TestCancelSetup(t sweet.T) {
 		mocks.NewMockRunner(),
 	)
 
-	Expect(err).To(MatchError("context canceled"))
+	Expect(err).To(BeNil())
+	Expect(registrySet.Login()).To(MatchError("context canceled"))
 }
 
-func (s *RegistryListSuite) TestCancelDuringTeardown(t sweet.T) {
+func (s *RegistrySetSuite) TestCancelDuringTeardown(t sweet.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	runner := mocks.NewMockRunner()
 
@@ -161,7 +208,7 @@ func (s *RegistryListSuite) TestCancelDuringTeardown(t sweet.T) {
 		&config.GCRRegistry{KeyFile: "c"},
 	}
 
-	registryList, err := newRegistryList(
+	registrySet, err := newRegistrySet(
 		ctx,
 		logging.NilLogger,
 		environment.New(nil),
@@ -171,9 +218,10 @@ func (s *RegistryListSuite) TestCancelDuringTeardown(t sweet.T) {
 	)
 
 	Expect(err).To(BeNil())
+	Expect(registrySet.Login()).To(BeNil())
 
 	cancel()
-	registryList.Teardown()
+	registrySet.Logout()
 	Expect(runner.RunFuncCallCount()).To(Equal(3))
 
 	select {
@@ -191,7 +239,7 @@ func testLoginFactory(
 	_ logging.Logger,
 	_ environment.Environment,
 	arg config.Registry,
-) registry.Login {
+) Login {
 	login := mocks.NewMockLogin()
 
 	login.LoginFunc = func() error {

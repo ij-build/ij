@@ -17,7 +17,6 @@ func TestMain(m *testing.M) {
 		s.AddSuite(&CleanupSuite{})
 		s.AddSuite(&ContainerListSuite{})
 		s.AddSuite(&NetworkSuite{})
-		s.AddSuite(&RegistryListSuite{})
 		s.AddSuite(&ScratchSuite{})
 	})
 }

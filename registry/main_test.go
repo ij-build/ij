@@ -16,6 +16,7 @@ func TestMain(m *testing.M) {
 
 		s.AddSuite(&ECRSuite{})
 		s.AddSuite(&GCRSuite{})
+		s.AddSuite(&RegistrySetSuite{})
 		s.AddSuite(&ServerSuite{})
 	})
 }
