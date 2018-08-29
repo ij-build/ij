@@ -41,7 +41,7 @@ properties:
             - always
             - on-success
             - on-failure
-        concurrent:
+        parallel:
           type: boolean
         environment:
           type: array

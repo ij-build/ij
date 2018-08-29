@@ -11,7 +11,6 @@
 // schema/task-push.yaml
 // schema/task-remove.yaml
 // schema/task-run.yaml
-// schema/task.yaml
 // DO NOT EDIT!
 
 package asset
@@ -236,7 +235,7 @@ properties:
             - always
             - on-success
             - on-failure
-        concurrent:
+        parallel:
           type: boolean
         environment:
           type: array
@@ -262,7 +261,7 @@ func schemaPlanYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/plan.yaml", size: 1072, mode: os.FileMode(420), modTime: time.Unix(1535585965, 0)}
+	info := bindataFileInfo{name: "schema/plan.yaml", size: 1070, mode: os.FileMode(420), modTime: time.Unix(1535586742, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -336,6 +335,10 @@ var _schemaRegistryServerYaml = []byte(`---
 
 type: object
 properties:
+  type:
+    type: string
+    enum:
+      - server
   server:
     type: string
   username:
@@ -357,7 +360,7 @@ func schemaRegistryServerYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/registry-server.yaml", size: 177, mode: os.FileMode(420), modTime: time.Unix(1535585455, 0)}
+	info := bindataFileInfo{name: "schema/registry-server.yaml", size: 227, mode: os.FileMode(420), modTime: time.Unix(1535586850, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -562,44 +565,6 @@ func schemaTaskRunYaml() (*asset, error) {
 	return a, nil
 }
 
-var _schemaTaskYaml = []byte(`---
-
-definitions:
-  stringOrList:
-    oneOf:
-      - type: string
-      - type: array
-        items:
-          type: string
-
-type: object
-properties:
-  type:
-    type: string
-    enum:
-      - remove
-  extends:
-    type: string
-  images:
-    $ref: '#/definitions/stringOrList'
-additionalProperties: false
-`)
-
-func schemaTaskYamlBytes() ([]byte, error) {
-	return _schemaTaskYaml, nil
-}
-
-func schemaTaskYaml() (*asset, error) {
-	bytes, err := schemaTaskYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "schema/task.yaml", size: 305, mode: os.FileMode(420), modTime: time.Unix(1535585822, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -663,7 +628,6 @@ var _bindata = map[string]func() (*asset, error){
 	"schema/task-push.yaml": schemaTaskPushYaml,
 	"schema/task-remove.yaml": schemaTaskRemoveYaml,
 	"schema/task-run.yaml": schemaTaskRunYaml,
-	"schema/task.yaml": schemaTaskYaml,
 }
 
 // AssetDir returns the file names below a certain
@@ -718,7 +682,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"task-push.yaml": &bintree{schemaTaskPushYaml, map[string]*bintree{}},
 		"task-remove.yaml": &bintree{schemaTaskRemoveYaml, map[string]*bintree{}},
 		"task-run.yaml": &bintree{schemaTaskRunYaml, map[string]*bintree{}},
-		"task.yaml": &bintree{schemaTaskYaml, map[string]*bintree{}},
 	}},
 }}
 
