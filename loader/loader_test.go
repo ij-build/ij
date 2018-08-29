@@ -16,6 +16,7 @@ func (s *LoaderSuite) TestLoad(t sweet.T) {
 	loaded, err := NewLoader().Load("./test-configs/basic.yaml")
 	Expect(err).To(BeNil())
 	Expect(loaded).To(Equal(&config.Config{
+		Registries:  []config.Registry{},
 		Environment: []string{"X=1", "Y=2", "Z=3"},
 		Tasks: map[string]config.Task{
 			"x": &config.BuildTask{TaskMeta: config.TaskMeta{Name: "x"}, Dockerfile: "Dockerfile.x"},
@@ -68,6 +69,7 @@ func (s *LoaderSuite) TestLoadFromURL(t sweet.T) {
 	loaded, err := NewLoader().Load(ts.URL)
 	Expect(err).To(BeNil())
 	Expect(loaded).To(Equal(&config.Config{
+		Registries:  []config.Registry{},
 		Environment: []string{"X=1", "Y=2", "Z=3"},
 		Tasks:       map[string]config.Task{},
 		Plans:       map[string]*config.Plan{},
@@ -79,6 +81,7 @@ func (s *LoaderSuite) TestLoadExtends(t sweet.T) {
 	loaded, err := NewLoader().Load("./test-configs/child.yaml")
 	Expect(err).To(BeNil())
 	Expect(loaded).To(Equal(&config.Config{
+		Registries:  []config.Registry{},
 		Environment: []string{"X=1", "Y=2", "Z=3", "X=10", "W=20"},
 		Tasks:       map[string]config.Task{},
 		Plans:       map[string]*config.Plan{},
