@@ -39,7 +39,7 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 		return nil, err
 	}
 
-	if err := validate(data); err != nil {
+	if err := validateConfig(data); err != nil {
 		return nil, err
 	}
 
@@ -54,6 +54,39 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 	}
 
 	return l.resolveParent(payload, path)
+}
+
+func (l *Loader) ApplyOverrides(config *config.Config, paths []string) error {
+	for _, path := range paths {
+		if err := l.applyOverride(config, path); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (l *Loader) applyOverride(config *config.Config, path string) error {
+	data, err := readPath(path)
+	if err != nil {
+		return err
+	}
+
+	if err := schema.Validate("schema/override.yaml", data); err != nil {
+		return fmt.Errorf("failed to validate override file: %s", err.Error())
+	}
+
+	payload := &jsonconfig.Override{}
+	if err := json.Unmarshal(data, payload); err != nil {
+		return err
+	}
+
+	override, err := payload.Translate()
+	if err != nil {
+		return err
+	}
+
+	return config.ApplyOverride(override)
 }
 
 func (l *Loader) resolveParent(
@@ -143,7 +176,7 @@ func isURL(path string) bool {
 	return strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://")
 }
 
-func validate(data []byte) error {
+func validateConfig(data []byte) error {
 	if err := schema.Validate("schema/config.yaml", data); err != nil {
 		return fmt.Errorf("failed to validate config: %s", err.Error())
 	}

@@ -89,6 +89,22 @@ func (s *LoaderSuite) TestLoadExtends(t sweet.T) {
 	}))
 }
 
+func (s *LoaderSuite) TestOverride(t sweet.T) {
+	config := &config.Config{
+		Environment: []string{"X=1"},
+	}
+
+	err := NewLoader().ApplyOverrides(config, []string{
+		"./test-configs/override1.yaml",
+		"./test-configs/override2.yaml",
+	})
+
+	Expect(err).To(BeNil())
+	Expect(config.Environment).To(Equal([]string{
+		"X=1", "X=2", "X=3",
+	}))
+}
+
 func (s *LoaderSuite) TestLoadInvalidSchemaTask(t sweet.T) {
 	_, err := NewLoader().Load("./test-configs/invalid-task.yaml")
 	Expect(err).To(MatchError("failed to validate task foo: Additional property image is not allowed"))
@@ -107,4 +123,9 @@ func (s *LoaderSuite) TestLoadInvalidSchemaMetaplan(t sweet.T) {
 func (s *LoaderSuite) TestLoadExtendsCycle(t sweet.T) {
 	_, err := NewLoader().Load("./test-configs/a.yaml")
 	Expect(err).To(MatchError("failed to extend from b.yaml (extension is cyclic)"))
+}
+
+func (s *LoaderSuite) TestOverrideInvalidSchema(t sweet.T) {
+	err := NewLoader().ApplyOverrides(&config.Config{}, []string{"./test-configs/invalid-override.yaml"})
+	Expect(err).To(MatchError("failed to validate override file: Invalid type. Expected: object, given: string"))
 }

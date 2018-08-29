@@ -1,9 +1,17 @@
 ---
 
+# TODO - other options such as workspace configs, force sequential, etc
+
 title: TODO
 description: TODO
 type: object
 properties:
+  registries:
+    description: TODO
+    type: array
+    items:
+      description: TODO
+      type: object
   ssh-identities:
     description: TODO
     oneOf:
@@ -23,5 +31,4 @@ properties:
       - type: array
         items:
           type: string
-
-# TODO - other options such as workspace configs, force sequential, etc
+additionalProperties: false

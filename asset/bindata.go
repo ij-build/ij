@@ -120,12 +120,6 @@ properties:
   extends:
     description: TODO
     type: string
-  registries:
-    description: TODO
-    type: array
-    items:
-      description: TODO
-      type: object
   ssh-identities:
     description: TODO
     oneOf:
@@ -138,6 +132,12 @@ properties:
     type: array
     items:
       type: string
+  registries:
+    description: TODO
+    type: array
+    items:
+      description: TODO
+      type: object
   import:
     description: TODO
     oneOf:
@@ -184,7 +184,7 @@ func schemaConfigYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/config.yaml", size: 1024, mode: os.FileMode(420), modTime: time.Unix(1535494726, 0)}
+	info := bindataFileInfo{name: "schema/config.yaml", size: 1024, mode: os.FileMode(420), modTime: time.Unix(1535495988, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -331,10 +331,18 @@ func schemaMetaplanYaml() (*asset, error) {
 
 var _schemaOverrideYaml = []byte(`---
 
+# TODO - other options such as workspace configs, force sequential, etc
+
 title: TODO
 description: TODO
 type: object
 properties:
+  registries:
+    description: TODO
+    type: array
+    items:
+      description: TODO
+      type: object
   ssh-identities:
     description: TODO
     oneOf:
@@ -354,9 +362,7 @@ properties:
       - type: array
         items:
           type: string
-
-# TODO - other options such as workspace configs, force sequential, etc
-`)
+additionalProperties: false`)
 
 func schemaOverrideYamlBytes() ([]byte, error) {
 	return _schemaOverrideYaml, nil
@@ -368,7 +374,7 @@ func schemaOverrideYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/override.yaml", size: 469, mode: os.FileMode(420), modTime: time.Unix(1535466859, 0)}
+	info := bindataFileInfo{name: "schema/override.yaml", size: 602, mode: os.FileMode(420), modTime: time.Unix(1535559477, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

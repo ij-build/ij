@@ -2,19 +2,28 @@ package config
 
 import "fmt"
 
-type Config struct {
-	Extends       string
-	Registries    []Registry
-	SSHIdentities []string
-	Environment   []string
-	Imports       []string
-	Exports       []string
-	Excludes      []string
-	Workspace     string
-	Tasks         map[string]Task
-	Plans         map[string]*Plan
-	Metaplans     map[string][]string
-}
+type (
+	Config struct {
+		Extends       string
+		Registries    []Registry
+		SSHIdentities []string
+		Environment   []string
+		Imports       []string
+		Exports       []string
+		Excludes      []string
+		Workspace     string
+		Tasks         map[string]Task
+		Plans         map[string]*Plan
+		Metaplans     map[string][]string
+	}
+
+	Override struct {
+		Registries    []Registry
+		SSHIdentities []string
+		Environment   []string
+		Excludes      []string
+	}
+)
 
 func (c *Config) Merge(child *Config) error {
 	c.Registries = append(c.Registries, child.Registries...)
@@ -57,6 +66,14 @@ func (c *Config) Merge(child *Config) error {
 		c.Metaplans[name] = plans
 	}
 
+	return nil
+}
+
+func (c *Config) ApplyOverride(override *Override) error {
+	c.Registries = append(c.Registries, override.Registries...)
+	c.SSHIdentities = append(c.SSHIdentities, override.SSHIdentities...)
+	c.Environment = append(c.Environment, override.Environment...)
+	c.Excludes = append(c.Excludes, override.Excludes...)
 	return nil
 }
 

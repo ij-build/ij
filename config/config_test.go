@@ -81,12 +81,37 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 	Expect(parent.Metaplans["mp3"]).To(Equal([]string{"p2"}))
 }
 
-func (s *RunSuite) TestMergeNoOverride(t sweet.T) {
+func (s *ConfigSuite) TestMergeNoOverride(t sweet.T) {
 	parent := &Config{Workspace: "parent-workspace"}
 	child := &Config{}
 
 	Expect(parent.Merge(child)).To(BeNil())
 	Expect(parent.Workspace).To(Equal("parent-workspace"))
+}
+
+func (s *ConfigSuite) TestApplyOverride(t sweet.T) {
+	config := &Config{
+		SSHIdentities: []string{"config-ssh"},
+		Registries:    []Registry{&GCRRegistry{KeyFile: "config-gcr"}},
+		Environment:   []string{"X=1", "Y=2"},
+		Excludes:      []string{".temp"},
+	}
+
+	override := &Override{
+		SSHIdentities: []string{"override-ssh"},
+		Registries:    []Registry{&ECRRegistry{AccountID: "override-ecr"}},
+		Environment:   []string{"X=3", "Z=2"},
+		Excludes:      []string{"*.temp"},
+	}
+
+	Expect(config.ApplyOverride(override)).To(BeNil())
+	Expect(config.SSHIdentities).To(Equal([]string{"config-ssh", "override-ssh"}))
+	Expect(config.Registries).To(Equal([]Registry{
+		&GCRRegistry{KeyFile: "config-gcr"},
+		&ECRRegistry{AccountID: "override-ecr"},
+	}))
+	Expect(config.Environment).To(Equal([]string{"X=1", "Y=2", "X=3", "Z=2"}))
+	Expect(config.Excludes).To(Equal([]string{".temp", "*.temp"}))
 }
 
 func (s *ConfigSuite) TestValidate(t sweet.T) {

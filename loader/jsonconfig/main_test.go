@@ -16,6 +16,7 @@ func TestMain(m *testing.M) {
 
 		s.AddSuite(&BuildSuite{})
 		s.AddSuite(&ConfigSuite{})
+		s.AddSuite(&OverrideSuite{})
 		s.AddSuite(&PlanSuite{})
 		s.AddSuite(&PushSuite{})
 		s.AddSuite(&RegistrySuite{})
