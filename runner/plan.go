@@ -114,7 +114,7 @@ func (r *PlanRunner) runPlanOrMetaplan(
 
 	r.state.Logger.Info(
 		prefix,
-		"Beginning plan with flag %#v", failure,
+		"Beginning plan",
 	)
 
 	// Stash this so we know if we failed due to a new
