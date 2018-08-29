@@ -52,8 +52,8 @@ var (
 	}
 
 	localOverridePaths = []string{
-		"ij-override.yaml",
-		"ij-override.yml",
+		"ij.override.yaml",
+		"ij.override.yml",
 	}
 
 	globalOverridePaths = []string{
