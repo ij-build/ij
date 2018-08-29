@@ -1,78 +1,49 @@
 ---
 
-title: TODO
-description: TODO
+definitions:
+  stringOrList:
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+  fileList:
+    type: object
+    properties:
+      files:
+        $ref: '#/definitions/stringOrList'
+      excludes:
+        $ref: '#/definitions/stringOrList'
+    additionalProperties: false
+
 type: object
 properties:
   extends:
-    description: TODO
     type: string
   ssh-identities:
-    description: TODO
     oneOf:
       - type: string
       - type: array
         items:
           type: string
   environment:
-    description: TODO
     type: array
     items:
       type: string
   registries:
-    description: TODO
     type: array
     items:
-      description: TODO
       type: object
   import:
-    description: TODO
-    type: object
-    properties:
-      files:
-        description: TODO
-        oneOf:
-          - type: string
-          - type: array
-            items:
-              type: string
-      excludes:
-        description: TODO
-        oneOf:
-          - type: string
-          - type: array
-            items:
-              type: string
-    additionalProperties: false
+    $ref: '#/definitions/fileList'
   export:
-    description: TODO
-    type: object
-    properties:
-      files:
-        description: TODO
-        oneOf:
-          - type: string
-          - type: array
-            items:
-              type: string
-      excludes:
-        description: TODO
-        oneOf:
-          - type: string
-          - type: array
-            items:
-              type: string
-    additionalProperties: false
+    $ref: '#/definitions/fileList'
   workspace:
-    description: TODO
     type: string
   tasks:
-    description: TODO
     type: object
   plans:
-    description: TODO
     type: object
   metaplans:
-    description: TODO
     type: object
 additionalProperties: false

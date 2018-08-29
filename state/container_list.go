@@ -73,7 +73,6 @@ func NewContainerStopper(logger logging.Logger) *ContainerList {
 			containerName,
 		}
 
-		// TODO - abstract this into state?
 		_, _, err := command.NewRunner(logger).RunForOutput(
 			context.Background(),
 			args,

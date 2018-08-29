@@ -59,7 +59,7 @@ func translateRegistry(data json.RawMessage) (config.Registry, error) {
 	}
 
 	assetName := fmt.Sprintf(
-		"schema/%s-registry.yaml",
+		"schema/registry-%s.yaml",
 		strings.Replace(typeHint.Type, "-", "_", -1),
 	)
 

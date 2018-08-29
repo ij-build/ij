@@ -56,7 +56,7 @@ func translateTask(
 		return nil, fmt.Errorf("unknown task type '%s'", typeHint.Type)
 	}
 
-	assetName := fmt.Sprintf("schema/%s.yaml", typeHint.Type)
+	assetName := fmt.Sprintf("schema/task-%s.yaml", typeHint.Type)
 
 	if err := schema.Validate(assetName, data); err != nil {
 		return nil, fmt.Errorf("failed to validate task %s: %s", name, err.Error())

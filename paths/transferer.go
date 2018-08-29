@@ -93,8 +93,6 @@ func (t *Transferer) transferPath(
 
 	dest := filepath.Join(destRoot, rawDest[len(srcRoot):])
 
-	// TODO - need blacklist
-
 	if err := t.copier.Copy(src, dest, blacklist); err != nil {
 		return fmt.Errorf(
 			"failed to %s path %s: %s",

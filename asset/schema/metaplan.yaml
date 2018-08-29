@@ -1,8 +1,5 @@
 ---
 
-title: TODO
-description: TODO
 type: array
 items:
-  description: TODO
   type: string

@@ -1,22 +1,21 @@
 ---
 
-title: TODO
-description: TODO
-type: object
-properties:
-  type:
-    description: TODO
-    type: string
-    enum:
-      - remove
-  extends:
-    description: TODO
-    type: string
-  images:
-    description: TODO
+definitions:
+  stringOrList:
     oneOf:
       - type: string
       - type: array
         items:
           type: string
+
+type: object
+properties:
+  type:
+    type: string
+    enum:
+      - remove
+  extends:
+    type: string
+  images:
+    $ref: '#/definitions/stringOrList'
 additionalProperties: false

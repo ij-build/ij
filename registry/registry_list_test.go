@@ -17,8 +17,6 @@ import (
 
 type RegistrySetSuite struct{}
 
-// TODO _ break it up
-
 func (s *RegistrySetSuite) TestLoginLogout(t sweet.T) {
 	var (
 		login   = mocks.NewMockLogin()
