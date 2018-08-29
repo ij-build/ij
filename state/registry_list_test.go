@@ -47,7 +47,7 @@ func (s *RegistryListSuite) TestSetupTeardown(t sweet.T) {
 		return login
 	}
 
-	login.LoginFunc = func() (string, error) {
+	login.GetServerFunc = func() (string, error) {
 		return <-servers, nil
 	}
 
@@ -77,11 +77,18 @@ func (s *RegistryListSuite) TestSetupError(t sweet.T) {
 		runner  = mocks.NewMockRunner()
 		args    = []config.Registry{}
 		servers = make(chan string, 3)
+		errors  = make(chan error, 3)
 	)
 
 	servers <- "x"
 	servers <- "y"
+	servers <- "z"
 	close(servers)
+
+	errors <- nil
+	errors <- nil
+	errors <- fmt.Errorf("utoh")
+	close(errors)
 
 	registries := []config.Registry{
 		&config.GCRRegistry{KeyFile: "a"},
@@ -99,16 +106,12 @@ func (s *RegistryListSuite) TestSetupError(t sweet.T) {
 		return login
 	}
 
-	login.LoginFunc = func() (string, error) {
-		select {
-		case server, ok := <-servers:
-			if ok {
-				return server, nil
-			}
-		default:
-		}
+	login.GetServerFunc = func() (string, error) {
+		return <-servers, nil
+	}
 
-		return "", fmt.Errorf("utoh")
+	login.LoginFunc = func() error {
+		return <-errors
 	}
 
 	_, err := newRegistryList(
@@ -191,14 +194,14 @@ func testLoginFactory(
 ) registry.Login {
 	login := mocks.NewMockLogin()
 
-	login.LoginFunc = func() (string, error) {
+	login.LoginFunc = func() error {
 		select {
 		case <-ctx.Done():
-			return "", fmt.Errorf("context canceled")
+			return fmt.Errorf("context canceled")
 		default:
 		}
 
-		return "", nil
+		return nil
 	}
 
 	return login

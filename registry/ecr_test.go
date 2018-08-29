@@ -29,16 +29,18 @@ func (s *ECRSuite) TestLogin(t sweet.T) {
 		return "somehugetoken", "", nil
 	}
 
-	server, err := newECRLogin(
+	login := newECRLogin(
 		context.Background(),
 		logging.NilLogger,
 		environment.New(nil),
 		registry,
 		runner,
-	).Login()
+	)
 
+	server, err := login.GetServer()
 	Expect(err).To(BeNil())
 	Expect(server).To(Equal("https://testAccountID.dkr.ecr.testRegion.amazonaws.com"))
+	Expect(login.Login()).To(BeNil())
 
 	Expect(runner.RunForOutputFuncCallCount()).To(Equal(1))
 	Expect(runner.RunForOutputFuncCallParams()[0].Arg1).To(Equal([]string{
@@ -90,16 +92,18 @@ func (s *ECRSuite) TestLoginMappedEnvironment(t sweet.T) {
 		return "somehugetoken", "", nil
 	}
 
-	server, err := newECRLogin(
+	login := newECRLogin(
 		context.Background(),
 		logging.NilLogger,
 		environment.New(env),
 		registry,
 		runner,
-	).Login()
+	)
 
+	server, err := login.GetServer()
 	Expect(err).To(BeNil())
 	Expect(server).To(Equal("https://testAccountID.dkr.ecr.testRegion.amazonaws.com"))
+	Expect(login.Login()).To(BeNil())
 
 	Expect(runner.RunForOutputFuncCallCount()).To(Equal(1))
 	Expect(runner.RunForOutputFuncCallParams()[0].Arg1).To(Equal([]string{

@@ -51,14 +51,20 @@ func newRegistryList(
 ) (*RegistryList, error) {
 	servers := []string{}
 	for _, registry := range registries {
+		login := factory(ctx, logger, env, registry)
+
+		server, err := login.GetServer()
+		if err != nil {
+			return nil, nil
+		}
+
 		logger.Info(
 			nil,
-			"Logging into %s registry",
-			registry.GetType(),
+			"Logging in to %s",
+			server,
 		)
 
-		server, err := factory(ctx, logger, env, registry).Login()
-		if err != nil {
+		if err := login.Login(); err != nil {
 			logoutRegistries(logger, runner, servers)
 			return nil, err
 		}

@@ -62,36 +62,55 @@ func newECRLogin(
 	}
 }
 
-func (l *ecrLogin) Login() (string, error) {
+func (l *ecrLogin) GetServer() (string, error) {
 	credentials, err := getAWSCredentials(l.env, l.registry)
 	if err != nil {
 		return "", err
 	}
 
-	server, token, err := getAWSToken(
+	return l.getServer(credentials), nil
+}
+
+func (l *ecrLogin) Login() error {
+	credentials, err := getAWSCredentials(l.env, l.registry)
+	if err != nil {
+		return err
+	}
+
+	l.logger.Info(
+		nil,
+		"Generating an ECR access token",
+	)
+
+	token, err := getAWSToken(
 		l.ctx,
 		l.runner,
 		credentials,
 	)
 
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	err = login(
+	return login(
 		l.ctx,
 		l.runner,
-		server,
+		l.getServer(credentials),
 		"AWS",
 		token,
 	)
-
-	if err != nil {
-		return "", err
-	}
-
-	return server, nil
 }
+
+func (l *ecrLogin) getServer(credentials *awsCredentials) string {
+	return fmt.Sprintf(
+		ECRServerFormat,
+		credentials.AccountID,
+		credentials.Region,
+	)
+}
+
+//
+// Helpers
 
 func getAWSCredentials(
 	env environment.Environment,
@@ -135,13 +154,7 @@ func getAWSToken(
 	ctx context.Context,
 	runner command.Runner,
 	credentials *awsCredentials,
-) (string, string, error) {
-	server := fmt.Sprintf(
-		ECRServerFormat,
-		credentials.AccountID,
-		credentials.Region,
-	)
-
+) (string, error) {
 	args := []string{
 		"docker",
 		"run",
@@ -158,10 +171,10 @@ func getAWSToken(
 	)
 
 	if err != nil || token == "" {
-		return "", "", fmt.Errorf("failed to generate AWS token: %s", strings.TrimSpace(stderr))
+		return "", fmt.Errorf("failed to generate AWS token: %s", strings.TrimSpace(stderr))
 	}
 
-	return server, token, nil
+	return token, nil
 }
 
 func (c *awsCredentials) Env() []string {

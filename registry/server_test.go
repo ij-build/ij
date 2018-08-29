@@ -26,16 +26,18 @@ func (s *ServerSuite) TestLogin(t sweet.T) {
 		Password: "secret",
 	}
 
-	server, err := newServerLogin(
+	login := newServerLogin(
 		context.Background(),
 		logging.NilLogger,
 		environment.New(nil),
 		registry,
 		runner,
-	).Login()
+	)
 
+	server, err := login.GetServer()
 	Expect(err).To(BeNil())
 	Expect(server).To(Equal("docker.io"))
+	Expect(login.Login()).To(BeNil())
 
 	Expect(runner.RunFuncCallCount()).To(Equal(1))
 	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{
@@ -60,16 +62,18 @@ func (s *ServerSuite) TestLoginPasswordFile(t sweet.T) {
 		PasswordFile: "./test-files/secret.key",
 	}
 
-	server, err := newServerLogin(
+	login := newServerLogin(
 		context.Background(),
 		logging.NilLogger,
 		environment.New(nil),
 		registry,
 		runner,
-	).Login()
+	)
 
+	server, err := login.GetServer()
 	Expect(err).To(BeNil())
 	Expect(server).To(Equal("docker.io"))
+	Expect(login.Login()).To(BeNil())
 
 	Expect(runner.RunFuncCallCount()).To(Equal(1))
 	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{
@@ -100,16 +104,18 @@ func (s *ServerSuite) TestLoginMappedEnvironment(t sweet.T) {
 		"DOCKER_PASSWORD=secret",
 	}
 
-	server, err := newServerLogin(
+	login := newServerLogin(
 		context.Background(),
 		logging.NilLogger,
 		environment.New(env),
 		registry,
 		runner,
-	).Login()
+	)
 
+	server, err := login.GetServer()
 	Expect(err).To(BeNil())
 	Expect(server).To(Equal("docker.io"))
+	Expect(login.Login()).To(BeNil())
 
 	Expect(runner.RunFuncCallCount()).To(Equal(1))
 	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{

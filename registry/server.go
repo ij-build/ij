@@ -49,35 +49,33 @@ func newServerLogin(
 	}
 }
 
-func (l *serverLogin) Login() (string, error) {
-	server, err := l.env.ExpandString(l.registry.Server)
+func (l *serverLogin) GetServer() (string, error) {
+	return l.env.ExpandString(l.registry.Server)
+}
+
+func (l *serverLogin) Login() error {
+	server, err := l.GetServer()
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	username, err := l.env.ExpandString(l.registry.Username)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	password, err := getServerPassword(l.env, l.registry)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	err = login(
+	return login(
 		l.ctx,
 		l.runner,
 		server,
 		username,
 		password,
 	)
-
-	if err != nil {
-		return "", err
-	}
-
-	return server, nil
 }
 
 func getServerPassword(

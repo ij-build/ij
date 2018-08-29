@@ -21,16 +21,18 @@ func (s *GCRSuite) TestLogin(t sweet.T) {
 		KeyFile: "./test-files/gcr.key",
 	}
 
-	server, err := newGCRLogin(
+	login := newGCRLogin(
 		context.Background(),
 		logging.NilLogger,
 		environment.New(nil),
 		registry,
 		runner,
-	).Login()
+	)
 
+	server, err := login.GetServer()
 	Expect(err).To(BeNil())
 	Expect(server).To(Equal("https://gcr.io"))
+	Expect(login.Login()).To(BeNil())
 
 	Expect(runner.RunFuncCallCount()).To(Equal(1))
 	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{
@@ -56,16 +58,19 @@ func (s *GCRSuite) TestLoginMappedEnvironment(t sweet.T) {
 	env := []string{
 		"KEY_FILE=./test-files/gcr.key",
 	}
-	server, err := newGCRLogin(
+
+	login := newGCRLogin(
 		context.Background(),
 		logging.NilLogger,
 		environment.New(env),
 		registry,
 		runner,
-	).Login()
+	)
 
+	server, err := login.GetServer()
 	Expect(err).To(BeNil())
 	Expect(server).To(Equal("https://gcr.io"))
+	Expect(login.Login()).To(BeNil())
 
 	Expect(runner.RunFuncCallCount()).To(Equal(1))
 	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{

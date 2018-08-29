@@ -9,7 +9,8 @@ import (
 )
 
 type Login interface {
-	Login() (string, error)
+	GetServer() (string, error)
+	Login() error
 }
 
 func login(

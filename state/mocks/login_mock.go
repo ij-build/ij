@@ -7,18 +7,39 @@ package mocks
 import "sync"
 
 type MockLogin struct {
-	LoginFunc func() (string, error)
-	histLogin []LoginLoginParamSet
-	mutex     sync.RWMutex
+	GetServerFunc func() (string, error)
+	histGetServer []LoginGetServerParamSet
+	LoginFunc     func() error
+	histLogin     []LoginLoginParamSet
+	mutex         sync.RWMutex
 }
+type LoginGetServerParamSet struct{}
 type LoginLoginParamSet struct{}
 
 func NewMockLogin() *MockLogin {
 	m := &MockLogin{}
+	m.GetServerFunc = m.defaultGetServerFunc
 	m.LoginFunc = m.defaultLoginFunc
 	return m
 }
-func (m *MockLogin) Login() (string, error) {
+func (m *MockLogin) GetServer() (string, error) {
+	m.mutex.Lock()
+	m.histGetServer = append(m.histGetServer, LoginGetServerParamSet{})
+	m.mutex.Unlock()
+	return m.GetServerFunc()
+}
+func (m *MockLogin) GetServerFuncCallCount() int {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return len(m.histGetServer)
+}
+func (m *MockLogin) GetServerFuncCallParams() []LoginGetServerParamSet {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return m.histGetServer
+}
+
+func (m *MockLogin) Login() error {
 	m.mutex.Lock()
 	m.histLogin = append(m.histLogin, LoginLoginParamSet{})
 	m.mutex.Unlock()
@@ -35,6 +56,9 @@ func (m *MockLogin) LoginFuncCallParams() []LoginLoginParamSet {
 	return m.histLogin
 }
 
-func (m *MockLogin) defaultLoginFunc() (string, error) {
+func (m *MockLogin) defaultGetServerFunc() (string, error) {
 	return "", nil
+}
+func (m *MockLogin) defaultLoginFunc() error {
+	return nil
 }
