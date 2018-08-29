@@ -9,6 +9,7 @@ type ConfigSuite struct{}
 
 func (s *ConfigSuite) TestMerge(t sweet.T) {
 	parent := &Config{
+		Registries:    []Registry{&ServerRegistry{Server: "parent.io"}},
 		SSHIdentities: []string{"parent-ssh1"},
 		Environment:   []string{"parent-env1"},
 		Imports:       []string{"parent-imp1"},
@@ -30,6 +31,7 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 	}
 
 	child := &Config{
+		Registries:    []Registry{&ServerRegistry{Server: "child.io"}},
 		SSHIdentities: []string{"child-ssh2", "child-ssh3"},
 		Environment:   []string{"child-env2", "child-env3"},
 		Imports:       []string{"child-imp2", "child-imp3"},
@@ -52,6 +54,10 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 	}
 
 	Expect(parent.Merge(child)).To(BeNil())
+	Expect(parent.Registries).To(ConsistOf(
+		&ServerRegistry{Server: "parent.io"},
+		&ServerRegistry{Server: "child.io"},
+	))
 	Expect(parent.SSHIdentities).To(ConsistOf("parent-ssh1", "child-ssh2", "child-ssh3"))
 	Expect(parent.Environment).To(ConsistOf("parent-env1", "child-env2", "child-env3"))
 	Expect(parent.Imports).To(ConsistOf("parent-imp1", "child-imp2", "child-imp3"))

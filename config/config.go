@@ -4,6 +4,7 @@ import "fmt"
 
 type Config struct {
 	Extends       string
+	Registries    []Registry
 	SSHIdentities []string
 	Environment   []string
 	Imports       []string
@@ -16,6 +17,7 @@ type Config struct {
 }
 
 func (c *Config) Merge(child *Config) error {
+	c.Registries = append(c.Registries, child.Registries...)
 	c.SSHIdentities = append(c.SSHIdentities, child.SSHIdentities...)
 	c.Environment = append(c.Environment, child.Environment...)
 	c.Imports = append(c.Imports, child.Imports...)

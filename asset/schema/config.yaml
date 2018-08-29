@@ -19,6 +19,12 @@ properties:
     type: array
     items:
       type: string
+  registries:
+    description: TODO
+    type: array
+    items:
+      description: TODO
+      type: object
   import:
     description: TODO
     oneOf:

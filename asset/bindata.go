@@ -2,13 +2,15 @@
 // sources:
 // schema/build.yaml
 // schema/config.yaml
-// schema/login.yaml
+// schema/ecr-registry.yaml
+// schema/gcr-registry.yaml
 // schema/logout.yaml
 // schema/metaplan.yaml
 // schema/override.yaml
 // schema/plan.yaml
 // schema/push.yaml
 // schema/run.yaml
+// schema/server-registry.yaml
 // schema/task.yaml
 // DO NOT EDIT!
 
@@ -118,6 +120,12 @@ properties:
   extends:
     description: TODO
     type: string
+  registries:
+    description: TODO
+    type: array
+    items:
+      description: TODO
+      type: object
   ssh-identities:
     description: TODO
     oneOf:
@@ -176,12 +184,12 @@ func schemaConfigYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/config.yaml", size: 918, mode: os.FileMode(420), modTime: time.Unix(1535481396, 0)}
+	info := bindataFileInfo{name: "schema/config.yaml", size: 1024, mode: os.FileMode(420), modTime: time.Unix(1535494726, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _schemaLoginYaml = []byte(`---
+var _schemaEcrRegistryYaml = []byte(`---
 
 title: TODO
 description: TODO
@@ -191,36 +199,68 @@ properties:
     description: TODO
     type: string
     enum:
-      - login
-  extends:
+      - ecr
+  access_key_id:
     description: TODO
     type: string
-  server:
+  secret_access_key:
     description: TODO
     type: string
-  username:
+  account_id:
     description: TODO
     type: string
-  password:
+  region:
     description: TODO
     type: string
-  password_file:
+  role:
     description: TODO
     type: string
 additionalProperties: false
 `)
 
-func schemaLoginYamlBytes() ([]byte, error) {
-	return _schemaLoginYaml, nil
+func schemaEcrRegistryYamlBytes() ([]byte, error) {
+	return _schemaEcrRegistryYaml, nil
 }
 
-func schemaLoginYaml() (*asset, error) {
-	bytes, err := schemaLoginYamlBytes()
+func schemaEcrRegistryYaml() (*asset, error) {
+	bytes, err := schemaEcrRegistryYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/login.yaml", size: 416, mode: os.FileMode(420), modTime: time.Unix(1535476091, 0)}
+	info := bindataFileInfo{name: "schema/ecr-registry.yaml", size: 422, mode: os.FileMode(420), modTime: time.Unix(1535494834, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _schemaGcrRegistryYaml = []byte(`---
+
+title: TODO
+description: TODO
+type: object
+properties:
+  type:
+    description: TODO
+    type: string
+    enum:
+      - gcr # TODO - make region configurable
+  key_file:
+    description: TODO
+    type: string
+additionalProperties: false
+`)
+
+func schemaGcrRegistryYamlBytes() ([]byte, error) {
+	return _schemaGcrRegistryYaml, nil
+}
+
+func schemaGcrRegistryYaml() (*asset, error) {
+	bytes, err := schemaGcrRegistryYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "schema/gcr-registry.yaml", size: 242, mode: os.FileMode(420), modTime: time.Unix(1535494795, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -555,6 +595,42 @@ func schemaRunYaml() (*asset, error) {
 	return a, nil
 }
 
+var _schemaServerRegistryYaml = []byte(`---
+
+title: TODO
+description: TODO
+type: object
+properties:
+  server:
+    description: TODO
+    type: string
+  username:
+    description: TODO
+    type: string
+  password:
+    description: TODO
+    type: string
+  password_file:
+    description: TODO
+    type: string
+additionalProperties: false
+`)
+
+func schemaServerRegistryYamlBytes() ([]byte, error) {
+	return _schemaServerRegistryYaml, nil
+}
+
+func schemaServerRegistryYaml() (*asset, error) {
+	bytes, err := schemaServerRegistryYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "schema/server-registry.yaml", size: 295, mode: os.FileMode(420), modTime: time.Unix(1535495163, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _schemaTaskYaml = []byte(`---
 
 title: TODO
@@ -647,13 +723,15 @@ func AssetNames() []string {
 var _bindata = map[string]func() (*asset, error){
 	"schema/build.yaml": schemaBuildYaml,
 	"schema/config.yaml": schemaConfigYaml,
-	"schema/login.yaml": schemaLoginYaml,
+	"schema/ecr-registry.yaml": schemaEcrRegistryYaml,
+	"schema/gcr-registry.yaml": schemaGcrRegistryYaml,
 	"schema/logout.yaml": schemaLogoutYaml,
 	"schema/metaplan.yaml": schemaMetaplanYaml,
 	"schema/override.yaml": schemaOverrideYaml,
 	"schema/plan.yaml": schemaPlanYaml,
 	"schema/push.yaml": schemaPushYaml,
 	"schema/run.yaml": schemaRunYaml,
+	"schema/server-registry.yaml": schemaServerRegistryYaml,
 	"schema/task.yaml": schemaTaskYaml,
 }
 
@@ -700,13 +778,15 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"schema": &bintree{nil, map[string]*bintree{
 		"build.yaml": &bintree{schemaBuildYaml, map[string]*bintree{}},
 		"config.yaml": &bintree{schemaConfigYaml, map[string]*bintree{}},
-		"login.yaml": &bintree{schemaLoginYaml, map[string]*bintree{}},
+		"ecr-registry.yaml": &bintree{schemaEcrRegistryYaml, map[string]*bintree{}},
+		"gcr-registry.yaml": &bintree{schemaGcrRegistryYaml, map[string]*bintree{}},
 		"logout.yaml": &bintree{schemaLogoutYaml, map[string]*bintree{}},
 		"metaplan.yaml": &bintree{schemaMetaplanYaml, map[string]*bintree{}},
 		"override.yaml": &bintree{schemaOverrideYaml, map[string]*bintree{}},
 		"plan.yaml": &bintree{schemaPlanYaml, map[string]*bintree{}},
 		"push.yaml": &bintree{schemaPushYaml, map[string]*bintree{}},
 		"run.yaml": &bintree{schemaRunYaml, map[string]*bintree{}},
+		"server-registry.yaml": &bintree{schemaServerRegistryYaml, map[string]*bintree{}},
 		"task.yaml": &bintree{schemaTaskYaml, map[string]*bintree{}},
 	}},
 }}

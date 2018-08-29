@@ -12,7 +12,11 @@ type ConfigSuite struct{}
 
 func (s *ConfigSuite) TestTranslate(t sweet.T) {
 	jsonConfig := &Config{
-		Extends:       "parent",
+		Extends: "parent",
+		Registries: []json.RawMessage{
+			json.RawMessage(`{"server": "docker.io"}`),
+			json.RawMessage(`{"type": "gcr", "key_file": "secret.key"}`),
+		},
 		SSHIdentities: json.RawMessage(`"*"`),
 		Environment:   []string{"X=1", "Y=2", "Z=3"},
 		Imports:       json.RawMessage(`"."`),
@@ -35,7 +39,11 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 	translated, err := jsonConfig.Translate(nil)
 	Expect(err).To(BeNil())
 	Expect(translated).To(Equal(&config.Config{
-		Extends:       "parent",
+		Extends: "parent",
+		Registries: []config.Registry{
+			&config.ServerRegistry{Server: "docker.io"},
+			&config.GCRRegistry{KeyFile: "secret.key"},
+		},
 		SSHIdentities: []string{"*"},
 		Environment:   []string{"X=1", "Y=2", "Z=3"},
 		Imports:       []string{"."},
@@ -94,6 +102,7 @@ func (s *ConfigSuite) TestTranslateArrays(t sweet.T) {
 	translated, err := jsonConfig.Translate(nil)
 	Expect(err).To(BeNil())
 	Expect(translated).To(Equal(&config.Config{
+		Registries:    []config.Registry{},
 		SSHIdentities: []string{"fp1", "fp2"},
 		Imports:       []string{"src", "test"},
 		Exports:       []string{"*.txt", "*.go"},

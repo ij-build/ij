@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	Extends       string                     `json:"extends"`
+	Registries    []json.RawMessage          `json:"registries"`
 	SSHIdentities json.RawMessage            `json:"ssh-identities"`
 	Environment   []string                   `json:"environment"`
 	Imports       json.RawMessage            `json:"import"`
@@ -23,6 +24,16 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 	sshIdentities, err := unmarshalStringList(c.SSHIdentities)
 	if err != nil {
 		return nil, err
+	}
+
+	registries := []config.Registry{}
+	for _, registry := range c.Registries {
+		translated, err := translateRegistry(registry)
+		if err != nil {
+			return nil, err
+		}
+
+		registries = append(registries, translated)
 	}
 
 	imports, err := unmarshalStringList(c.Imports)
@@ -65,11 +76,12 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 		SSHIdentities: sshIdentities,
 		Workspace:     c.Workspace,
 		Environment:   c.Environment,
-		Tasks:         tasks,
-		Plans:         plans,
-		Metaplans:     c.Metaplans,
+		Registries:    registries,
 		Imports:       imports,
 		Exports:       exports,
 		Excludes:      excludes,
+		Tasks:         tasks,
+		Plans:         plans,
+		Metaplans:     c.Metaplans,
 	}, nil
 }
