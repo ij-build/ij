@@ -34,6 +34,8 @@ var (
 	planTimeout         = app.Flag("timeout", "Maximum amount of time a plan can run. 0 to disable.").Default("15m").Duration()
 	sshIdentities       = app.Flag("ssh-identity", "Enable ssh-agent for the given identities.").Strings()
 	verbose             = app.Flag("verbose", "Output debug logs.").Short('v').Default("false").Bool()
+	login  = app.Command("login", "Login to docker registries.")
+	loginForPlan        = run.Flag("login", "Login to docker registries before running.").Default("false").Bool()
 
 	defaultConfigPaths = []string{
 		"ij.yaml",
@@ -89,11 +91,12 @@ func run() bool {
 		*plans,
 		*colorize,
 		*cpuShares,
-		enableAgent,
+		enableSSHAgent,
 		*env,
 		*forceSequential,
 		*healthcheckInterval,
 		*keepWorkspace,
+		*loginForPlan,
 		*memory,
 		*planTimeout,
 		*verbose,

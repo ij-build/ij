@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
 	"github.com/efritz/ij/util"
 )
@@ -29,8 +30,8 @@ type State struct {
 	ContainerStopper    *ContainerList
 	Logger              logging.Logger
 	LogProcessor        logging.Processor
-	Network             *Network
 	NetworkDisconnector *ContainerList
+	RegistryList        *RegistryList
 	Scratch             *ScratchSpace
 }
 
@@ -44,6 +45,7 @@ func NewState(
 	forceSequential bool,
 	healthcheckInterval time.Duration,
 	keepWorkspace bool,
+	login bool,
 	memory string,
 	planTimeout time.Duration,
 	verbose bool,
@@ -159,19 +161,51 @@ func NewState(
 	s.Cleanup.Register(s.NetworkDisconnector.Execute)
 
 	//
+	// Login to Registries
+
+	if login {
+		registryEnv := environment.Merge(
+			environment.New(s.Config.Environment),
+			environment.New(s.Env),
+		)
+
+		registryList, registryErr := NewRegistryList(
+			s.Context,
+			s.Logger,
+			registryEnv,
+			s.Config.Registries,
+		)
+
+		if registryErr != nil {
+			s.ReportError(
+				nil,
+				"error: failed to log into registries: %s",
+				err.Error(),
+			)
+
+			err = registryErr
+			return
+		}
+
+		s.Cleanup.Register(registryList.Teardown)
+	}
+
+	//
 	// Create Network
 
-	if s.Network, err = NewNetwork(s.Context, s.RunID, s.Logger); err != nil {
+	network, networkErr := NewNetwork(s.Context, s.RunID, s.Logger)
+	if networkErr != nil {
 		s.ReportError(
 			nil,
 			"error: failed to create network: %s",
 			err.Error(),
 		)
 
+		err = networkErr
 		return
 	}
 
-	s.Cleanup.Register(s.Network.Teardown)
+	s.Cleanup.Register(network.Teardown)
 	return
 }
 
