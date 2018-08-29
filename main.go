@@ -11,9 +11,11 @@ import (
 
 	"github.com/efritz/ij/command"
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/loader"
 	"github.com/efritz/ij/logging"
 	"github.com/efritz/ij/paths"
+	"github.com/efritz/ij/registry"
 	"github.com/efritz/ij/runner"
 	"github.com/efritz/ij/ssh"
 	"github.com/efritz/ij/state"
@@ -134,14 +136,24 @@ func runRun(config *config.Config) bool {
 	return runner.NewPlanRunner(state).Run()
 }
 
-func runLogin(ctx context.Context, config *config.Config) bool {
-	// TODO - implement these commands
-	return false
+func runLogin(config *config.Config) bool {
+	return withRegistrySet(config, func(registrySet *registry.RegistrySet, logger logging.Logger) bool {
+		if err := registrySet.Login(); err != nil {
+			logger.Error(nil, "failed to login to registries: %s", err.Error())
+			return false
+		}
+
+		return true
+	})
 }
 
-func runLogout(ctx context.Context, config *config.Config) bool {
-	// TODO - implement these commands
-	return false
+func runLogout(config *config.Config) bool {
+	return withRegistrySet(config, func(registrySet *registry.RegistrySet, logger logging.Logger) bool {
+		registrySet.Logout()
+		return true
+	})
+}
+
 func withRegistrySet(config *config.Config, f func(*registry.RegistrySet, logging.Logger) bool) bool {
 	logProcessor := logging.NewProcessor(*verbose, *colorize)
 	logProcessor.Start()
