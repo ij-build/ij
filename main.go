@@ -79,31 +79,24 @@ func runMain() bool {
 		return false
 	}
 
-	ctx, cancel := context.WithTimeout(
-		context.Background(),
-		time.Second,
-	)
-
-	defer cancel()
-
-	if !ensureDocker(ctx) {
+	if !ensureDocker() {
 		logging.EmergencyLog("error: docker is not running")
 		return false
 	}
 
 	switch command {
 	case "run":
-		return runRun(ctx, config)
+		return runRun(config)
 	case "login":
-		return runLogin(ctx, config)
+		return runLogin(config)
 	case "logout":
-		return runLogout(ctx, config)
+		return runLogout(config)
 	}
 
 	panic("unexpected command type")
 }
 
-func runRun(ctx context.Context, config *config.Config) bool {
+func runRun(config *config.Config) bool {
 	enableSSHAgent, err := ssh.EnsureKeysAvailable(append(
 		config.SSHIdentities,
 		*sshIdentities...,
@@ -149,6 +142,36 @@ func runLogin(ctx context.Context, config *config.Config) bool {
 func runLogout(ctx context.Context, config *config.Config) bool {
 	// TODO - implement these commands
 	return false
+func withRegistrySet(config *config.Config, f func(*registry.RegistrySet, logging.Logger) bool) bool {
+	logProcessor := logging.NewProcessor(*verbose, *colorize)
+	logProcessor.Start()
+
+	defer logProcessor.Shutdown()
+
+	logger := logProcessor.Logger(
+		logging.NilWriter,
+		logging.NilWriter,
+		true,
+	)
+
+	registryEnv := environment.Merge(
+		environment.New(config.Environment),
+		environment.New(*env),
+	)
+
+	registrySet, err := registry.NewRegistrySet(
+		context.Background(),
+		logger,
+		registryEnv,
+		config.Registries,
+	)
+
+	if err != nil {
+		logger.Error(nil, "failed to create registry set: %s", err.Error())
+		return false
+	}
+
+	return f(registrySet, logger)
 }
 
 func parseArgs() (string, error) {
@@ -264,7 +287,10 @@ func getOverridePaths() ([]string, error) {
 	return found, nil
 }
 
-func ensureDocker(ctx context.Context) bool {
+func ensureDocker() bool {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
 	args := []string{
 		"docker",
 		"ps",
