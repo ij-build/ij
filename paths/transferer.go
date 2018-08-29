@@ -12,11 +12,10 @@ import (
 
 type (
 	Transferer struct {
-		project      string
-		scratch      string
-		workspace    string
-		importCopier *Copier
-		exportCopier *Copier
+		project   string
+		scratch   string
+		workspace string
+		copier    *Copier
 	}
 
 	filePair struct {
@@ -34,60 +33,45 @@ func NewTransferer(
 	project string,
 	scratch string,
 	workspace string,
-	blacklistPatterns []string,
 	logger logging.Logger,
-) (*Transferer, error) {
-	blacklist, err := constructBlacklist(project, blacklistPatterns)
+) *Transferer {
+	return &Transferer{
+		project:   project,
+		scratch:   scratch,
+		workspace: workspace,
+		copier:    NewCopier(logger, project),
+	}
+}
+
+func (t *Transferer) Import(patterns, blacklistPatterns []string) error {
+	blacklist, err := constructBlacklist(t.project, blacklistPatterns)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &Transferer{
-		project:      project,
-		scratch:      scratch,
-		workspace:    workspace,
-		importCopier: NewCopier(logger, project, blacklist),
-		exportCopier: NewCopier(logger, project, map[string]struct{}{}),
-	}, nil
+	return runOnPatterns(patterns, t.project, true, true, func(pair filePair) error {
+		return t.transferPath(pair.src, pair.dest, t.project, t.workspace, blacklist, "import")
+	})
 }
 
-func (t *Transferer) Import(patterns []string) error {
-	return runOnPatterns(patterns, t.project, true, true, t.importPath)
-}
+func (t *Transferer) Export(patterns, blacklistPatterns []string) error {
+	blacklist, err := constructBlacklist(t.workspace, blacklistPatterns)
+	if err != nil {
+		return err
+	}
 
-func (t *Transferer) Export(patterns []string) error {
-	return runOnPatterns(patterns, t.workspace, true, true, t.exportPath)
-}
-
-func (t *Transferer) importPath(pair filePair) error {
-	return t.transferPath(
-		pair.src,
-		pair.dest,
-		"import",
-		t.project,
-		t.workspace,
-		t.importCopier,
-	)
-}
-
-func (t *Transferer) exportPath(pair filePair) error {
-	return t.transferPath(
-		pair.src,
-		pair.dest,
-		"export",
-		t.workspace,
-		t.project,
-		t.exportCopier,
-	)
+	return runOnPatterns(patterns, t.workspace, true, true, func(pair filePair) error {
+		return t.transferPath(pair.src, pair.dest, t.workspace, t.project, blacklist, "export")
+	})
 }
 
 func (t *Transferer) transferPath(
 	rawSrc string,
 	rawDest string,
-	transferType string,
 	srcRoot string,
 	destRoot string,
-	copier *Copier,
+	blacklist map[string]struct{},
+	transferType string,
 ) error {
 	src, err := filepath.Abs(rawSrc)
 	if err != nil {
@@ -109,7 +93,9 @@ func (t *Transferer) transferPath(
 
 	dest := filepath.Join(destRoot, rawDest[len(srcRoot):])
 
-	if err := copier.Copy(src, dest); err != nil {
+	// TODO - need blacklist
+
+	if err := t.copier.Copy(src, dest, blacklist); err != nil {
 		return fmt.Errorf(
 			"failed to %s path %s: %s",
 			transferType,
@@ -124,13 +110,13 @@ func (t *Transferer) transferPath(
 //
 // Helpers
 
-func constructBlacklist(project string, patterns []string) (map[string]struct{}, error) {
+func constructBlacklist(root string, patterns []string) (map[string]struct{}, error) {
 	var (
 		blacklist   = map[string]struct{}{}
 		allPatterns = append(DefaultBlacklist, patterns...)
 	)
 
-	err := runOnPatterns(allPatterns, project, false, false, func(pair filePair) error {
+	err := runOnPatterns(allPatterns, root, false, false, func(pair filePair) error {
 		blacklist[pair.src] = struct{}{}
 		return nil
 	})

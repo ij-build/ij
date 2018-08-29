@@ -8,20 +8,25 @@ type (
 		Registries    []Registry
 		SSHIdentities []string
 		Environment   []string
-		Imports       []string
-		Exports       []string
-		Excludes      []string
+		Import        *FileList
+		Export        *FileList
 		Workspace     string
 		Tasks         map[string]Task
 		Plans         map[string]*Plan
 		Metaplans     map[string][]string
 	}
 
+	FileList struct {
+		Files    []string
+		Excludes []string
+	}
+
 	Override struct {
-		Registries    []Registry
-		SSHIdentities []string
-		Environment   []string
-		Excludes      []string
+		Registries     []Registry
+		SSHIdentities  []string
+		Environment    []string
+		ImportExcludes []string
+		ExportExcludes []string
 	}
 )
 
@@ -29,9 +34,8 @@ func (c *Config) Merge(child *Config) error {
 	c.Registries = append(c.Registries, child.Registries...)
 	c.SSHIdentities = append(c.SSHIdentities, child.SSHIdentities...)
 	c.Environment = append(c.Environment, child.Environment...)
-	c.Imports = append(c.Imports, child.Imports...)
-	c.Exports = append(c.Exports, child.Exports...)
-	c.Excludes = append(c.Excludes, child.Excludes...)
+	c.Import.Merge(child.Import)
+	c.Export.Merge(child.Export)
 
 	if child.Workspace != "" {
 		c.Workspace = child.Workspace
@@ -69,12 +73,17 @@ func (c *Config) Merge(child *Config) error {
 	return nil
 }
 
-func (c *Config) ApplyOverride(override *Override) error {
+func (f *FileList) Merge(child *FileList) {
+	f.Files = append(f.Files, child.Files...)
+	f.Excludes = append(f.Excludes, child.Excludes...)
+}
+
+func (c *Config) ApplyOverride(override *Override) {
 	c.Registries = append(c.Registries, override.Registries...)
 	c.SSHIdentities = append(c.SSHIdentities, override.SSHIdentities...)
 	c.Environment = append(c.Environment, override.Environment...)
-	c.Excludes = append(c.Excludes, override.Excludes...)
-	return nil
+	c.Import.Excludes = append(c.Import.Excludes, override.ImportExcludes...)
+	c.Export.Excludes = append(c.Export.Excludes, override.ExportExcludes...)
 }
 
 func (c *Config) Resolve() error {

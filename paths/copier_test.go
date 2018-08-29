@@ -25,12 +25,12 @@ func (s *CopierSuite) TestCopyFile(t sweet.T) {
 	copier := NewCopier(
 		logging.NilLogger,
 		srcRoot,
-		map[string]struct{}{},
 	)
 
 	err := copier.Copy(
 		filepath.Join(srcRoot, "x.txt"),
 		filepath.Join(destRoot, "x.txt"),
+		map[string]struct{}{},
 	)
 
 	Expect(err).To(BeNil())
@@ -55,12 +55,12 @@ func (s *CopierSuite) TestCopyDirectory(t sweet.T) {
 	copier := NewCopier(
 		logging.NilLogger,
 		srcRoot,
-		map[string]struct{}{},
 	)
 
 	err := copier.Copy(
 		filepath.Join(srcRoot, "foo"),
 		filepath.Join(destRoot, "foo"),
+		map[string]struct{}{},
 	)
 
 	Expect(err).To(BeNil())
@@ -93,14 +93,14 @@ func (s *CopierSuite) TestCopyBlacklistedFile(t sweet.T) {
 	copier := NewCopier(
 		logging.NilLogger,
 		srcRoot,
-		map[string]struct{}{
-			filepath.Join(srcRoot, "foo", "bar", "b.txt"): struct{}{},
-		},
 	)
 
 	err := copier.Copy(
 		filepath.Join(srcRoot, "foo"),
 		filepath.Join(destRoot, "foo"),
+		map[string]struct{}{
+			filepath.Join(srcRoot, "foo", "bar", "b.txt"): struct{}{},
+		},
 	)
 
 	Expect(err).To(BeNil())
@@ -130,14 +130,14 @@ func (s *CopierSuite) TestCopyBlacklistedDirectory(t sweet.T) {
 	copier := NewCopier(
 		logging.NilLogger,
 		srcRoot,
-		map[string]struct{}{
-			filepath.Join(srcRoot, "foo", "bar"): struct{}{},
-		},
 	)
 
 	err := copier.Copy(
 		filepath.Join(srcRoot, "foo"),
 		filepath.Join(destRoot, "foo"),
+		map[string]struct{}{
+			filepath.Join(srcRoot, "foo", "bar"): struct{}{},
+		},
 	)
 
 	Expect(err).To(BeNil())

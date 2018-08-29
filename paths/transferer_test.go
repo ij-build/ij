@@ -33,18 +33,12 @@ func (s *TransfererSuite) TestImport(t sweet.T) {
 
 	defer os.RemoveAll(destRoot)
 
-	transferer, err := NewTransferer(
+	transferer := NewTransferer(
 		srcRoot,
 		destRoot,
 		filepath.Join(destRoot, "workspace"),
-		[]string{
-			"baz",
-			"**/junit*.xml",
-		},
 		logging.NilLogger,
 	)
-
-	Expect(err).To(BeNil())
 
 	patterns := []string{
 		"foo",
@@ -52,7 +46,13 @@ func (s *TransfererSuite) TestImport(t sweet.T) {
 		"quux/unique.txt:moved.txt",
 	}
 
-	Expect(transferer.Import(patterns)).To(BeNil())
+	blacklistPatterns := []string{
+		"baz",
+		"**/junit*.xml",
+	}
+
+	err := transferer.Import(patterns, blacklistPatterns)
+	Expect(err).To(BeNil())
 
 	// Moved
 	_, err = os.Stat(filepath.Join(destRoot, "workspace", "bar", "b.txt"))
@@ -83,16 +83,15 @@ func (s *TransfererSuite) TestImportOutsideProjectPath(t sweet.T) {
 	destRoot := buildTempDir(nil)
 	defer os.RemoveAll(destRoot)
 
-	transferer, err := NewTransferer(
+	transferer := NewTransferer(
 		srcRoot,
 		destRoot,
 		filepath.Join(destRoot, "workspace"),
-		nil,
 		logging.NilLogger,
 	)
 
-	Expect(err).To(BeNil())
-	err = transferer.Import([]string{"../*"})
+	patterns := []string{"../*"}
+	err := transferer.Import(patterns, nil)
 	Expect(err).NotTo(BeNil())
 	Expect(err.Error()).To(ContainSubstring("import file is outside of workspace directory"))
 }
@@ -110,22 +109,20 @@ func (s *TransfererSuite) TestExport(t sweet.T) {
 
 	defer os.RemoveAll(destRoot)
 
-	transferer, err := NewTransferer(
+	transferer := NewTransferer(
 		srcRoot,
 		destRoot,
 		filepath.Join(destRoot, "workspace"),
-		nil,
 		logging.NilLogger,
 	)
-
-	Expect(err).To(BeNil())
 
 	patterns := []string{
 		"*.txt",
 		"baz.pdf:bonk.pdf",
 	}
 
-	Expect(transferer.Export(patterns)).To(BeNil())
+	err := transferer.Export(patterns, nil)
+	Expect(err).To(BeNil())
 
 	// Moved
 	_, err = os.Stat(filepath.Join(srcRoot, "foo.txt"))
@@ -148,16 +145,15 @@ func (s *TransfererSuite) TestExportOutsideWorkspacePath(t sweet.T) {
 	destRoot := buildTempDir(nil)
 	defer os.RemoveAll(destRoot)
 
-	transferer, err := NewTransferer(
+	transferer := NewTransferer(
 		srcRoot,
 		destRoot,
 		filepath.Join(destRoot, "workspace"),
-		nil,
 		logging.NilLogger,
 	)
 
-	Expect(err).To(BeNil())
-	err = transferer.Export([]string{"../../*"})
+	patterns := []string{"../../*"}
+	err := transferer.Export(patterns, nil)
 	Expect(err).NotTo(BeNil())
 	Expect(err.Error()).To(ContainSubstring("export file is outside of workspace directory"))
 }

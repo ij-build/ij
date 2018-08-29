@@ -44,6 +44,8 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 	}
 
 	payload := &jsonconfig.Config{
+		Import:    &jsonconfig.FileList{},
+		Export:    &jsonconfig.FileList{},
 		Tasks:     map[string]json.RawMessage{},
 		Plans:     map[string]*jsonconfig.Plan{},
 		Metaplans: map[string][]string{},
@@ -76,7 +78,11 @@ func (l *Loader) applyOverride(config *config.Config, path string) error {
 		return fmt.Errorf("failed to validate override file: %s", err.Error())
 	}
 
-	payload := &jsonconfig.Override{}
+	payload := &jsonconfig.Override{
+		Import: &jsonconfig.FileList{},
+		Export: &jsonconfig.FileList{},
+	}
+
 	if err := json.Unmarshal(data, payload); err != nil {
 		return err
 	}
@@ -86,7 +92,8 @@ func (l *Loader) applyOverride(config *config.Config, path string) error {
 		return err
 	}
 
-	return config.ApplyOverride(override)
+	config.ApplyOverride(override)
+	return nil
 }
 
 func (l *Loader) resolveParent(

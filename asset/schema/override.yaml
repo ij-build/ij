@@ -24,11 +24,28 @@ properties:
     type: array
     items:
       type: string
-  exclude:
+  import:
     description: TODO
-    oneOf:
-      - type: string
-      - type: array
-        items:
-          type: string
+    type: object
+    properties:
+      excludes:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+    additionalProperties: false
+  export:
+    description: TODO
+    type: object
+    properties:
+      excludes:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+    additionalProperties: false
 additionalProperties: false

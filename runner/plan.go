@@ -35,29 +35,31 @@ func (r *PlanRunner) Run() bool {
 	go r.watchSignals()
 	defer r.state.Cleanup.Cleanup()
 
-	transferer, err := paths.NewTransferer(
+	defer func() {
+		r.state.Logger.Info(
+			nil,
+			"Finished run %s",
+			r.state.RunID,
+		)
+	}()
+
+	transferer := paths.NewTransferer(
 		r.state.Scratch.Project(),
 		r.state.Scratch.Scratch(),
 		r.state.Scratch.Workspace(),
-		r.state.Config.Excludes,
 		r.state.Logger,
 	)
 
-	if err != nil {
-		r.state.Logger.Error(
-			nil,
-			"Failed to prepare file import blacklist: %s",
-			err.Error(),
-		)
+	importErr := transferer.Import(
+		r.state.Config.Import.Files,
+		r.state.Config.Import.Excludes,
+	)
 
-		return false
-	}
-
-	if err := transferer.Import(r.state.Config.Imports); err != nil {
+	if importErr != nil {
 		r.state.Logger.Error(
 			nil,
 			"Failed to import files to workspace: %s",
-			err.Error(),
+			importErr.Error(),
 		)
 
 		return false
@@ -74,11 +76,16 @@ func (r *PlanRunner) Run() bool {
 		return false
 	}
 
-	if err := transferer.Export(r.state.Config.Exports); err != nil {
+	exportErr := transferer.Export(
+		r.state.Config.Export.Files,
+		r.state.Config.Export.Excludes,
+	)
+
+	if exportErr != nil {
 		r.state.Logger.Error(
 			nil,
 			"Failed to export files from workspace: %s",
-			err.Error(),
+			exportErr.Error(),
 		)
 
 		return false

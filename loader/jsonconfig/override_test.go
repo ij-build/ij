@@ -18,7 +18,8 @@ func (s *OverrideSuite) TestTranslate(t sweet.T) {
 		},
 		SSHIdentities: json.RawMessage(`"*"`),
 		Environment:   []string{"X=1", "Y=2", "Z=3"},
-		Excludes:      json.RawMessage(`"**/__pycache__"`),
+		Import:        &FileList{Excludes: json.RawMessage(`"**/__pycache__"`)},
+		Export:        &FileList{},
 	}
 
 	translated, err := jsonOverride.Translate()
@@ -28,8 +29,8 @@ func (s *OverrideSuite) TestTranslate(t sweet.T) {
 			&config.ServerRegistry{Server: "docker.io"},
 			&config.GCRRegistry{KeyFile: "secret.key"},
 		},
-		SSHIdentities: []string{"*"},
-		Environment:   []string{"X=1", "Y=2", "Z=3"},
-		Excludes:      []string{"**/__pycache__"},
+		SSHIdentities:  []string{"*"},
+		Environment:    []string{"X=1", "Y=2", "Z=3"},
+		ImportExcludes: []string{"**/__pycache__"},
 	}))
 }

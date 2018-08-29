@@ -6,19 +6,25 @@ import (
 	"github.com/efritz/ij/config"
 )
 
-type Config struct {
-	Extends       string                     `json:"extends"`
-	Registries    []json.RawMessage          `json:"registries"`
-	SSHIdentities json.RawMessage            `json:"ssh-identities"`
-	Environment   []string                   `json:"environment"`
-	Imports       json.RawMessage            `json:"import"`
-	Exports       json.RawMessage            `json:"export"`
-	Excludes      json.RawMessage            `json:"exclude"`
-	Workspace     string                     `json:"workspace"`
-	Tasks         map[string]json.RawMessage `json:"tasks"`
-	Plans         map[string]*Plan           `json:"plans"`
-	Metaplans     map[string][]string        `json:"metaplans"`
-}
+type (
+	Config struct {
+		Extends       string                     `json:"extends"`
+		Registries    []json.RawMessage          `json:"registries"`
+		SSHIdentities json.RawMessage            `json:"ssh-identities"`
+		Environment   []string                   `json:"environment"`
+		Import        *FileList                  `json:"import"`
+		Export        *FileList                  `json:"export"`
+		Workspace     string                     `json:"workspace"`
+		Tasks         map[string]json.RawMessage `json:"tasks"`
+		Plans         map[string]*Plan           `json:"plans"`
+		Metaplans     map[string][]string        `json:"metaplans"`
+	}
+
+	FileList struct {
+		Files    json.RawMessage `json:"files"`
+		Excludes json.RawMessage `json:"excludes"`
+	}
+)
 
 func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 	sshIdentities, err := unmarshalStringList(c.SSHIdentities)
@@ -36,17 +42,12 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 		registries = append(registries, translated)
 	}
 
-	imports, err := unmarshalStringList(c.Imports)
+	importList, err := translateFileList(c.Import)
 	if err != nil {
 		return nil, err
 	}
 
-	exports, err := unmarshalStringList(c.Exports)
-	if err != nil {
-		return nil, err
-	}
-
-	excludes, err := unmarshalStringList(c.Excludes)
+	exportList, err := translateFileList(c.Export)
 	if err != nil {
 		return nil, err
 	}
@@ -77,11 +78,27 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 		Workspace:     c.Workspace,
 		Environment:   c.Environment,
 		Registries:    registries,
-		Imports:       imports,
-		Exports:       exports,
-		Excludes:      excludes,
+		Import:        importList,
+		Export:        exportList,
 		Tasks:         tasks,
 		Plans:         plans,
 		Metaplans:     c.Metaplans,
+	}, nil
+}
+
+func translateFileList(list *FileList) (*config.FileList, error) {
+	files, err := unmarshalStringList(list.Files)
+	if err != nil {
+		return nil, err
+	}
+
+	excludes, err := unmarshalStringList(list.Excludes)
+	if err != nil {
+		return nil, err
+	}
+
+	return &config.FileList{
+		Files:    files,
+		Excludes: excludes,
 	}, nil
 }

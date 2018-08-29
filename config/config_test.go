@@ -12,10 +12,14 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 		Registries:    []Registry{&ServerRegistry{Server: "parent.io"}},
 		SSHIdentities: []string{"parent-ssh1"},
 		Environment:   []string{"parent-env1"},
-		Imports:       []string{"parent-imp1"},
-		Exports:       []string{"parent-exp1"},
-		Excludes:      []string{"parent-exc1"},
-		Workspace:     "parent-workspace",
+		Import: &FileList{
+			Files:    []string{"parent-imp1"},
+			Excludes: []string{"parent-exc1"},
+		},
+		Export: &FileList{
+			Files: []string{"parent-exp1"},
+		},
+		Workspace: "parent-workspace",
 		Tasks: map[string]Task{
 			"t1": &BuildTask{TaskMeta: TaskMeta{Name: "t1", Extends: ""}, Dockerfile: "a"},
 			"t2": &BuildTask{TaskMeta: TaskMeta{Name: "t2", Extends: ""}, Dockerfile: "b"},
@@ -34,10 +38,14 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 		Registries:    []Registry{&ServerRegistry{Server: "child.io"}},
 		SSHIdentities: []string{"child-ssh2", "child-ssh3"},
 		Environment:   []string{"child-env2", "child-env3"},
-		Imports:       []string{"child-imp2", "child-imp3"},
-		Exports:       []string{"child-exp2", "child-exp3"},
-		Excludes:      []string{"child-exc2", "child-exc3"},
-		Workspace:     "child-workspace",
+		Import: &FileList{
+			Files:    []string{"child-imp2", "child-imp3"},
+			Excludes: []string{"child-exc2", "child-exc3"},
+		},
+		Export: &FileList{
+			Files: []string{"child-exp2", "child-exp3"},
+		},
+		Workspace: "child-workspace",
 		Tasks: map[string]Task{
 			"t2": &BuildTask{TaskMeta: TaskMeta{Name: "t2", Extends: ""}, Dockerfile: "c"},
 			"t3": &BuildTask{TaskMeta: TaskMeta{Name: "t3", Extends: ""}, Dockerfile: "d"},
@@ -60,9 +68,9 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 	))
 	Expect(parent.SSHIdentities).To(ConsistOf("parent-ssh1", "child-ssh2", "child-ssh3"))
 	Expect(parent.Environment).To(ConsistOf("parent-env1", "child-env2", "child-env3"))
-	Expect(parent.Imports).To(ConsistOf("parent-imp1", "child-imp2", "child-imp3"))
-	Expect(parent.Exports).To(ConsistOf("parent-exp1", "child-exp2", "child-exp3"))
-	Expect(parent.Excludes).To(ConsistOf("parent-exc1", "child-exc2", "child-exc3"))
+	Expect(parent.Import.Files).To(ConsistOf("parent-imp1", "child-imp2", "child-imp3"))
+	Expect(parent.Export.Files).To(ConsistOf("parent-exp1", "child-exp2", "child-exp3"))
+	Expect(parent.Import.Excludes).To(ConsistOf("parent-exc1", "child-exc2", "child-exc3"))
 	Expect(parent.Workspace).To(Equal("child-workspace"))
 
 	Expect(parent.Tasks).To(HaveLen(3))
@@ -82,8 +90,16 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 }
 
 func (s *ConfigSuite) TestMergeNoOverride(t sweet.T) {
-	parent := &Config{Workspace: "parent-workspace"}
-	child := &Config{}
+	parent := &Config{
+		Import:    &FileList{},
+		Export:    &FileList{},
+		Workspace: "parent-workspace",
+	}
+
+	child := &Config{
+		Import: &FileList{},
+		Export: &FileList{},
+	}
 
 	Expect(parent.Merge(child)).To(BeNil())
 	Expect(parent.Workspace).To(Equal("parent-workspace"))
@@ -94,24 +110,27 @@ func (s *ConfigSuite) TestApplyOverride(t sweet.T) {
 		SSHIdentities: []string{"config-ssh"},
 		Registries:    []Registry{&GCRRegistry{KeyFile: "config-gcr"}},
 		Environment:   []string{"X=1", "Y=2"},
-		Excludes:      []string{".temp"},
+		Import:        &FileList{Files: []string{"."}, Excludes: []string{".temp"}},
+		Export:        &FileList{Files: []string{"*.py*"}, Excludes: nil},
 	}
 
 	override := &Override{
-		SSHIdentities: []string{"override-ssh"},
-		Registries:    []Registry{&ECRRegistry{AccountID: "override-ecr"}},
-		Environment:   []string{"X=3", "Z=2"},
-		Excludes:      []string{"*.temp"},
+		SSHIdentities:  []string{"override-ssh"},
+		Registries:     []Registry{&ECRRegistry{AccountID: "override-ecr"}},
+		Environment:    []string{"X=3", "Z=2"},
+		ImportExcludes: []string{"*.tmp"},
+		ExportExcludes: []string{"*.pyc"},
 	}
 
-	Expect(config.ApplyOverride(override)).To(BeNil())
+	config.ApplyOverride(override)
 	Expect(config.SSHIdentities).To(Equal([]string{"config-ssh", "override-ssh"}))
 	Expect(config.Registries).To(Equal([]Registry{
 		&GCRRegistry{KeyFile: "config-gcr"},
 		&ECRRegistry{AccountID: "override-ecr"},
 	}))
 	Expect(config.Environment).To(Equal([]string{"X=1", "Y=2", "X=3", "Z=2"}))
-	Expect(config.Excludes).To(Equal([]string{".temp", "*.temp"}))
+	Expect(config.Import.Excludes).To(Equal([]string{".temp", "*.tmp"}))
+	Expect(config.Export.Excludes).To(Equal([]string{"*.pyc"}))
 }
 
 func (s *ConfigSuite) TestValidate(t sweet.T) {

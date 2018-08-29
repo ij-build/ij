@@ -10,7 +10,8 @@ type Override struct {
 	Registries    []json.RawMessage `json:"registries"`
 	SSHIdentities json.RawMessage   `json:"ssh-identities"`
 	Environment   []string          `json:"environment"`
-	Excludes      json.RawMessage   `json:"exclude"`
+	Import        *FileList         `json:"import"`
+	Export        *FileList         `json:"export"`
 }
 
 func (c *Override) Translate() (*config.Override, error) {
@@ -29,15 +30,21 @@ func (c *Override) Translate() (*config.Override, error) {
 		registries = append(registries, translated)
 	}
 
-	excludes, err := unmarshalStringList(c.Excludes)
+	importList, err := translateFileList(c.Import)
+	if err != nil {
+		return nil, err
+	}
+
+	exportList, err := translateFileList(c.Export)
 	if err != nil {
 		return nil, err
 	}
 
 	return &config.Override{
-		SSHIdentities: sshIdentities,
-		Environment:   c.Environment,
-		Registries:    registries,
-		Excludes:      excludes,
+		SSHIdentities:  sshIdentities,
+		Environment:    c.Environment,
+		Registries:     registries,
+		ImportExcludes: importList.Excludes,
+		ExportExcludes: exportList.Excludes,
 	}, nil
 }

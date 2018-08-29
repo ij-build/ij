@@ -10,30 +10,34 @@ import (
 )
 
 type Copier struct {
-	logger    logging.Logger
-	project   string
-	blacklist map[string]struct{}
+	logger  logging.Logger
+	project string
 }
 
-func NewCopier(logger logging.Logger, project string, blacklist map[string]struct{}) *Copier {
+func NewCopier(logger logging.Logger, project string) *Copier {
 	return &Copier{
-		logger:    logger,
-		project:   project,
-		blacklist: blacklist,
+		logger:  logger,
+		project: project,
 	}
 }
 
-func (c *Copier) Copy(src, dest string) error {
+func (c *Copier) Copy(src, dest string, blacklist map[string]struct{}) error {
 	info, err := os.Lstat(src)
 	if err != nil {
 		return err
 	}
 
-	return c.copy(src, dest, info, false)
+	return c.copy(src, dest, blacklist, info, false)
 }
 
-func (c *Copier) copy(src, dest string, info os.FileInfo, recursive bool) error {
-	if _, ok := c.blacklist[src]; ok {
+func (c *Copier) copy(
+	src string,
+	dest string,
+	blacklist map[string]struct{},
+	info os.FileInfo,
+	recursive bool,
+) error {
+	if _, ok := blacklist[src]; ok {
 		c.logger.Debug(
 			nil,
 			"Skipping import of blacklisted file %s",
@@ -63,13 +67,13 @@ func (c *Copier) copy(src, dest string, info os.FileInfo, recursive bool) error 
 	}
 
 	if info.IsDir() {
-		return c.copyAll(src, dest, info)
+		return c.copyAll(src, dest, blacklist, info)
 	}
 
 	return copyFile(src, dest, info)
 }
 
-func (c *Copier) copyAll(src, dest string, info os.FileInfo) error {
+func (c *Copier) copyAll(src, dest string, blacklist map[string]struct{}, info os.FileInfo) error {
 	if err := EnsureDirExists(dest, info.Mode()); err != nil {
 		return err
 	}
@@ -83,6 +87,7 @@ func (c *Copier) copyAll(src, dest string, info os.FileInfo) error {
 		err := c.copy(
 			filepath.Join(src, info.Name()),
 			filepath.Join(dest, info.Name()),
+			blacklist,
 			info,
 			true,
 		)

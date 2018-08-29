@@ -27,25 +27,42 @@ properties:
       type: object
   import:
     description: TODO
-    oneOf:
-      - type: string
-      - type: array
-        items:
-          type: string
+    type: object
+    properties:
+      files:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+      excludes:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+    additionalProperties: false
   export:
     description: TODO
-    oneOf:
-      - type: string
-      - type: array
-        items:
-          type: string
-  exclude:
-    description: TODO
-    oneOf:
-      - type: string
-      - type: array
-        items:
-          type: string
+    type: object
+    properties:
+      files:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+      excludes:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+    additionalProperties: false
   workspace:
     description: TODO
     type: string

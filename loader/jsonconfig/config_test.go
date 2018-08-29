@@ -19,10 +19,14 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 		},
 		SSHIdentities: json.RawMessage(`"*"`),
 		Environment:   []string{"X=1", "Y=2", "Z=3"},
-		Imports:       json.RawMessage(`"."`),
-		Exports:       json.RawMessage(`"**/junit*.xml"`),
-		Excludes:      json.RawMessage(`"**/__pycache__"`),
-		Workspace:     "/go/src/example.com",
+		Import: &FileList{
+			Files:    json.RawMessage(`"."`),
+			Excludes: json.RawMessage(`"**/__pycache__"`),
+		},
+		Export: &FileList{
+			Files: json.RawMessage(`"**/junit*.xml"`),
+		},
+		Workspace: "/go/src/example.com",
 		Tasks: map[string]json.RawMessage{
 			"t1": json.RawMessage(`{"image": "i1"}`),
 			"t2": json.RawMessage(`{"image": "i2"}`),
@@ -46,10 +50,14 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 		},
 		SSHIdentities: []string{"*"},
 		Environment:   []string{"X=1", "Y=2", "Z=3"},
-		Imports:       []string{"."},
-		Exports:       []string{"**/junit*.xml"},
-		Excludes:      []string{"**/__pycache__"},
-		Workspace:     "/go/src/example.com",
+		Import: &config.FileList{
+			Files:    []string{"."},
+			Excludes: []string{"**/__pycache__"},
+		},
+		Export: &config.FileList{
+			Files: []string{"**/junit*.xml"},
+		},
+		Workspace: "/go/src/example.com",
 		Tasks: map[string]config.Task{
 			"t1": &config.RunTask{
 				TaskMeta:    config.TaskMeta{Name: "t1"},
@@ -91,12 +99,16 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 func (s *ConfigSuite) TestTranslateArrays(t sweet.T) {
 	jsonConfig := &Config{
 		SSHIdentities: json.RawMessage(`["fp1", "fp2"]`),
-		Imports:       json.RawMessage(`["src", "test"]`),
-		Exports:       json.RawMessage(`["*.txt", "*.go"]`),
-		Excludes:      json.RawMessage(`["*.cache", "*.temp"]`),
-		Tasks:         map[string]json.RawMessage{},
-		Plans:         map[string]*Plan{},
-		Metaplans:     map[string][]string{},
+		Import: &FileList{
+			Files:    json.RawMessage(`["src", "test"]`),
+			Excludes: json.RawMessage(`["*.cache", "*.temp"]`),
+		},
+		Export: &FileList{
+			Files: json.RawMessage(`["*.txt", "*.go"]`),
+		},
+		Tasks:     map[string]json.RawMessage{},
+		Plans:     map[string]*Plan{},
+		Metaplans: map[string][]string{},
 	}
 
 	translated, err := jsonConfig.Translate(nil)
@@ -104,11 +116,15 @@ func (s *ConfigSuite) TestTranslateArrays(t sweet.T) {
 	Expect(translated).To(Equal(&config.Config{
 		Registries:    []config.Registry{},
 		SSHIdentities: []string{"fp1", "fp2"},
-		Imports:       []string{"src", "test"},
-		Exports:       []string{"*.txt", "*.go"},
-		Excludes:      []string{"*.cache", "*.temp"},
-		Tasks:         map[string]config.Task{},
-		Plans:         map[string]*config.Plan{},
-		Metaplans:     map[string][]string{},
+		Import: &config.FileList{
+			Files:    []string{"src", "test"},
+			Excludes: []string{"*.cache", "*.temp"},
+		},
+		Export: &config.FileList{
+			Files: []string{"*.txt", "*.go"},
+		},
+		Tasks:     map[string]config.Task{},
+		Plans:     map[string]*config.Plan{},
+		Metaplans: map[string][]string{},
 	}))
 }

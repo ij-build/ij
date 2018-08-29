@@ -140,25 +140,42 @@ properties:
       type: object
   import:
     description: TODO
-    oneOf:
-      - type: string
-      - type: array
-        items:
-          type: string
+    type: object
+    properties:
+      files:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+      excludes:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+    additionalProperties: false
   export:
     description: TODO
-    oneOf:
-      - type: string
-      - type: array
-        items:
-          type: string
-  exclude:
-    description: TODO
-    oneOf:
-      - type: string
-      - type: array
-        items:
-          type: string
+    type: object
+    properties:
+      files:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+      excludes:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+    additionalProperties: false
   workspace:
     description: TODO
     type: string
@@ -184,7 +201,7 @@ func schemaConfigYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/config.yaml", size: 1024, mode: os.FileMode(420), modTime: time.Unix(1535495988, 0)}
+	info := bindataFileInfo{name: "schema/config.yaml", size: 1453, mode: os.FileMode(420), modTime: time.Unix(1535577570, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -355,13 +372,30 @@ properties:
     type: array
     items:
       type: string
-  exclude:
+  import:
     description: TODO
-    oneOf:
-      - type: string
-      - type: array
-        items:
-          type: string
+    type: object
+    properties:
+      excludes:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+    additionalProperties: false
+  export:
+    description: TODO
+    type: object
+    properties:
+      excludes:
+        description: TODO
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+    additionalProperties: false
 additionalProperties: false`)
 
 func schemaOverrideYamlBytes() ([]byte, error) {
@@ -374,7 +408,7 @@ func schemaOverrideYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/override.yaml", size: 602, mode: os.FileMode(420), modTime: time.Unix(1535559477, 0)}
+	info := bindataFileInfo{name: "schema/override.yaml", size: 977, mode: os.FileMode(420), modTime: time.Unix(1535577563, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
