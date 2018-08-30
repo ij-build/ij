@@ -6,7 +6,13 @@ properties:
     type: string
     enum:
       - gcr
-  # TODO - make region configurable
+  hostname:
+    type: string
+    enum:
+      - gcr.io
+      - us.gcr.io
+      - eu.gcr.io
+      - asia.gcr.io
   key_file:
     type: string
 additionalProperties: false

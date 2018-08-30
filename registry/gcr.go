@@ -2,6 +2,7 @@ package registry
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 
 	"github.com/efritz/ij/command"
@@ -50,7 +51,7 @@ func newGCRLogin(
 }
 
 func (l *gcrLogin) GetServer() (string, error) {
-	return "https://gcr.io", nil
+	return fmt.Sprintf("https://%s", l.registry.Hostname), nil
 }
 
 func (l *gcrLogin) Login() error {

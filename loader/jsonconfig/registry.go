@@ -26,7 +26,8 @@ type (
 	}
 
 	GCRRegistry struct {
-		KeyFile string `json:"key_file"`
+		Hostname string `json:"hostname"`
+		KeyFile  string `json:"key_file"`
 	}
 
 	ECRRegistry struct {
@@ -38,7 +39,10 @@ type (
 	}
 )
 
-const DefaultECRRegion = "us-east-1"
+const (
+	DefaultECRRegion   = "us-east-1"
+	DefaultGCRHostname = "gcr.io"
+)
 
 func translateRegistry(data json.RawMessage) (config.Registry, error) {
 	typeHint := &RegistryTypeHint{Type: "server"}
@@ -84,8 +88,13 @@ func (r *ServerRegistry) Translate() config.Registry {
 }
 
 func (r *GCRRegistry) Translate() config.Registry {
+	if r.Hostname == "" {
+		r.Hostname = DefaultGCRHostname
+	}
+
 	return &config.GCRRegistry{
-		KeyFile: r.KeyFile,
+		Hostname: r.Hostname,
+		KeyFile:  r.KeyFile,
 	}
 }
 

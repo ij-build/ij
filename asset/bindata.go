@@ -322,7 +322,13 @@ properties:
     type: string
     enum:
       - gcr
-  # TODO - make region configurable
+  hostname:
+    type: string
+    enum:
+      - gcr.io
+      - us.gcr.io
+      - eu.gcr.io
+      - asia.gcr.io
   key_file:
     type: string
 additionalProperties: false
@@ -338,7 +344,7 @@ func schemaRegistryGcrYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/registry-gcr.yaml", size: 170, mode: os.FileMode(420), modTime: time.Unix(1535585909, 0)}
+	info := bindataFileInfo{name: "schema/registry-gcr.yaml", size: 244, mode: os.FileMode(420), modTime: time.Unix(1535672872, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

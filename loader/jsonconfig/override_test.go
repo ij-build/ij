@@ -35,7 +35,10 @@ func (s *OverrideSuite) TestTranslate(t sweet.T) {
 		},
 		Registries: []config.Registry{
 			&config.ServerRegistry{Server: "docker.io"},
-			&config.GCRRegistry{KeyFile: "secret.key"},
+			&config.GCRRegistry{
+				Hostname: "gcr.io",
+				KeyFile:  "secret.key",
+			},
 		},
 		Environment:    []string{"X=1", "Y=2", "Z=3"},
 		ImportExcludes: []string{"**/__pycache__"},

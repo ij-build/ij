@@ -6,7 +6,8 @@ type (
 	}
 
 	GCRRegistry struct {
-		KeyFile string
+		Hostname string
+		KeyFile  string
 	}
 
 	ECRRegistry struct {

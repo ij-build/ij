@@ -18,7 +18,8 @@ type GCRSuite struct{}
 func (s *GCRSuite) TestLogin(t sweet.T) {
 	runner := mocks.NewMockRunner()
 	registry := &config.GCRRegistry{
-		KeyFile: "./test-files/gcr.key",
+		Hostname: "gcr.io",
+		KeyFile:  "./test-files/gcr.key",
 	}
 
 	login := newGCRLogin(
@@ -52,7 +53,8 @@ func (s *GCRSuite) TestLogin(t sweet.T) {
 func (s *GCRSuite) TestLoginMappedEnvironment(t sweet.T) {
 	runner := mocks.NewMockRunner()
 	registry := &config.GCRRegistry{
-		KeyFile: "${KEY_FILE}",
+		Hostname: "eu.gcr.io",
+		KeyFile:  "${KEY_FILE}",
 	}
 
 	env := []string{
@@ -69,7 +71,7 @@ func (s *GCRSuite) TestLoginMappedEnvironment(t sweet.T) {
 
 	server, err := login.GetServer()
 	Expect(err).To(BeNil())
-	Expect(server).To(Equal("https://gcr.io"))
+	Expect(server).To(Equal("https://eu.gcr.io"))
 	Expect(login.Login()).To(BeNil())
 
 	Expect(runner.RunFuncCallCount()).To(Equal(1))
@@ -79,7 +81,7 @@ func (s *GCRSuite) TestLoginMappedEnvironment(t sweet.T) {
 		"-u",
 		"_json_key",
 		"--password-stdin",
-		"https://gcr.io",
+		"https://eu.gcr.io",
 	}))
 
 	stdin := runner.RunFuncCallParams()[0].Arg2
