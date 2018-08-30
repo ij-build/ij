@@ -2,8 +2,8 @@
 
 [![GoDoc](https://godoc.org/github.com/efritz/ij?status.svg)](https://godoc.org/github.com/efritz/ij)
 [![Build Status](https://secure.travis-ci.org/efritz/ij.png)](http://travis-ci.org/efritz/ij)
-[![Maintainability](https://api.codeclimate.com/v1/badges/XXX/maintainability)](https://codeclimate.com/github/efritz/ij/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/XXX/test_coverage)](https://codeclimate.com/github/efritz/ij/test_coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/63b7e45a56b21d361a62/maintainability)](https://codeclimate.com/github/efritz/ij/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/63b7e45a56b21d361a62/test_coverage)](https://codeclimate.com/github/efritz/ij/test_coverage)
 
 IJ is a build tool using Docker containers.
 
