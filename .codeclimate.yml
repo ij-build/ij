@@ -11,5 +11,5 @@ engines:
 exclude_patterns:
   - "**/*_test.go"
   - "**/mocks/*.go"
-  - "assets/bindata.go"
+  - "asset/bindata.go"
 
