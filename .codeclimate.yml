@@ -8,6 +8,8 @@ engines:
     enabled: true
   fixme:
     enabled: true
-ratings:
-  paths:
-    - "**.go"
+exclude_patterns:
+  - "**/*_test.go"
+  - "**/mocks/*.go"
+  - "assets/bindata.go"
+
