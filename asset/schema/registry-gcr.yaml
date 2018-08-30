@@ -1,0 +1,12 @@
+---
+
+type: object
+properties:
+  type:
+    type: string
+    enum:
+      - gcr
+  # TODO - make region configurable
+  key_file:
+    type: string
+additionalProperties: false

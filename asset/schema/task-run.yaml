@@ -1,0 +1,63 @@
+---
+
+definitions:
+  stringOrList:
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+  healthcheck:
+    type: object
+    properties:
+      command:
+        type: string
+      interval:
+        type: string
+      retries:
+        type: integer
+      start_period:
+        type: string
+      timeout:
+        type: string
+    additionalProperties: false
+
+type: object
+properties:
+  type:
+    type: string
+    enum:
+      - run
+  extends:
+    type: string
+  image:
+    type: string
+  command:
+    type: string
+  shell:
+    type: string
+  script:
+    type: string
+  entrypoint:
+    type: string
+  user:
+    type: string
+  workspace:
+    type: string
+  hostname:
+    type: string
+  detach:
+    type: boolean
+  healthcheck:
+    $ref: '#/definitions/healthcheck'
+  environment:
+    type: array
+    items:
+      type: string
+  required_environment:
+    type: array
+    items:
+      type: string
+  export_environment_file:
+    $ref: '#/definitions/stringOrList'
+additionalProperties: false

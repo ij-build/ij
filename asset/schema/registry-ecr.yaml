@@ -1,0 +1,19 @@
+---
+
+type: object
+properties:
+  type:
+    type: string
+    enum:
+      - ecr
+  access_key_id:
+    type: string
+  secret_access_key:
+    type: string
+  account_id:
+    type: string
+  region:
+    type: string
+  role:
+    type: string
+additionalProperties: false

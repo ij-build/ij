@@ -1,0 +1,21 @@
+---
+
+definitions:
+  stringOrList:
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+
+type: object
+properties:
+  type:
+    type: string
+    enum:
+      - push
+  extends:
+    type: string
+  images:
+    $ref: '#/definitions/stringOrList'
+additionalProperties: false
