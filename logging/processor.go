@@ -3,6 +3,7 @@ package logging
 import (
 	"fmt"
 	"io"
+	"os"
 	"sync"
 
 	"github.com/efritz/glock"
@@ -13,13 +14,15 @@ type (
 	Processor interface {
 		Start()
 		Shutdown()
-		Logger(outfile, errfile io.WriteCloser, writePrefix bool) Logger
+		Logger(outFile, errFile io.WriteCloser, writePrefix bool) Logger
 	}
 
 	processor struct {
 		verbose     bool
 		colorize    bool
 		clock       glock.Clock
+		outStream   io.Writer
+		errStream   io.Writer
 		colorPicker ColorPicker
 		queue       chan *message
 		handles     []io.Closer
@@ -35,14 +38,28 @@ const (
 )
 
 func NewProcessor(verbose, colorize bool) Processor {
-	return newProcessor(verbose, colorize, glock.NewRealClock())
+	return newProcessor(
+		verbose,
+		colorize,
+		glock.NewRealClock(),
+		os.Stdout,
+		os.Stderr,
+	)
 }
 
-func newProcessor(verbose, colorize bool, clock glock.Clock) Processor {
+func newProcessor(
+	verbose bool,
+	colorize bool,
+	clock glock.Clock,
+	outStream io.Writer,
+	errStream io.Writer,
+) Processor {
 	return &processor{
 		verbose:     verbose,
 		colorize:    colorize,
 		clock:       clock,
+		outStream:   outStream,
+		errStream:   errStream,
 		colorPicker: newColorPicker(colorize),
 		queue:       make(chan *message),
 	}
@@ -70,15 +87,17 @@ func (p *processor) Shutdown() {
 	p.handles = p.handles[:0]
 }
 
-func (p *processor) Logger(outfile, errfile io.WriteCloser, writePrefix bool) Logger {
+func (p *processor) Logger(outFile, errFile io.WriteCloser, writePrefix bool) Logger {
 	p.mutex.Lock()
-	p.handles = append(p.handles, outfile, errfile)
+	p.handles = append(p.handles, outFile, errFile)
 	p.mutex.Unlock()
 
 	return newLogger(
 		p,
-		outfile,
-		errfile,
+		p.outStream,
+		outFile,
+		p.errStream,
+		errFile,
 		writePrefix,
 	)
 }

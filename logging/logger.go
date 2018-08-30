@@ -2,7 +2,6 @@ package logging
 
 import (
 	"io"
-	"os"
 )
 
 type (
@@ -16,8 +15,10 @@ type (
 
 	logger struct {
 		processor   *processor
-		outfile     io.Writer
-		errfile     io.Writer
+		outStream   io.Writer
+		outFile     io.Writer
+		errStream   io.Writer
+		errFile     io.Writer
 		writePrefix bool
 	}
 
@@ -26,11 +27,20 @@ type (
 
 var NilLogger = &nilLogger{}
 
-func newLogger(processor *processor, outfile, errfile io.Writer, writePrefix bool) Logger {
+func newLogger(
+	processor *processor,
+	outStream io.Writer,
+	outFile io.Writer,
+	errStream io.Writer,
+	errFile io.Writer,
+	writePrefix bool,
+) Logger {
 	return &logger{
 		processor:   processor,
-		outfile:     outfile,
-		errfile:     errfile,
+		outStream:   outStream,
+		outFile:     outFile,
+		errStream:   errStream,
+		errFile:     errFile,
 		writePrefix: writePrefix,
 	}
 }
@@ -68,10 +78,10 @@ func (l *logger) enqueue(level LogLevel, prefix *Prefix, format string, args []i
 
 func (l *logger) getTargets(level LogLevel) (io.Writer, io.Writer) {
 	if level == LevelError {
-		return os.Stderr, l.errfile
+		return l.errStream, l.errFile
 	}
 
-	return os.Stdout, l.outfile
+	return l.outStream, l.outFile
 }
 
 func (l *nilLogger) Debug(*Prefix, string, ...interface{}) {}

@@ -2,8 +2,6 @@ package logging
 
 import (
 	"bytes"
-	"io/ioutil"
-	"os"
 	"strings"
 	"time"
 
@@ -12,50 +10,24 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type ProcessorSuite struct {
-	oldStdout *os.File
-	oldStderr *os.File
-}
-
-func (s *ProcessorSuite) SetUpSuite() {
-	outFile, err := ioutil.TempFile("", "ij-stdout")
-	if err != nil {
-		panic(err.Error())
-	}
-
-	s.oldStdout = os.Stdout
-	os.Stdout = outFile
-
-	errFile, err := ioutil.TempFile("", "ij-stderr")
-	if err != nil {
-		panic(err.Error())
-	}
-
-	s.oldStderr = os.Stderr
-	os.Stderr = errFile
-}
-
-func (s *ProcessorSuite) TearDownSuite() {
-	os.Stdout.Close()
-	os.Stdout = s.oldStdout
-	s.oldStdout = nil
-
-	os.Stderr.Close()
-	os.Stderr = s.oldStderr
-	s.oldStderr = nil
-}
+type ProcessorSuite struct{}
 
 func (s *ProcessorSuite) TestBasic(t sweet.T) {
-	clock := glock.NewMockClock()
-	processor := newProcessor(true, false, clock)
+	var (
+		clock     = glock.NewMockClock()
+		outStream = &bytes.Buffer{}
+		errStream = &bytes.Buffer{}
+	)
+
+	processor := newProcessor(true, false, clock, outStream, errStream)
 	processor.Start()
 
 	clock.SetCurrent(time.Unix(1535293743, 123000000))
 
 	var (
-		outfile = &logWriter{}
-		errfile = &logWriter{}
-		logger  = processor.Logger(outfile, errfile, true)
+		outFile = &logWriter{}
+		errFile = &logWriter{}
+		logger  = processor.Logger(outFile, errFile, true)
 	)
 
 	logger.Debug(nil, "> %s", "a")
@@ -69,21 +41,26 @@ func (s *ProcessorSuite) TestBasic(t sweet.T) {
 		"2018-08-26 09:29:03.123 | x/y/z: > c\n",
 	}
 
-	Expect(outfile.String()).To(Equal(strings.Join(lines, "")))
-	Expect(errfile.String()).To(BeEmpty())
+	Expect(outFile.String()).To(Equal(strings.Join(lines, "")))
+	Expect(errFile.String()).To(BeEmpty())
 }
 
 func (s *ProcessorSuite) TestErrors(t sweet.T) {
-	clock := glock.NewMockClock()
-	processor := newProcessor(true, false, clock)
+	var (
+		clock     = glock.NewMockClock()
+		outStream = &bytes.Buffer{}
+		errStream = &bytes.Buffer{}
+	)
+
+	processor := newProcessor(true, false, clock, outStream, errStream)
 	processor.Start()
 
 	clock.SetCurrent(time.Unix(1535293743, 123000000))
 
 	var (
-		outfile = &logWriter{}
-		errfile = &logWriter{}
-		logger  = processor.Logger(outfile, errfile, true)
+		outFile = &logWriter{}
+		errFile = &logWriter{}
+		logger  = processor.Logger(outFile, errFile, true)
 	)
 
 	logger.Debug(NewPrefix("x", "y", "z"), "> %s", "a")
@@ -100,21 +77,27 @@ func (s *ProcessorSuite) TestErrors(t sweet.T) {
 		"2018-08-26 09:29:03.123 | x/y/z: > b\n",
 	}
 
-	Expect(outfile.String()).To(Equal(strings.Join(outLines, "")))
-	Expect(errfile.String()).To(Equal(strings.Join(errLines, "")))
+	Expect(outFile.String()).To(Equal(strings.Join(outLines, "")))
+	Expect(errFile.String()).To(Equal(strings.Join(errLines, "")))
 }
 
 func (s *ProcessorSuite) TestNonVerbose(t sweet.T) {
-	clock := glock.NewMockClock()
-	processor := newProcessor(false, false, clock)
+
+	var (
+		clock     = glock.NewMockClock()
+		outStream = &bytes.Buffer{}
+		errStream = &bytes.Buffer{}
+	)
+
+	processor := newProcessor(false, false, clock, outStream, errStream)
 	processor.Start()
 
 	clock.SetCurrent(time.Unix(1535293743, 123000000))
 
 	var (
-		outfile = &logWriter{}
-		errfile = &logWriter{}
-		logger  = processor.Logger(outfile, errfile, true)
+		outFile = &logWriter{}
+		errFile = &logWriter{}
+		logger  = processor.Logger(outFile, errFile, true)
 	)
 
 	logger.Debug(NewPrefix("x", "y", "z"), "> %s", "a")
@@ -126,8 +109,8 @@ func (s *ProcessorSuite) TestNonVerbose(t sweet.T) {
 		"2018-08-26 09:29:03.123 | x/y/z: > b\n",
 	}
 
-	Expect(outfile.String()).To(Equal(strings.Join(lines, "")))
-	Expect(errfile.String()).To(BeEmpty())
+	Expect(outFile.String()).To(Equal(strings.Join(lines, "")))
+	Expect(errFile.String()).To(BeEmpty())
 }
 
 //
