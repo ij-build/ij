@@ -7,18 +7,22 @@ import (
 
 type (
 	Config struct {
-		Extends             string
+		Extends     string
+		Options     *Options
+		Registries  []Registry
+		Workspace   string
+		Environment []string
+		Import      *FileList
+		Export      *FileList
+		Tasks       map[string]Task
+		Plans       map[string]*Plan
+		Metaplans   map[string][]string
+	}
+
+	Options struct {
 		SSHIdentities       []string
 		ForceSequential     bool
 		HealthcheckInterval time.Duration
-		Registries          []Registry
-		Workspace           string
-		Environment         []string
-		Import              *FileList
-		Export              *FileList
-		Tasks               map[string]Task
-		Plans               map[string]*Plan
-		Metaplans           map[string][]string
 	}
 
 	FileList struct {
@@ -27,20 +31,16 @@ type (
 	}
 
 	Override struct {
-		SSHIdentities       []string
-		ForceSequential     bool
-		HealthcheckInterval time.Duration
-		Registries          []Registry
-		Environment         []string
-		ImportExcludes      []string
-		ExportExcludes      []string
+		Options        *Options
+		Registries     []Registry
+		Environment    []string
+		ImportExcludes []string
+		ExportExcludes []string
 	}
 )
 
 func (c *Config) Merge(child *Config) error {
-	c.SSHIdentities = append(c.SSHIdentities, child.SSHIdentities...)
-	c.ForceSequential = extendBool(child.ForceSequential, c.ForceSequential)
-	c.HealthcheckInterval = extendDuration(child.HealthcheckInterval, c.HealthcheckInterval)
+	c.Options.Merge(child.Options)
 	c.Registries = append(c.Registries, child.Registries...)
 	c.Environment = append(c.Environment, child.Environment...)
 	c.Import.Merge(child.Import)
@@ -82,29 +82,23 @@ func (c *Config) Merge(child *Config) error {
 	return nil
 }
 
+func (o *Options) Merge(child *Options) {
+	o.SSHIdentities = append(o.SSHIdentities, child.SSHIdentities...)
+	o.ForceSequential = extendBool(child.ForceSequential, o.ForceSequential)
+	o.HealthcheckInterval = extendDuration(child.HealthcheckInterval, o.HealthcheckInterval)
+}
+
 func (f *FileList) Merge(child *FileList) {
 	f.Files = append(f.Files, child.Files...)
 	f.Excludes = append(f.Excludes, child.Excludes...)
 }
 
 func (c *Config) ApplyOverride(override *Override) {
-	c.SSHIdentities = append(c.SSHIdentities, override.SSHIdentities...)
-	c.ForceSequential = extendBool(override.ForceSequential, c.ForceSequential)
-	c.HealthcheckInterval = extendDuration(override.HealthcheckInterval, c.HealthcheckInterval)
+	c.Options.Merge(override.Options)
 	c.Registries = append(c.Registries, override.Registries...)
 	c.Environment = append(c.Environment, override.Environment...)
 	c.Import.Excludes = append(c.Import.Excludes, override.ImportExcludes...)
 	c.Export.Excludes = append(c.Export.Excludes, override.ExportExcludes...)
-}
-
-func (c *Config) ApplyArgs(
-	sshIdentities []string,
-	forceSequential bool,
-	healthcheckInterval time.Duration,
-) {
-	c.SSHIdentities = append(c.SSHIdentities, sshIdentities...)
-	c.ForceSequential = extendBool(forceSequential, c.ForceSequential)
-	c.HealthcheckInterval = extendDuration(healthcheckInterval, c.HealthcheckInterval)
 }
 
 func (c *Config) Resolve() error {

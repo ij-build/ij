@@ -8,18 +8,22 @@ import (
 
 type (
 	Config struct {
-		Extends             string                     `json:"extends"`
-		SSHIdentities       json.RawMessage            `json:"ssh-identities"`
-		ForceSequential     bool                       `json:"force-sequential"`
-		HealthcheckInterval Duration                   `json:"healthcheck-interval"`
-		Registries          []json.RawMessage          `json:"registries"`
-		Workspace           string                     `json:"workspace"`
-		Environment         json.RawMessage            `json:"environment"`
-		Import              *FileList                  `json:"import"`
-		Export              *FileList                  `json:"export"`
-		Tasks               map[string]json.RawMessage `json:"tasks"`
-		Plans               map[string]*Plan           `json:"plans"`
-		Metaplans           map[string][]string        `json:"metaplans"`
+		Extends     string                     `json:"extends"`
+		Options     *Options                   `json:"options"`
+		Registries  []json.RawMessage          `json:"registries"`
+		Workspace   string                     `json:"workspace"`
+		Environment json.RawMessage            `json:"environment"`
+		Import      *FileList                  `json:"import"`
+		Export      *FileList                  `json:"export"`
+		Tasks       map[string]json.RawMessage `json:"tasks"`
+		Plans       map[string]*Plan           `json:"plans"`
+		Metaplans   map[string][]string        `json:"metaplans"`
+	}
+
+	Options struct {
+		SSHIdentities       json.RawMessage `json:"ssh-identities"`
+		ForceSequential     bool            `json:"force-sequential"`
+		HealthcheckInterval Duration        `json:"healthcheck-interval"`
 	}
 
 	FileList struct {
@@ -29,7 +33,7 @@ type (
 )
 
 func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
-	sshIdentities, err := unmarshalStringList(c.SSHIdentities)
+	options, err := c.Options.Translate()
 	if err != nil {
 		return nil, err
 	}
@@ -49,12 +53,12 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 		return nil, err
 	}
 
-	importList, err := translateFileList(c.Import)
+	importList, err := c.Import.Translate()
 	if err != nil {
 		return nil, err
 	}
 
-	exportList, err := translateFileList(c.Export)
+	exportList, err := c.Export.Translate()
 	if err != nil {
 		return nil, err
 	}
@@ -80,28 +84,39 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 	}
 
 	return &config.Config{
-		Extends:             c.Extends,
-		SSHIdentities:       sshIdentities,
-		ForceSequential:     c.ForceSequential,
-		HealthcheckInterval: c.HealthcheckInterval.Duration,
-		Registries:          registries,
-		Workspace:           c.Workspace,
-		Environment:         environment,
-		Import:              importList,
-		Export:              exportList,
-		Tasks:               tasks,
-		Plans:               plans,
-		Metaplans:           c.Metaplans,
+		Extends:     c.Extends,
+		Options:     options,
+		Registries:  registries,
+		Workspace:   c.Workspace,
+		Environment: environment,
+		Import:      importList,
+		Export:      exportList,
+		Tasks:       tasks,
+		Plans:       plans,
+		Metaplans:   c.Metaplans,
 	}, nil
 }
 
-func translateFileList(list *FileList) (*config.FileList, error) {
-	files, err := unmarshalStringList(list.Files)
+func (c *Options) Translate() (*config.Options, error) {
+	sshIdentities, err := unmarshalStringList(c.SSHIdentities)
 	if err != nil {
 		return nil, err
 	}
 
-	excludes, err := unmarshalStringList(list.Excludes)
+	return &config.Options{
+		SSHIdentities:       sshIdentities,
+		ForceSequential:     c.ForceSequential,
+		HealthcheckInterval: c.HealthcheckInterval.Duration,
+	}, nil
+}
+
+func (l *FileList) Translate() (*config.FileList, error) {
+	files, err := unmarshalStringList(l.Files)
+	if err != nil {
+		return nil, err
+	}
+
+	excludes, err := unmarshalStringList(l.Excludes)
 	if err != nil {
 		return nil, err
 	}

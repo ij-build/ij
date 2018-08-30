@@ -20,16 +20,20 @@ type: object
 properties:
   extends:
     type: string
-  force-sequential:
-    type: boolean
-  healthcheck-interval:
-    type: string
-  ssh-identities:
-    oneOf:
-      - type: string
-      - type: array
-        items:
-          type: string
+  options:
+    type: object
+    properties:
+      force-sequential:
+        type: boolean
+      healthcheck-interval:
+        type: string
+      ssh-identities:
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+    additionalProperties: false
   registries:
     type: array
     items:

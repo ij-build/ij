@@ -17,9 +17,11 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 			json.RawMessage(`{"server": "docker.io"}`),
 			json.RawMessage(`{"type": "gcr", "key_file": "secret.key"}`),
 		},
-		SSHIdentities: json.RawMessage(`"*"`),
-		Workspace:     "/go/src/example.com",
-		Environment:   json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
+		Options: &Options{
+			SSHIdentities: json.RawMessage(`"*"`),
+		},
+		Workspace:   "/go/src/example.com",
+		Environment: json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
 		Import: &FileList{
 			Files:    json.RawMessage(`"."`),
 			Excludes: json.RawMessage(`"**/__pycache__"`),
@@ -48,9 +50,11 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 			&config.ServerRegistry{Server: "docker.io"},
 			&config.GCRRegistry{KeyFile: "secret.key"},
 		},
-		SSHIdentities: []string{"*"},
-		Workspace:     "/go/src/example.com",
-		Environment:   []string{"X=1", "Y=2", "Z=3"},
+		Options: &config.Options{
+			SSHIdentities: []string{"*"},
+		},
+		Workspace:   "/go/src/example.com",
+		Environment: []string{"X=1", "Y=2", "Z=3"},
 		Import: &config.FileList{
 			Files:    []string{"."},
 			Excludes: []string{"**/__pycache__"},
@@ -98,7 +102,9 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 
 func (s *ConfigSuite) TestTranslateStringLists(t sweet.T) {
 	jsonConfig := &Config{
-		SSHIdentities: json.RawMessage(`["fp1", "fp2"]`),
+		Options: &Options{
+			SSHIdentities: json.RawMessage(`["fp1", "fp2"]`),
+		},
 		Import: &FileList{
 			Files:    json.RawMessage(`["src", "test"]`),
 			Excludes: json.RawMessage(`["*.cache", "*.temp"]`),
@@ -114,8 +120,10 @@ func (s *ConfigSuite) TestTranslateStringLists(t sweet.T) {
 	translated, err := jsonConfig.Translate(nil)
 	Expect(err).To(BeNil())
 	Expect(translated).To(Equal(&config.Config{
-		Registries:    []config.Registry{},
-		SSHIdentities: []string{"fp1", "fp2"},
+		Options: &config.Options{
+			SSHIdentities: []string{"fp1", "fp2"},
+		},
+		Registries: []config.Registry{},
 		Import: &config.FileList{
 			Files:    []string{"src", "test"},
 			Excludes: []string{"*.cache", "*.temp"},

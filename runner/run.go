@@ -339,7 +339,7 @@ func (r *runCommandRunner) monitor(containerName string) bool {
 		)
 
 		select {
-		case <-time.After(r.state.Config.HealthcheckInterval):
+		case <-time.After(r.state.Config.Options.HealthcheckInterval):
 		case <-r.state.Context.Done():
 			return false
 		}

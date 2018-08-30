@@ -7,23 +7,21 @@ import (
 )
 
 type Override struct {
-	SSHIdentities       json.RawMessage   `json:"ssh-identities"`
-	ForceSequential     bool              `json:"force-sequential"`
-	HealthcheckInterval Duration          `json:"healthcheck-interval"`
-	Registries          []json.RawMessage `json:"registries"`
-	Environment         json.RawMessage   `json:"environment"`
-	Import              *FileList         `json:"import"`
-	Export              *FileList         `json:"export"`
+	Options     *Options          `json:"options"`
+	Registries  []json.RawMessage `json:"registries"`
+	Environment json.RawMessage   `json:"environment"`
+	Import      *FileList         `json:"import"`
+	Export      *FileList         `json:"export"`
 }
 
-func (c *Override) Translate() (*config.Override, error) {
-	sshIdentities, err := unmarshalStringList(c.SSHIdentities)
+func (o *Override) Translate() (*config.Override, error) {
+	options, err := o.Options.Translate()
 	if err != nil {
 		return nil, err
 	}
 
 	registries := []config.Registry{}
-	for _, registry := range c.Registries {
+	for _, registry := range o.Registries {
 		translated, err := translateRegistry(registry)
 		if err != nil {
 			return nil, err
@@ -32,28 +30,26 @@ func (c *Override) Translate() (*config.Override, error) {
 		registries = append(registries, translated)
 	}
 
-	environment, err := unmarshalStringList(c.Environment)
+	environment, err := unmarshalStringList(o.Environment)
 	if err != nil {
 		return nil, err
 	}
 
-	importList, err := translateFileList(c.Import)
+	importList, err := o.Import.Translate()
 	if err != nil {
 		return nil, err
 	}
 
-	exportList, err := translateFileList(c.Export)
+	exportList, err := o.Export.Translate()
 	if err != nil {
 		return nil, err
 	}
 
 	return &config.Override{
-		SSHIdentities:       sshIdentities,
-		ForceSequential:     c.ForceSequential,
-		HealthcheckInterval: c.HealthcheckInterval.Duration,
-		Registries:          registries,
-		Environment:         environment,
-		ImportExcludes:      importList.Excludes,
-		ExportExcludes:      exportList.Excludes,
+		Options:        options,
+		Registries:     registries,
+		Environment:    environment,
+		ImportExcludes: importList.Excludes,
+		ExportExcludes: exportList.Excludes,
 	}, nil
 }

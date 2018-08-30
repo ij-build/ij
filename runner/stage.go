@@ -50,7 +50,7 @@ func (r *StageRunner) Run() bool {
 		))
 	}
 
-	if !r.stage.Parallel || r.state.Config.ForceSequential {
+	if !r.stage.Parallel || r.state.Config.Options.ForceSequential {
 		return runSequential(runners)
 	}
 

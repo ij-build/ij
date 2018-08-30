@@ -11,10 +11,12 @@ type ConfigSuite struct{}
 
 func (s *ConfigSuite) TestMerge(t sweet.T) {
 	parent := &Config{
-		SSHIdentities: []string{"parent-ssh1"},
-		Registries:    []Registry{&ServerRegistry{Server: "parent.io"}},
-		Environment:   []string{"parent-env1"},
-		Workspace:     "parent-workspace",
+		Options: &Options{
+			SSHIdentities: []string{"parent-ssh1"},
+		},
+		Registries:  []Registry{&ServerRegistry{Server: "parent.io"}},
+		Environment: []string{"parent-env1"},
+		Workspace:   "parent-workspace",
 		Import: &FileList{
 			Files:    []string{"parent-imp1"},
 			Excludes: []string{"parent-exc1"},
@@ -37,12 +39,14 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 	}
 
 	child := &Config{
-		SSHIdentities:       []string{"child-ssh2", "child-ssh3"},
-		ForceSequential:     true,
-		HealthcheckInterval: time.Second * 10,
-		Registries:          []Registry{&ServerRegistry{Server: "child.io"}},
-		Workspace:           "child-workspace",
-		Environment:         []string{"child-env2", "child-env3"},
+		Options: &Options{
+			SSHIdentities:       []string{"child-ssh2", "child-ssh3"},
+			ForceSequential:     true,
+			HealthcheckInterval: time.Second * 10,
+		},
+		Registries:  []Registry{&ServerRegistry{Server: "child.io"}},
+		Workspace:   "child-workspace",
+		Environment: []string{"child-env2", "child-env3"},
 		Import: &FileList{
 			Files:    []string{"child-imp2", "child-imp3"},
 			Excludes: []string{"child-exc2", "child-exc3"},
@@ -66,9 +70,9 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 	}
 
 	Expect(parent.Merge(child)).To(BeNil())
-	Expect(parent.SSHIdentities).To(ConsistOf("parent-ssh1", "child-ssh2", "child-ssh3"))
-	Expect(parent.ForceSequential).To(BeTrue())
-	Expect(parent.HealthcheckInterval).To(Equal(time.Second * 10))
+	Expect(parent.Options.SSHIdentities).To(ConsistOf("parent-ssh1", "child-ssh2", "child-ssh3"))
+	Expect(parent.Options.ForceSequential).To(BeTrue())
+	Expect(parent.Options.HealthcheckInterval).To(Equal(time.Second * 10))
 	Expect(parent.Registries).To(ConsistOf(
 		&ServerRegistry{Server: "parent.io"},
 		&ServerRegistry{Server: "child.io"},
@@ -97,14 +101,16 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 
 func (s *ConfigSuite) TestMergeNoOverride(t sweet.T) {
 	parent := &Config{
+		Options:   &Options{},
 		Workspace: "parent-workspace",
 		Import:    &FileList{},
 		Export:    &FileList{},
 	}
 
 	child := &Config{
-		Import: &FileList{},
-		Export: &FileList{},
+		Options: &Options{},
+		Import:  &FileList{},
+		Export:  &FileList{},
 	}
 
 	Expect(parent.Merge(child)).To(BeNil())
@@ -113,27 +119,31 @@ func (s *ConfigSuite) TestMergeNoOverride(t sweet.T) {
 
 func (s *ConfigSuite) TestApplyOverride(t sweet.T) {
 	config := &Config{
-		SSHIdentities: []string{"config-ssh"},
-		Registries:    []Registry{&GCRRegistry{KeyFile: "config-gcr"}},
-		Environment:   []string{"X=1", "Y=2"},
-		Import:        &FileList{Files: []string{"."}, Excludes: []string{".temp"}},
-		Export:        &FileList{Files: []string{"*.py*"}, Excludes: nil},
+		Options: &Options{
+			SSHIdentities: []string{"config-ssh"},
+		},
+		Registries:  []Registry{&GCRRegistry{KeyFile: "config-gcr"}},
+		Environment: []string{"X=1", "Y=2"},
+		Import:      &FileList{Files: []string{"."}, Excludes: []string{".temp"}},
+		Export:      &FileList{Files: []string{"*.py*"}, Excludes: nil},
 	}
 
 	override := &Override{
-		SSHIdentities:       []string{"override-ssh"},
-		ForceSequential:     true,
-		HealthcheckInterval: time.Second * 10,
-		Registries:          []Registry{&ECRRegistry{AccountID: "override-ecr"}},
-		Environment:         []string{"X=3", "Z=2"},
-		ImportExcludes:      []string{"*.tmp"},
-		ExportExcludes:      []string{"*.pyc"},
+		Options: &Options{
+			SSHIdentities:       []string{"override-ssh"},
+			ForceSequential:     true,
+			HealthcheckInterval: time.Second * 10,
+		},
+		Registries:     []Registry{&ECRRegistry{AccountID: "override-ecr"}},
+		Environment:    []string{"X=3", "Z=2"},
+		ImportExcludes: []string{"*.tmp"},
+		ExportExcludes: []string{"*.pyc"},
 	}
 
 	config.ApplyOverride(override)
-	Expect(config.SSHIdentities).To(Equal([]string{"config-ssh", "override-ssh"}))
-	Expect(config.ForceSequential).To(BeTrue())
-	Expect(config.HealthcheckInterval).To(Equal(time.Second * 10))
+	Expect(config.Options.SSHIdentities).To(Equal([]string{"config-ssh", "override-ssh"}))
+	Expect(config.Options.ForceSequential).To(BeTrue())
+	Expect(config.Options.HealthcheckInterval).To(Equal(time.Second * 10))
 	Expect(config.Registries).To(Equal([]Registry{
 		&GCRRegistry{KeyFile: "config-gcr"},
 		&ECRRegistry{AccountID: "override-ecr"},
@@ -141,23 +151,6 @@ func (s *ConfigSuite) TestApplyOverride(t sweet.T) {
 	Expect(config.Environment).To(Equal([]string{"X=1", "Y=2", "X=3", "Z=2"}))
 	Expect(config.Import.Excludes).To(Equal([]string{".temp", "*.tmp"}))
 	Expect(config.Export.Excludes).To(Equal([]string{"*.pyc"}))
-}
-
-func (s *ConfigSuite) TestApplyArgs(t sweet.T) {
-	config := &Config{
-		SSHIdentities:       []string{"config-ssh"},
-		HealthcheckInterval: time.Second * 5,
-	}
-
-	config.ApplyArgs(nil, false, 0)
-	Expect(config.SSHIdentities).To(Equal([]string{"config-ssh"}))
-	Expect(config.ForceSequential).To(BeFalse())
-	Expect(config.HealthcheckInterval).To(Equal(time.Second * 5))
-
-	config.ApplyArgs([]string{"override-ssh"}, true, time.Second*10)
-	Expect(config.SSHIdentities).To(Equal([]string{"config-ssh", "override-ssh"}))
-	Expect(config.ForceSequential).To(BeTrue())
-	Expect(config.HealthcheckInterval).To(Equal(time.Second * 10))
 }
 
 func (s *ConfigSuite) TestValidate(t sweet.T) {

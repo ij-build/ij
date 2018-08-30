@@ -17,6 +17,7 @@ func (s *LoaderSuite) TestLoad(t sweet.T) {
 	loaded, err := NewLoader().Load("./test-configs/basic.yaml")
 	Expect(err).To(BeNil())
 	Expect(loaded).To(Equal(&config.Config{
+		Options:     &config.Options{},
 		Registries:  []config.Registry{},
 		Import:      &config.FileList{},
 		Export:      &config.FileList{},
@@ -72,6 +73,7 @@ func (s *LoaderSuite) TestLoadFromURL(t sweet.T) {
 	loaded, err := NewLoader().Load(ts.URL)
 	Expect(err).To(BeNil())
 	Expect(loaded).To(Equal(&config.Config{
+		Options:     &config.Options{},
 		Registries:  []config.Registry{},
 		Import:      &config.FileList{},
 		Export:      &config.FileList{},
@@ -86,6 +88,7 @@ func (s *LoaderSuite) TestLoadExtends(t sweet.T) {
 	loaded, err := NewLoader().Load("./test-configs/child.yaml")
 	Expect(err).To(BeNil())
 	Expect(loaded).To(Equal(&config.Config{
+		Options:     &config.Options{},
 		Registries:  []config.Registry{},
 		Import:      &config.FileList{},
 		Export:      &config.FileList{},
@@ -98,6 +101,7 @@ func (s *LoaderSuite) TestLoadExtends(t sweet.T) {
 
 func (s *LoaderSuite) TestOverride(t sweet.T) {
 	config := &config.Config{
+		Options:     &config.Options{},
 		Import:      &config.FileList{},
 		Export:      &config.FileList{},
 		Environment: []string{"X=1"},
@@ -109,8 +113,8 @@ func (s *LoaderSuite) TestOverride(t sweet.T) {
 	})
 
 	Expect(err).To(BeNil())
-	Expect(config.ForceSequential).To(BeTrue())
-	Expect(config.HealthcheckInterval).To(Equal(time.Second * 10))
+	Expect(config.Options.ForceSequential).To(BeTrue())
+	Expect(config.Options.HealthcheckInterval).To(Equal(time.Second * 10))
 	Expect(config.Environment).To(Equal([]string{
 		"X=1", "X=2", "X=3",
 	}))

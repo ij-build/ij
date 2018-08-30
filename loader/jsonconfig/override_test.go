@@ -13,8 +13,10 @@ type OverrideSuite struct{}
 
 func (s *OverrideSuite) TestTranslate(t sweet.T) {
 	jsonOverride := &Override{
-		SSHIdentities:       json.RawMessage(`"*"`),
-		HealthcheckInterval: Duration{time.Second * 10},
+		Options: &Options{
+			SSHIdentities:       json.RawMessage(`"*"`),
+			HealthcheckInterval: Duration{time.Second * 10},
+		},
 		Registries: []json.RawMessage{
 			json.RawMessage(`{"server": "docker.io"}`),
 			json.RawMessage(`{"type": "gcr", "key_file": "secret.key"}`),
@@ -27,8 +29,10 @@ func (s *OverrideSuite) TestTranslate(t sweet.T) {
 	translated, err := jsonOverride.Translate()
 	Expect(err).To(BeNil())
 	Expect(translated).To(Equal(&config.Override{
-		SSHIdentities:       []string{"*"},
-		HealthcheckInterval: time.Second * 10,
+		Options: &config.Options{
+			SSHIdentities:       []string{"*"},
+			HealthcheckInterval: time.Second * 10,
+		},
 		Registries: []config.Registry{
 			&config.ServerRegistry{Server: "docker.io"},
 			&config.GCRRegistry{KeyFile: "secret.key"},
@@ -40,6 +44,7 @@ func (s *OverrideSuite) TestTranslate(t sweet.T) {
 
 func (s *OverrideSuite) TestTranslateStringLists(t sweet.T) {
 	jsonOverride := &Override{
+		Options:     &Options{},
 		Environment: json.RawMessage(`"X=1"`),
 		Import:      &FileList{},
 		Export:      &FileList{},
@@ -48,6 +53,7 @@ func (s *OverrideSuite) TestTranslateStringLists(t sweet.T) {
 	translated, err := jsonOverride.Translate()
 	Expect(err).To(BeNil())
 	Expect(translated).To(Equal(&config.Override{
+		Options:     &config.Options{},
 		Registries:  []config.Registry{},
 		Environment: []string{"X=1"},
 	}))

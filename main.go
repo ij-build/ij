@@ -99,14 +99,19 @@ func runMain() bool {
 	panic("unexpected command type")
 }
 
-func runRun(config *config.Config) bool {
-	config.ApplyArgs(
-		*sshIdentities,
-		*forceSequential,
-		*healthcheckInterval,
+func runRun(cfg *config.Config) bool {
+	cfg.ApplyOverride(&config.Override{
+		Options: &config.Options{
+			SSHIdentities:       *sshIdentities,
+			ForceSequential:     *forceSequential,
+			HealthcheckInterval: *healthcheckInterval,
+		},
+	})
+
+	enableSSHAgent, err := ssh.EnsureKeysAvailable(
+		cfg.Options.SSHIdentities,
 	)
 
-	enableSSHAgent, err := ssh.EnsureKeysAvailable(config.SSHIdentities)
 	if err != nil {
 		logging.EmergencyLog(
 			"error: failed to validate ssh keys: %s",
@@ -117,7 +122,7 @@ func runRun(config *config.Config) bool {
 	}
 
 	state, err := state.NewState(
-		config,
+		cfg,
 		*plans,
 		*colorize,
 		*cpuShares,
