@@ -1,9 +1,15 @@
-# IJ
+<p align="center">
+    <img width="200" src="https://github.com/efritz/ij/blob/master/images/ij.svg" alt="IJ logo">
+</p>
 
-[![GoDoc](https://godoc.org/github.com/efritz/ij?status.svg)](https://godoc.org/github.com/efritz/ij)
-[![Build Status](https://secure.travis-ci.org/efritz/ij.png)](http://travis-ci.org/efritz/ij)
-[![Maintainability](https://api.codeclimate.com/v1/badges/63b7e45a56b21d361a62/maintainability)](https://codeclimate.com/github/efritz/ij/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/63b7e45a56b21d361a62/test_coverage)](https://codeclimate.com/github/efritz/ij/test_coverage)
+<h2 align="center">IJ</h2>
+
+<p align="center">
+    <a href="https://godoc.org/github.com/efritz/ij"><img src="https://godoc.org/github.com/efritz/ij?status.svg" alt="GoDoc"></a>
+    <a href="http://travis-ci.org/efritz/ij"><img src="https://secure.travis-ci.org/efritz/ij.png" alt="Build Status"></a>
+    <a href="https://codeclimate.com/github/efritz/ij/maintainability"><img src="https://api.codeclimate.com/v1/badges/63b7e45a56b21d361a62/maintainability" alt="Maintainability"></a>
+    <a href="https://codeclimate.com/github/efritz/ij/test_coverage"><img src="https://api.codeclimate.com/v1/badges/63b7e45a56b21d361a62/test_coverage" alt="Test Coverage"></a>
+</p>
 
 IJ is a build tool using Docker containers.
 
