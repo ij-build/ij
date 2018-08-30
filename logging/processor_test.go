@@ -36,9 +36,9 @@ func (s *ProcessorSuite) TestBasic(t sweet.T) {
 	processor.Shutdown()
 
 	lines := []string{
-		"2018-08-26 09:29:03.123 | > a\n",
-		"2018-08-26 09:29:03.123 | x/y/z: > b\n",
-		"2018-08-26 09:29:03.123 | x/y/z: > c\n",
+		"2018-08-26 14:29:03.123 | > a\n",
+		"2018-08-26 14:29:03.123 | x/y/z: > b\n",
+		"2018-08-26 14:29:03.123 | x/y/z: > c\n",
 	}
 
 	Expect(outFile.String()).To(Equal(strings.Join(lines, "")))
@@ -69,12 +69,12 @@ func (s *ProcessorSuite) TestErrors(t sweet.T) {
 	processor.Shutdown()
 
 	outLines := []string{
-		"2018-08-26 09:29:03.123 | x/y/z: > a\n",
-		"2018-08-26 09:29:03.123 | x/y/z: > c\n",
+		"2018-08-26 14:29:03.123 | x/y/z: > a\n",
+		"2018-08-26 14:29:03.123 | x/y/z: > c\n",
 	}
 
 	errLines := []string{
-		"2018-08-26 09:29:03.123 | x/y/z: > b\n",
+		"2018-08-26 14:29:03.123 | x/y/z: > b\n",
 	}
 
 	Expect(outFile.String()).To(Equal(strings.Join(outLines, "")))
@@ -106,7 +106,7 @@ func (s *ProcessorSuite) TestNonVerbose(t sweet.T) {
 	processor.Shutdown()
 
 	lines := []string{
-		"2018-08-26 09:29:03.123 | x/y/z: > b\n",
+		"2018-08-26 14:29:03.123 | x/y/z: > b\n",
 	}
 
 	Expect(outFile.String()).To(Equal(strings.Join(lines, "")))

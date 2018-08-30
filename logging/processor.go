@@ -123,14 +123,14 @@ func (p *processor) process() {
 
 		streamText := fmt.Sprintf(
 			"%s %s%s\n",
-			message.timestamp.Format(ShortTimestampFormat),
+			message.timestamp.UTC().Format(ShortTimestampFormat),
 			p.buildPrefix(message.prefix),
 			text,
 		)
 
 		fileText := fmt.Sprintf(
 			"%s | %s%s\n",
-			message.timestamp.Format(LongTimestampFormat),
+			message.timestamp.UTC().Format(LongTimestampFormat),
 			p.buildPrefixForFile(message.prefix, message.writePrefix),
 			message.Text(),
 		)
