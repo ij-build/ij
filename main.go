@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -203,6 +204,10 @@ func parseArgs() (string, error) {
 				*configPath = path
 				break
 			}
+		}
+
+		if *configPath == "" {
+			return "", fmt.Errorf("could not infer config file")
 		}
 	}
 
