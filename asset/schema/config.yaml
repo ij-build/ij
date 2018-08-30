@@ -37,9 +37,7 @@ properties:
   workspace:
     type: string
   environment:
-    type: array
-    items:
-      type: string
+    $ref: '#/definitions/stringOrList'
   import:
     $ref: '#/definitions/fileList'
   export:

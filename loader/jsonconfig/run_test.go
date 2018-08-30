@@ -24,7 +24,7 @@ func (s *RunSuite) TestTranslate(t sweet.T) {
 		Hostname:               "hostname",
 		Detach:                 true,
 		Healthcheck:            nil,
-		Environment:            []string{"X=1", "Y=2", "Z=3"},
+		Environment:            json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
 		RequiredEnvironment:    []string{"X"},
 		ExportEnvironmentFiles: json.RawMessage(`["e1","e2"]`),
 	}
@@ -55,6 +55,7 @@ func (s *RunSuite) TestTranslate(t sweet.T) {
 func (s *RunSuite) TestTranslateStringLists(t sweet.T) {
 	task := &RunTask{
 		Extends:                "parent",
+		Environment:            json.RawMessage(`"X=1"`),
 		ExportEnvironmentFiles: json.RawMessage(`"env"`),
 	}
 
@@ -66,6 +67,7 @@ func (s *RunSuite) TestTranslateStringLists(t sweet.T) {
 			Extends: "parent",
 		},
 		Healthcheck:            &config.Healthcheck{},
+		Environment:            []string{"X=1"},
 		ExportEnvironmentFiles: []string{"env"},
 	}))
 }

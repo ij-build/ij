@@ -51,9 +51,7 @@ properties:
   healthcheck:
     $ref: '#/definitions/healthcheck'
   environment:
-    type: array
-    items:
-      type: string
+    $ref: '#/definitions/stringOrList'
   required_environment:
     type: array
     items:

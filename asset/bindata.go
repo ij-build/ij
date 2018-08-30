@@ -86,20 +86,18 @@ properties:
       - type: array
         items:
           type: string
-  environment:
-    type: array
-    items:
-      type: string
   registries:
     type: array
     items:
       type: object
+  workspace:
+    type: string
+  environment:
+    $ref: '#/definitions/stringOrList'
   import:
     $ref: '#/definitions/fileList'
   export:
     $ref: '#/definitions/fileList'
-  workspace:
-    type: string
   tasks:
     type: object
   plans:
@@ -119,7 +117,7 @@ func schemaConfigYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/config.yaml", size: 908, mode: os.FileMode(420), modTime: time.Unix(1535642859, 0)}
+	info := bindataFileInfo{name: "schema/config.yaml", size: 901, mode: os.FileMode(420), modTime: time.Unix(1535669844, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -175,9 +173,7 @@ properties:
     items:
       type: object
   environment:
-    type: array
-    items:
-      type: string
+    $ref: '#/definitions/stringOrList'
   import:
     $ref: '#/definitions/fileList'
   export:
@@ -195,7 +191,7 @@ func schemaOverrideYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/override.yaml", size: 661, mode: os.FileMode(420), modTime: time.Unix(1535642855, 0)}
+	info := bindataFileInfo{name: "schema/override.yaml", size: 654, mode: os.FileMode(420), modTime: time.Unix(1535669848, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -203,6 +199,12 @@ func schemaOverrideYaml() (*asset, error) {
 var _schemaPlanYaml = []byte(`---
 
 definitions:
+  stringOrList:
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
   stageTask:
     oneOf:
       - type: string
@@ -211,9 +213,7 @@ definitions:
           name:
             type: string
           environment:
-            type: array
-            items:
-              type: string
+            $ref: '#/definitions/stringOrList'
         additionalProperties: false
         required:
           - name
@@ -246,16 +246,12 @@ properties:
         parallel:
           type: boolean
         environment:
-          type: array
-          items:
-            type: string
+          $ref: '#/definitions/stringOrList'
       additionalProperties: false
       required:
         - name
   environment:
-    type: array
-    items:
-      type: string
+    $ref: '#/definitions/stringOrList'
 additionalProperties: false
 `)
 
@@ -269,7 +265,7 @@ func schemaPlanYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/plan.yaml", size: 1070, mode: os.FileMode(420), modTime: time.Unix(1535586742, 0)}
+	info := bindataFileInfo{name: "schema/plan.yaml", size: 1127, mode: os.FileMode(420), modTime: time.Unix(1535669790, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -546,9 +542,7 @@ properties:
   healthcheck:
     $ref: '#/definitions/healthcheck'
   environment:
-    type: array
-    items:
-      type: string
+    $ref: '#/definitions/stringOrList'
   required_environment:
     type: array
     items:
@@ -568,7 +562,7 @@ func schemaTaskRunYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-run.yaml", size: 1020, mode: os.FileMode(420), modTime: time.Unix(1535586242, 0)}
+	info := bindataFileInfo{name: "schema/task-run.yaml", size: 1013, mode: os.FileMode(420), modTime: time.Unix(1535669827, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

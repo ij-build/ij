@@ -19,7 +19,7 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 		},
 		SSHIdentities: json.RawMessage(`"*"`),
 		Workspace:     "/go/src/example.com",
-		Environment:   []string{"X=1", "Y=2", "Z=3"},
+		Environment:   json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
 		Import: &FileList{
 			Files:    json.RawMessage(`"."`),
 			Excludes: json.RawMessage(`"**/__pycache__"`),
@@ -96,7 +96,7 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 	}))
 }
 
-func (s *ConfigSuite) TestTranslateArrays(t sweet.T) {
+func (s *ConfigSuite) TestTranslateStringLists(t sweet.T) {
 	jsonConfig := &Config{
 		SSHIdentities: json.RawMessage(`["fp1", "fp2"]`),
 		Import: &FileList{

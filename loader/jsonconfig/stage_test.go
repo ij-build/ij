@@ -21,7 +21,7 @@ func (s *StageSuite) TestTranslate(t sweet.T) {
 			json.RawMessage(`{"name": "t3", "environment": ["X=4", "Y=5"]}`),
 		},
 		Parallel:    true,
-		Environment: []string{"X=1", "Y=2", "Z=3"},
+		Environment: json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
 	}
 
 	translated, err := stage.Translate()
@@ -38,6 +38,37 @@ func (s *StageSuite) TestTranslate(t sweet.T) {
 		RunMode:     config.RunModeOnSuccess,
 		Parallel:    true,
 		Environment: []string{"X=1", "Y=2", "Z=3"},
+	}))
+}
+
+func (s *StageSuite) TestTranslateStringLists(t sweet.T) {
+	stage := &Stage{
+		Environment: json.RawMessage(`"X=1"`),
+	}
+
+	translated, err := stage.Translate()
+	Expect(err).To(BeNil())
+	Expect(translated).To(Equal(&config.Stage{
+		Tasks:       []*config.StageTask{},
+		RunMode:     config.RunModeOnSuccess,
+		Environment: []string{"X=1"},
+	}))
+}
+
+func (s *StageSuite) TestTranslateNestedStringLists(t sweet.T) {
+	stage := &Stage{
+		Tasks: []json.RawMessage{
+			json.RawMessage(`{"name": "t1", "environment": "X=1"}`),
+		},
+	}
+
+	translated, err := stage.Translate()
+	Expect(err).To(BeNil())
+	Expect(translated).To(Equal(&config.Stage{
+		Tasks: []*config.StageTask{
+			&config.StageTask{Name: "t1", Environment: []string{"X=1"}},
+		},
+		RunMode: config.RunModeOnSuccess,
 	}))
 }
 

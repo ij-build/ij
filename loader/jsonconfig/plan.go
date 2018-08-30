@@ -1,11 +1,15 @@
 package jsonconfig
 
-import "github.com/efritz/ij/config"
+import (
+	"encoding/json"
+
+	"github.com/efritz/ij/config"
+)
 
 type Plan struct {
-	Extend      bool     `json:"extend"`
-	Stages      []*Stage `json:"stages"`
-	Environment []string `json:"environment"`
+	Extend      bool            `json:"extend"`
+	Stages      []*Stage        `json:"stages"`
+	Environment json.RawMessage `json:"environment"`
 }
 
 func (p *Plan) Translate(name string) (*config.Plan, error) {
@@ -19,10 +23,15 @@ func (p *Plan) Translate(name string) (*config.Plan, error) {
 		stages = append(stages, translated)
 	}
 
+	environment, err := unmarshalStringList(p.Environment)
+	if err != nil {
+		return nil, err
+	}
+
 	return &config.Plan{
 		Name:        name,
 		Extend:      p.Extend,
 		Stages:      stages,
-		Environment: p.Environment,
+		Environment: environment,
 	}, nil
 }

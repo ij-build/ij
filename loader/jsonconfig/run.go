@@ -19,7 +19,7 @@ type (
 		Hostname               string          `json:"hostname"`
 		Detach                 bool            `json:"detach"`
 		Healthcheck            *Healthcheck    `json:"healthcheck"`
-		Environment            []string        `json:"environment"`
+		Environment            json.RawMessage `json:"environment"`
 		RequiredEnvironment    []string        `json:"required_environment"`
 		ExportEnvironmentFiles json.RawMessage `json:"export_environment_file"`
 	}
@@ -35,6 +35,11 @@ type (
 
 func (t *RunTask) Translate(name string) (config.Task, error) {
 	healthcheck, err := t.Healthcheck.Translate()
+	if err != nil {
+		return nil, err
+	}
+
+	environment, err := unmarshalStringList(t.Environment)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +66,7 @@ func (t *RunTask) Translate(name string) (config.Task, error) {
 		Hostname:               t.Hostname,
 		Detach:                 t.Detach,
 		Healthcheck:            healthcheck,
-		Environment:            t.Environment,
+		Environment:            environment,
 		RequiredEnvironment:    t.RequiredEnvironment,
 		ExportEnvironmentFiles: exportedEnvironmentFiles,
 	}, nil

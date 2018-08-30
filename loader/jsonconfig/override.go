@@ -11,7 +11,7 @@ type Override struct {
 	ForceSequential     bool              `json:"force-sequential"`
 	HealthcheckInterval Duration          `json:"healthcheck-interval"`
 	Registries          []json.RawMessage `json:"registries"`
-	Environment         []string          `json:"environment"`
+	Environment         json.RawMessage   `json:"environment"`
 	Import              *FileList         `json:"import"`
 	Export              *FileList         `json:"export"`
 }
@@ -32,6 +32,11 @@ func (c *Override) Translate() (*config.Override, error) {
 		registries = append(registries, translated)
 	}
 
+	environment, err := unmarshalStringList(c.Environment)
+	if err != nil {
+		return nil, err
+	}
+
 	importList, err := translateFileList(c.Import)
 	if err != nil {
 		return nil, err
@@ -47,7 +52,7 @@ func (c *Override) Translate() (*config.Override, error) {
 		ForceSequential:     c.ForceSequential,
 		HealthcheckInterval: c.HealthcheckInterval.Duration,
 		Registries:          registries,
-		Environment:         c.Environment,
+		Environment:         environment,
 		ImportExcludes:      importList.Excludes,
 		ExportExcludes:      exportList.Excludes,
 	}, nil

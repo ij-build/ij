@@ -27,10 +27,10 @@ func (s *PlanSuite) TestTranslate(t sweet.T) {
 				Tasks: []json.RawMessage{
 					json.RawMessage(`"t3"`),
 				},
-				Environment: []string{"Z=4"},
+				Environment: json.RawMessage(`["Z=4"]`),
 			},
 		},
-		Environment: []string{"X=1", "Y=2", "Z=3"},
+		Environment: json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
 	}
 
 	translated, err := plan.Translate("foo")
@@ -58,5 +58,19 @@ func (s *PlanSuite) TestTranslate(t sweet.T) {
 			},
 		},
 		Environment: []string{"X=1", "Y=2", "Z=3"},
+	}))
+}
+
+func (s *PlanSuite) TestTranslateStringLists(t sweet.T) {
+	jsonPlan := &Plan{
+		Environment: json.RawMessage(`"X=1"`),
+	}
+
+	translated, err := jsonPlan.Translate("foo")
+	Expect(err).To(BeNil())
+	Expect(translated).To(Equal(&config.Plan{
+		Name:        "foo",
+		Stages:      []*config.Stage{},
+		Environment: []string{"X=1"},
 	}))
 }

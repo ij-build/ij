@@ -15,12 +15,12 @@ type (
 		Tasks       []json.RawMessage `json:"tasks"`
 		RunMode     string            `json:"run-mode"`
 		Parallel    bool              `json:"parallel"`
-		Environment []string          `json:"environment"`
+		Environment json.RawMessage   `json:"environment"`
 	}
 
 	StageTask struct {
-		Name        string   `json:"name"`
-		Environment []string `json:"environment"`
+		Name        string          `json:"name"`
+		Environment json.RawMessage `json:"environment"`
 	}
 )
 
@@ -40,14 +40,19 @@ func (s *Stage) Translate() (*config.Stage, error) {
 		return nil, err
 	}
 
+	environment, err := unmarshalStringList(s.Environment)
+	if err != nil {
+		return nil, err
+	}
+
 	return &config.Stage{
 		Name:        s.Name,
 		BeforeStage: s.BeforeStage,
 		AfterStage:  s.AfterStage,
+		Tasks:       stageTasks,
 		RunMode:     runMode,
 		Parallel:    s.Parallel,
-		Environment: s.Environment,
-		Tasks:       stageTasks,
+		Environment: environment,
 	}, nil
 }
 
@@ -67,14 +72,23 @@ func translateRunMode(value string) (config.RunMode, error) {
 }
 
 func unmarshalStageTask(raw json.RawMessage) (*config.StageTask, error) {
-	stageTask := &config.StageTask{}
-	if err := json.Unmarshal(raw, &stageTask.Name); err == nil {
-		return stageTask, nil
+	var name string
+	if err := json.Unmarshal(raw, &name); err == nil {
+		return &config.StageTask{Name: name}, nil
 	}
 
+	stageTask := &StageTask{}
 	if err := json.Unmarshal(raw, &stageTask); err != nil {
 		return nil, err
 	}
 
-	return stageTask, nil
+	environment, err := unmarshalStringList(stageTask.Environment)
+	if err != nil {
+		return nil, err
+	}
+
+	return &config.StageTask{
+		Name:        stageTask.Name,
+		Environment: environment,
+	}, nil
 }

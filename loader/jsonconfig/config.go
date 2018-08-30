@@ -14,7 +14,7 @@ type (
 		HealthcheckInterval Duration                   `json:"healthcheck-interval"`
 		Registries          []json.RawMessage          `json:"registries"`
 		Workspace           string                     `json:"workspace"`
-		Environment         []string                   `json:"environment"` // TODO - make all environments stringable
+		Environment         json.RawMessage            `json:"environment"`
 		Import              *FileList                  `json:"import"`
 		Export              *FileList                  `json:"export"`
 		Tasks               map[string]json.RawMessage `json:"tasks"`
@@ -42,6 +42,11 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 		}
 
 		registries = append(registries, translated)
+	}
+
+	environment, err := unmarshalStringList(c.Environment)
+	if err != nil {
+		return nil, err
 	}
 
 	importList, err := translateFileList(c.Import)
@@ -81,7 +86,7 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 		HealthcheckInterval: c.HealthcheckInterval.Duration,
 		Registries:          registries,
 		Workspace:           c.Workspace,
-		Environment:         c.Environment,
+		Environment:         environment,
 		Import:              importList,
 		Export:              exportList,
 		Tasks:               tasks,

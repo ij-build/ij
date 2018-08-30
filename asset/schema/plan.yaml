@@ -1,6 +1,12 @@
 ---
 
 definitions:
+  stringOrList:
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
   stageTask:
     oneOf:
       - type: string
@@ -9,9 +15,7 @@ definitions:
           name:
             type: string
           environment:
-            type: array
-            items:
-              type: string
+            $ref: '#/definitions/stringOrList'
         additionalProperties: false
         required:
           - name
@@ -44,14 +48,10 @@ properties:
         parallel:
           type: boolean
         environment:
-          type: array
-          items:
-            type: string
+          $ref: '#/definitions/stringOrList'
       additionalProperties: false
       required:
         - name
   environment:
-    type: array
-    items:
-      type: string
+    $ref: '#/definitions/stringOrList'
 additionalProperties: false
