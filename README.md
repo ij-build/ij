@@ -1,8 +1,6 @@
 <p align="center">
-    <img width="200" src="https://github.com/efritz/ij/blob/master/images/ij.svg" alt="IJ logo">
+    <img width="100" src="https://github.com/efritz/ij/blob/master/images/ij.svg" alt="IJ logo">
 </p>
-
-<h2 align="center">IJ</h2>
 
 <p align="center">
     <a href="https://godoc.org/github.com/efritz/ij"><img src="https://godoc.org/github.com/efritz/ij?status.svg" alt="GoDoc"></a>
