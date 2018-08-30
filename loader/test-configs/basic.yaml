@@ -1,0 +1,38 @@
+environment:
+  - X=1
+  - Y=2
+  - Z=3
+
+tasks:
+  x:
+    type: build
+    dockerfile: Dockerfile.x
+
+  'y':
+    type: build
+    dockerfile: Dockerfile.y
+
+  z:
+    type: build
+    dockerfile: Dockerfile.z
+
+plans:
+  a:
+    stages:
+      - name: w
+        tasks:
+          - 'x'
+          - 'y'
+          - 'z'
+  b:
+    stages:
+      - name: q
+        tasks:
+          - name: x
+            environment:
+              - Z=4
+
+metaplans:
+  default:
+    - a
+    - b

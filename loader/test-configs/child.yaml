@@ -1,0 +1,4 @@
+extends: parent.yaml
+environment:
+    - X=10
+    - W=20

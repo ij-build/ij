@@ -1,0 +1,4 @@
+plans:
+  foo:
+    stages:
+      - foo

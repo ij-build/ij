@@ -1,0 +1,4 @@
+metaplans:
+  foo:
+    - foo
+    - name: bar
