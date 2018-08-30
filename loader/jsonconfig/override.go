@@ -7,11 +7,13 @@ import (
 )
 
 type Override struct {
-	Registries    []json.RawMessage `json:"registries"`
-	SSHIdentities json.RawMessage   `json:"ssh-identities"`
-	Environment   []string          `json:"environment"`
-	Import        *FileList         `json:"import"`
-	Export        *FileList         `json:"export"`
+	SSHIdentities       json.RawMessage   `json:"ssh-identities"`
+	ForceSequential     bool              `json:"force-sequential"`
+	HealthcheckInterval Duration          `json:"healthcheck-interval"`
+	Registries          []json.RawMessage `json:"registries"`
+	Environment         []string          `json:"environment"`
+	Import              *FileList         `json:"import"`
+	Export              *FileList         `json:"export"`
 }
 
 func (c *Override) Translate() (*config.Override, error) {
@@ -41,10 +43,12 @@ func (c *Override) Translate() (*config.Override, error) {
 	}
 
 	return &config.Override{
-		SSHIdentities:  sshIdentities,
-		Environment:    c.Environment,
-		Registries:     registries,
-		ImportExcludes: importList.Excludes,
-		ExportExcludes: exportList.Excludes,
+		SSHIdentities:       sshIdentities,
+		ForceSequential:     c.ForceSequential,
+		HealthcheckInterval: c.HealthcheckInterval.Duration,
+		Registries:          registries,
+		Environment:         c.Environment,
+		ImportExcludes:      importList.Excludes,
+		ExportExcludes:      exportList.Excludes,
 	}, nil
 }

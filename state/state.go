@@ -22,8 +22,6 @@ type State struct {
 	Context             context.Context
 	EnableSSHAgent      bool
 	Env                 []string
-	ForceSequential     bool
-	HealthcheckInterval time.Duration
 	Memory              string
 	Cancel              func()
 	Once                sync.Once
@@ -43,8 +41,6 @@ func NewState(
 	cpuShares string,
 	enableSSHAgent bool,
 	env []string,
-	forceSequential bool,
-	healthcheckInterval time.Duration,
 	keepWorkspace bool,
 	login bool,
 	memory string,
@@ -54,17 +50,15 @@ func NewState(
 	ctx, cancel := makeContext(planTimeout)
 
 	s = &State{
-		Config:              config,
-		Plans:               plans,
-		Env:                 env,
-		CPUShares:           cpuShares,
-		EnableSSHAgent:      enableSSHAgent,
-		ForceSequential:     forceSequential,
-		HealthcheckInterval: healthcheckInterval,
-		Memory:              memory,
-		Context:             ctx,
-		Cancel:              cancel,
-		Cleanup:             NewCleanup(),
+		Config:         config,
+		Plans:          plans,
+		Env:            env,
+		CPUShares:      cpuShares,
+		EnableSSHAgent: enableSSHAgent,
+		Memory:         memory,
+		Context:        ctx,
+		Cancel:         cancel,
+		Cleanup:        NewCleanup(),
 	}
 
 	//

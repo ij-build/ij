@@ -20,26 +20,30 @@ type: object
 properties:
   extends:
     type: string
+  force-sequential:
+    type: boolean
+  healthcheck-interval:
+    type: string
   ssh-identities:
     oneOf:
       - type: string
       - type: array
         items:
           type: string
-  environment:
-    type: array
-    items:
-      type: string
   registries:
     type: array
     items:
       type: object
+  workspace:
+    type: string
+  environment:
+    type: array
+    items:
+      type: string
   import:
     $ref: '#/definitions/fileList'
   export:
     $ref: '#/definitions/fileList'
-  workspace:
-    type: string
   tasks:
     type: object
   plans:

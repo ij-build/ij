@@ -18,6 +18,7 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 			json.RawMessage(`{"type": "gcr", "key_file": "secret.key"}`),
 		},
 		SSHIdentities: json.RawMessage(`"*"`),
+		Workspace:     "/go/src/example.com",
 		Environment:   []string{"X=1", "Y=2", "Z=3"},
 		Import: &FileList{
 			Files:    json.RawMessage(`"."`),
@@ -26,7 +27,6 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 		Export: &FileList{
 			Files: json.RawMessage(`"**/junit*.xml"`),
 		},
-		Workspace: "/go/src/example.com",
 		Tasks: map[string]json.RawMessage{
 			"t1": json.RawMessage(`{"image": "i1"}`),
 			"t2": json.RawMessage(`{"image": "i2"}`),
@@ -49,6 +49,7 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 			&config.GCRRegistry{KeyFile: "secret.key"},
 		},
 		SSHIdentities: []string{"*"},
+		Workspace:     "/go/src/example.com",
 		Environment:   []string{"X=1", "Y=2", "Z=3"},
 		Import: &config.FileList{
 			Files:    []string{"."},
@@ -57,7 +58,6 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 		Export: &config.FileList{
 			Files: []string{"**/junit*.xml"},
 		},
-		Workspace: "/go/src/example.com",
 		Tasks: map[string]config.Task{
 			"t1": &config.RunTask{
 				TaskMeta:    config.TaskMeta{Name: "t1"},

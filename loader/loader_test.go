@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"time"
 
 	"github.com/aphistic/sweet"
 	"github.com/efritz/ij/config"
@@ -108,6 +109,8 @@ func (s *LoaderSuite) TestOverride(t sweet.T) {
 	})
 
 	Expect(err).To(BeNil())
+	Expect(config.ForceSequential).To(BeTrue())
+	Expect(config.HealthcheckInterval).To(Equal(time.Second * 10))
 	Expect(config.Environment).To(Equal([]string{
 		"X=1", "X=2", "X=3",
 	}))

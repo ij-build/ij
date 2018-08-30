@@ -8,16 +8,18 @@ import (
 
 type (
 	Config struct {
-		Extends       string                     `json:"extends"`
-		Registries    []json.RawMessage          `json:"registries"`
-		SSHIdentities json.RawMessage            `json:"ssh-identities"`
-		Environment   []string                   `json:"environment"`
-		Import        *FileList                  `json:"import"`
-		Export        *FileList                  `json:"export"`
-		Workspace     string                     `json:"workspace"`
-		Tasks         map[string]json.RawMessage `json:"tasks"`
-		Plans         map[string]*Plan           `json:"plans"`
-		Metaplans     map[string][]string        `json:"metaplans"`
+		Extends             string                     `json:"extends"`
+		SSHIdentities       json.RawMessage            `json:"ssh-identities"`
+		ForceSequential     bool                       `json:"force-sequential"`
+		HealthcheckInterval Duration                   `json:"healthcheck-interval"`
+		Registries          []json.RawMessage          `json:"registries"`
+		Workspace           string                     `json:"workspace"`
+		Environment         []string                   `json:"environment"` // TODO - make all environments stringable
+		Import              *FileList                  `json:"import"`
+		Export              *FileList                  `json:"export"`
+		Tasks               map[string]json.RawMessage `json:"tasks"`
+		Plans               map[string]*Plan           `json:"plans"`
+		Metaplans           map[string][]string        `json:"metaplans"`
 	}
 
 	FileList struct {
@@ -73,16 +75,18 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 	}
 
 	return &config.Config{
-		Extends:       c.Extends,
-		SSHIdentities: sshIdentities,
-		Workspace:     c.Workspace,
-		Environment:   c.Environment,
-		Registries:    registries,
-		Import:        importList,
-		Export:        exportList,
-		Tasks:         tasks,
-		Plans:         plans,
-		Metaplans:     c.Metaplans,
+		Extends:             c.Extends,
+		SSHIdentities:       sshIdentities,
+		ForceSequential:     c.ForceSequential,
+		HealthcheckInterval: c.HealthcheckInterval.Duration,
+		Registries:          registries,
+		Workspace:           c.Workspace,
+		Environment:         c.Environment,
+		Import:              importList,
+		Export:              exportList,
+		Tasks:               tasks,
+		Plans:               plans,
+		Metaplans:           c.Metaplans,
 	}, nil
 }
 

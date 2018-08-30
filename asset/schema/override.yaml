@@ -16,12 +16,16 @@ definitions:
 
 type: object
 properties:
+  ssh-identities:
+    $ref: '#/definitions/stringOrList'
+  force-sequential:
+    type: boolean
+  healthcheck-interval:
+    type: string
   registries:
     type: array
     items:
       type: object
-  ssh-identities:
-    $ref: '#/definitions/stringOrList'
   environment:
     type: array
     items:

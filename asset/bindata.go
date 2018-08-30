@@ -76,6 +76,10 @@ type: object
 properties:
   extends:
     type: string
+  force-sequential:
+    type: boolean
+  healthcheck-interval:
+    type: string
   ssh-identities:
     oneOf:
       - type: string
@@ -115,7 +119,7 @@ func schemaConfigYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/config.yaml", size: 829, mode: os.FileMode(420), modTime: time.Unix(1535586068, 0)}
+	info := bindataFileInfo{name: "schema/config.yaml", size: 908, mode: os.FileMode(420), modTime: time.Unix(1535642859, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -160,12 +164,16 @@ definitions:
 
 type: object
 properties:
+  ssh-identities:
+    $ref: '#/definitions/stringOrList'
+  force-sequential:
+    type: boolean
+  healthcheck-interval:
+    type: string
   registries:
     type: array
     items:
       type: object
-  ssh-identities:
-    $ref: '#/definitions/stringOrList'
   environment:
     type: array
     items:
@@ -187,7 +195,7 @@ func schemaOverrideYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/override.yaml", size: 582, mode: os.FileMode(420), modTime: time.Unix(1535586061, 0)}
+	info := bindataFileInfo{name: "schema/override.yaml", size: 661, mode: os.FileMode(420), modTime: time.Unix(1535642855, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

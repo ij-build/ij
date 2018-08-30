@@ -1,2 +1,4 @@
+force-sequential: true
+healthcheck-interval: 10s
 environment:
   - X=3

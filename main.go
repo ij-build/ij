@@ -100,11 +100,13 @@ func runMain() bool {
 }
 
 func runRun(config *config.Config) bool {
-	enableSSHAgent, err := ssh.EnsureKeysAvailable(append(
-		config.SSHIdentities,
-		*sshIdentities...,
-	))
+	config.ApplyArgs(
+		*sshIdentities,
+		*forceSequential,
+		*healthcheckInterval,
+	)
 
+	enableSSHAgent, err := ssh.EnsureKeysAvailable(config.SSHIdentities)
 	if err != nil {
 		logging.EmergencyLog(
 			"error: failed to validate ssh keys: %s",
@@ -121,8 +123,6 @@ func runRun(config *config.Config) bool {
 		*cpuShares,
 		enableSSHAgent,
 		*env,
-		*forceSequential,
-		*healthcheckInterval,
 		*keepWorkspace,
 		*loginForPlan,
 		*memory,

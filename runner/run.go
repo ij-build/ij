@@ -280,7 +280,7 @@ func (r *runCommandRunner) runInBackground(containerName string, args []string) 
 		return false
 	}
 
-	hasHealthcheck, err := hasHealthCheck(
+	hasHealthcheck, err := hasHealthcheck(
 		r.state.Context,
 		containerName,
 		r.state.Logger,
@@ -339,7 +339,7 @@ func (r *runCommandRunner) monitor(containerName string) bool {
 		)
 
 		select {
-		case <-time.After(r.state.HealthcheckInterval):
+		case <-time.After(r.state.Config.HealthcheckInterval):
 		case <-r.state.Context.Done():
 			return false
 		}
@@ -372,7 +372,7 @@ func runCommandBuilderFactory(
 			s.addContainerName,
 			s.addDetachOptions,
 			s.addEnvironmentOptions,
-			s.addHealthCheckOptions,
+			s.addHealthcheckOptions,
 			s.addLimitOptions,
 			s.addNetworkOptions,
 			s.addSSHOptions,
@@ -451,7 +451,7 @@ func (s *runCommandBuilderState) addEnvironmentOptions(cb *command.Builder) erro
 	return nil
 }
 
-func (s *runCommandBuilderState) addHealthCheckOptions(cb *command.Builder) error {
+func (s *runCommandBuilderState) addHealthcheckOptions(cb *command.Builder) error {
 	command, err := s.env.ExpandString(s.task.Healthcheck.Command)
 	if err != nil {
 		return err
@@ -582,7 +582,7 @@ func (s *runCommandBuilderState) addWorkspaceOptions(cb *command.Builder) error 
 //
 // Helpers
 
-func hasHealthCheck(
+func hasHealthcheck(
 	ctx context.Context,
 	containerName string,
 	logger logging.Logger,

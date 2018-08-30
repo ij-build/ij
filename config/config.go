@@ -1,19 +1,24 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 type (
 	Config struct {
-		Extends       string
-		Registries    []Registry
-		SSHIdentities []string
-		Environment   []string
-		Import        *FileList
-		Export        *FileList
-		Workspace     string
-		Tasks         map[string]Task
-		Plans         map[string]*Plan
-		Metaplans     map[string][]string
+		Extends             string
+		SSHIdentities       []string
+		ForceSequential     bool
+		HealthcheckInterval time.Duration
+		Registries          []Registry
+		Workspace           string
+		Environment         []string
+		Import              *FileList
+		Export              *FileList
+		Tasks               map[string]Task
+		Plans               map[string]*Plan
+		Metaplans           map[string][]string
 	}
 
 	FileList struct {
@@ -22,17 +27,21 @@ type (
 	}
 
 	Override struct {
-		Registries     []Registry
-		SSHIdentities  []string
-		Environment    []string
-		ImportExcludes []string
-		ExportExcludes []string
+		SSHIdentities       []string
+		ForceSequential     bool
+		HealthcheckInterval time.Duration
+		Registries          []Registry
+		Environment         []string
+		ImportExcludes      []string
+		ExportExcludes      []string
 	}
 )
 
 func (c *Config) Merge(child *Config) error {
-	c.Registries = append(c.Registries, child.Registries...)
 	c.SSHIdentities = append(c.SSHIdentities, child.SSHIdentities...)
+	c.ForceSequential = extendBool(child.ForceSequential, c.ForceSequential)
+	c.HealthcheckInterval = extendDuration(child.HealthcheckInterval, c.HealthcheckInterval)
+	c.Registries = append(c.Registries, child.Registries...)
 	c.Environment = append(c.Environment, child.Environment...)
 	c.Import.Merge(child.Import)
 	c.Export.Merge(child.Export)
@@ -79,11 +88,23 @@ func (f *FileList) Merge(child *FileList) {
 }
 
 func (c *Config) ApplyOverride(override *Override) {
-	c.Registries = append(c.Registries, override.Registries...)
 	c.SSHIdentities = append(c.SSHIdentities, override.SSHIdentities...)
+	c.ForceSequential = extendBool(override.ForceSequential, c.ForceSequential)
+	c.HealthcheckInterval = extendDuration(override.HealthcheckInterval, c.HealthcheckInterval)
+	c.Registries = append(c.Registries, override.Registries...)
 	c.Environment = append(c.Environment, override.Environment...)
 	c.Import.Excludes = append(c.Import.Excludes, override.ImportExcludes...)
 	c.Export.Excludes = append(c.Export.Excludes, override.ExportExcludes...)
+}
+
+func (c *Config) ApplyArgs(
+	sshIdentities []string,
+	forceSequential bool,
+	healthcheckInterval time.Duration,
+) {
+	c.SSHIdentities = append(c.SSHIdentities, sshIdentities...)
+	c.ForceSequential = extendBool(forceSequential, c.ForceSequential)
+	c.HealthcheckInterval = extendDuration(healthcheckInterval, c.HealthcheckInterval)
 }
 
 func (c *Config) Resolve() error {
