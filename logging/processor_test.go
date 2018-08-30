@@ -18,11 +18,19 @@ type ProcessorSuite struct {
 }
 
 func (s *ProcessorSuite) SetUpSuite() {
-	outFile, _ := ioutil.TempFile("", "ij-stdout")
+	outFile, err := ioutil.TempFile("", "ij-stdout")
+	if err != nil {
+		panic(err.Error())
+	}
+
 	s.oldStdout = os.Stdout
 	os.Stdout = outFile
 
-	errFile, _ := ioutil.TempFile("", "ij-stderr")
+	errFile, err := ioutil.TempFile("", "ij-stderr")
+	if err != nil {
+		panic(err.Error())
+	}
+
 	s.oldStderr = os.Stderr
 	os.Stderr = errFile
 }
