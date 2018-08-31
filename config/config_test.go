@@ -14,9 +14,10 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 		Options: &Options{
 			SSHIdentities: []string{"parent-ssh1"},
 		},
-		Registries:  []Registry{&ServerRegistry{Server: "parent.io"}},
-		Environment: []string{"parent-env1"},
-		Workspace:   "parent-workspace",
+		Registries:       []Registry{&ServerRegistry{Server: "parent.io"}},
+		Environment:      []string{"parent-env1"},
+		EnvironmentFiles: []string{"parent-envfile1"},
+		Workspace:        "parent-workspace",
 		Import: &FileList{
 			Files:    []string{"parent-imp1"},
 			Excludes: []string{"parent-exc1"},
@@ -44,9 +45,10 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 			ForceSequential:     true,
 			HealthcheckInterval: time.Second * 10,
 		},
-		Registries:  []Registry{&ServerRegistry{Server: "child.io"}},
-		Workspace:   "child-workspace",
-		Environment: []string{"child-env2", "child-env3"},
+		Registries:       []Registry{&ServerRegistry{Server: "child.io"}},
+		Workspace:        "child-workspace",
+		Environment:      []string{"child-env2", "child-env3"},
+		EnvironmentFiles: []string{"child-envfile2", "child-envfile3"},
 		Import: &FileList{
 			Files:    []string{"child-imp2", "child-imp3"},
 			Excludes: []string{"child-exc2", "child-exc3"},
@@ -79,6 +81,7 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 	))
 	Expect(parent.Workspace).To(Equal("child-workspace"))
 	Expect(parent.Environment).To(ConsistOf("parent-env1", "child-env2", "child-env3"))
+	Expect(parent.EnvironmentFiles).To(ConsistOf("parent-envfile1", "child-envfile2", "child-envfile3"))
 	Expect(parent.Import.Files).To(ConsistOf("parent-imp1", "child-imp2", "child-imp3"))
 	Expect(parent.Export.Files).To(ConsistOf("parent-exp1", "child-exp2", "child-exp3"))
 	Expect(parent.Import.Excludes).To(ConsistOf("parent-exc1", "child-exc2", "child-exc3"))

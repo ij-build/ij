@@ -98,6 +98,8 @@ properties:
     type: string
   environment:
     $ref: '#/definitions/stringOrList'
+  env_file:
+    $ref: '#/definitions/stringOrList'
   import:
     $ref: '#/definitions/fileList'
   export:
@@ -121,7 +123,7 @@ func schemaConfigYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/config.yaml", size: 1017, mode: os.FileMode(420), modTime: time.Unix(1535671431, 0)}
+	info := bindataFileInfo{name: "schema/config.yaml", size: 1068, mode: os.FileMode(420), modTime: time.Unix(1535675967, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -182,6 +184,8 @@ properties:
       type: object
   environment:
     $ref: '#/definitions/stringOrList'
+  env_file:
+    $ref: '#/definitions/stringOrList'
   import:
     $ref: '#/definitions/fileList'
   export:
@@ -199,7 +203,7 @@ func schemaOverrideYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/override.yaml", size: 754, mode: os.FileMode(420), modTime: time.Unix(1535671452, 0)}
+	info := bindataFileInfo{name: "schema/override.yaml", size: 805, mode: os.FileMode(420), modTime: time.Unix(1535675970, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

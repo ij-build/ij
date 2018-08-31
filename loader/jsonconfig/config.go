@@ -8,16 +8,17 @@ import (
 
 type (
 	Config struct {
-		Extends     string                     `json:"extends"`
-		Options     *Options                   `json:"options"`
-		Registries  []json.RawMessage          `json:"registries"`
-		Workspace   string                     `json:"workspace"`
-		Environment json.RawMessage            `json:"environment"`
-		Import      *FileList                  `json:"import"`
-		Export      *FileList                  `json:"export"`
-		Tasks       map[string]json.RawMessage `json:"tasks"`
-		Plans       map[string]*Plan           `json:"plans"`
-		Metaplans   map[string][]string        `json:"metaplans"`
+		Extends          string                     `json:"extends"`
+		Options          *Options                   `json:"options"`
+		Registries       []json.RawMessage          `json:"registries"`
+		Workspace        string                     `json:"workspace"`
+		Environment      json.RawMessage            `json:"environment"`
+		EnvironmentFiles json.RawMessage            `json:"env_file"`
+		Import           *FileList                  `json:"import"`
+		Export           *FileList                  `json:"export"`
+		Tasks            map[string]json.RawMessage `json:"tasks"`
+		Plans            map[string]*Plan           `json:"plans"`
+		Metaplans        map[string][]string        `json:"metaplans"`
 	}
 
 	Options struct {
@@ -53,6 +54,11 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 		return nil, err
 	}
 
+	environmentFiles, err := unmarshalStringList(c.EnvironmentFiles)
+	if err != nil {
+		return nil, err
+	}
+
 	importList, err := c.Import.Translate()
 	if err != nil {
 		return nil, err
@@ -84,16 +90,17 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 	}
 
 	return &config.Config{
-		Extends:     c.Extends,
-		Options:     options,
-		Registries:  registries,
-		Workspace:   c.Workspace,
-		Environment: environment,
-		Import:      importList,
-		Export:      exportList,
-		Tasks:       tasks,
-		Plans:       plans,
-		Metaplans:   c.Metaplans,
+		Extends:          c.Extends,
+		Options:          options,
+		Registries:       registries,
+		Workspace:        c.Workspace,
+		Environment:      environment,
+		EnvironmentFiles: environmentFiles,
+		Import:           importList,
+		Export:           exportList,
+		Tasks:            tasks,
+		Plans:            plans,
+		Metaplans:        c.Metaplans,
 	}, nil
 }
 

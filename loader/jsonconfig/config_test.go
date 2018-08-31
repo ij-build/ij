@@ -20,8 +20,9 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 		Options: &Options{
 			SSHIdentities: json.RawMessage(`"*"`),
 		},
-		Workspace:   "/go/src/example.com",
-		Environment: json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
+		Workspace:        "/go/src/example.com",
+		Environment:      json.RawMessage(`"X=1"`),
+		EnvironmentFiles: json.RawMessage(`"./env"`),
 		Import: &FileList{
 			Files:    json.RawMessage(`"."`),
 			Excludes: json.RawMessage(`"**/__pycache__"`),
@@ -56,8 +57,9 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 		Options: &config.Options{
 			SSHIdentities: []string{"*"},
 		},
-		Workspace:   "/go/src/example.com",
-		Environment: []string{"X=1", "Y=2", "Z=3"},
+		Workspace:        "/go/src/example.com",
+		Environment:      []string{"X=1"},
+		EnvironmentFiles: []string{"./env"},
 		Import: &config.FileList{
 			Files:    []string{"."},
 			Excludes: []string{"**/__pycache__"},
@@ -108,6 +110,8 @@ func (s *ConfigSuite) TestTranslateStringLists(t sweet.T) {
 		Options: &Options{
 			SSHIdentities: json.RawMessage(`["fp1", "fp2"]`),
 		},
+		Environment:      json.RawMessage(`["X=1", "Y=2"]`),
+		EnvironmentFiles: json.RawMessage(`["./env", "./env.secret"]`),
 		Import: &FileList{
 			Files:    json.RawMessage(`["src", "test"]`),
 			Excludes: json.RawMessage(`["*.cache", "*.temp"]`),
@@ -126,7 +130,9 @@ func (s *ConfigSuite) TestTranslateStringLists(t sweet.T) {
 		Options: &config.Options{
 			SSHIdentities: []string{"fp1", "fp2"},
 		},
-		Registries: []config.Registry{},
+		Registries:       []config.Registry{},
+		Environment:      []string{"X=1", "Y=2"},
+		EnvironmentFiles: []string{"./env", "./env.secret"},
 		Import: &config.FileList{
 			Files:    []string{"src", "test"},
 			Excludes: []string{"*.cache", "*.temp"},

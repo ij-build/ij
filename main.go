@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -36,6 +37,7 @@ var (
 	colorize   = app.Flag("color", "Enable colorized output.").Default("true").Bool()
 	configPath = app.Flag("config", "The path to the config file.").Short('f').String()
 	env        = app.Flag("env", "Environment variables.").Short('e').Strings()
+	envFiles   = app.Flag("env-file", "Environment file.").Strings()
 	verbose    = app.Flag("verbose", "Output debug logs.").Short('v').Default("false").Bool()
 
 	// Run Options
@@ -106,7 +108,33 @@ func runRun(cfg *config.Config) bool {
 			ForceSequential:     *forceSequential,
 			HealthcheckInterval: *healthcheckInterval,
 		},
+		EnvironmentFiles: *envFiles,
 	})
+
+	envFromFile := []string{}
+	for _, path := range cfg.EnvironmentFiles {
+		content, err := ioutil.ReadFile(path)
+		if err != nil {
+			logging.EmergencyLog(
+				"error: failed to read environment file: %s",
+				err.Error(),
+			)
+
+			return false
+		}
+
+		lines, err := environment.NormalizeEnvironmentFile(string(content))
+		if err != nil {
+			logging.EmergencyLog(
+				"error: failed to read environment file: %s",
+				err.Error(),
+			)
+
+			return false
+		}
+
+		envFromFile = append(envFromFile, lines...)
+	}
 
 	enableSSHAgent, err := ssh.EnsureKeysAvailable(
 		cfg.Options.SSHIdentities,
@@ -127,7 +155,7 @@ func runRun(cfg *config.Config) bool {
 		*colorize,
 		*cpuShares,
 		enableSSHAgent,
-		*env,
+		append(envFromFile, *env...),
 		*keepWorkspace,
 		*loginForPlan,
 		*memory,

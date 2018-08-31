@@ -238,23 +238,17 @@ func (r *runCommandRunner) exportEnvironmentFile(path string) bool {
 		return false
 	}
 
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
+	lines, err := environment.NormalizeEnvironmentFile(string(data))
+	if err != nil {
+		r.state.Logger.Error(
+			r.prefix,
+			err.Error(),
+		)
 
-		if line == "" || line[0] == '#' {
-			continue
-		}
+		return false
+	}
 
-		if !strings.Contains(line, "=") {
-			r.state.Logger.Error(
-				r.prefix,
-				"Malformed entry in environments file: %s",
-				line,
-			)
-
-			return false
-		}
-
+	for _, line := range lines {
 		r.state.ExportEnv(line)
 	}
 

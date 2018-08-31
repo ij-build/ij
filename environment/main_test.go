@@ -16,6 +16,7 @@ func TestMain(m *testing.M) {
 
 		s.AddSuite(&EnvironmentSuite{})
 		s.AddSuite(&ExpandSuite{})
+		s.AddSuite(&FilesSuite{})
 		s.AddSuite(&MergeSuite{})
 	})
 }

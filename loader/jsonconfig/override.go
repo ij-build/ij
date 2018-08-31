@@ -7,11 +7,12 @@ import (
 )
 
 type Override struct {
-	Options     *Options          `json:"options"`
-	Registries  []json.RawMessage `json:"registries"`
-	Environment json.RawMessage   `json:"environment"`
-	Import      *FileList         `json:"import"`
-	Export      *FileList         `json:"export"`
+	Options          *Options          `json:"options"`
+	Registries       []json.RawMessage `json:"registries"`
+	Environment      json.RawMessage   `json:"environment"`
+	EnvironmentFiles json.RawMessage   `json:"env_file"`
+	Import           *FileList         `json:"import"`
+	Export           *FileList         `json:"export"`
 }
 
 func (o *Override) Translate() (*config.Override, error) {
@@ -35,6 +36,11 @@ func (o *Override) Translate() (*config.Override, error) {
 		return nil, err
 	}
 
+	environmentFiles, err := unmarshalStringList(o.EnvironmentFiles)
+	if err != nil {
+		return nil, err
+	}
+
 	importList, err := o.Import.Translate()
 	if err != nil {
 		return nil, err
@@ -46,10 +52,11 @@ func (o *Override) Translate() (*config.Override, error) {
 	}
 
 	return &config.Override{
-		Options:        options,
-		Registries:     registries,
-		Environment:    environment,
-		ImportExcludes: importList.Excludes,
-		ExportExcludes: exportList.Excludes,
+		Options:          options,
+		Registries:       registries,
+		Environment:      environment,
+		EnvironmentFiles: environmentFiles,
+		ImportExcludes:   importList.Excludes,
+		ExportExcludes:   exportList.Excludes,
 	}, nil
 }

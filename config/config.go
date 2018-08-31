@@ -7,16 +7,17 @@ import (
 
 type (
 	Config struct {
-		Extends     string
-		Options     *Options
-		Registries  []Registry
-		Workspace   string
-		Environment []string
-		Import      *FileList
-		Export      *FileList
-		Tasks       map[string]Task
-		Plans       map[string]*Plan
-		Metaplans   map[string][]string
+		Extends          string
+		Options          *Options
+		Registries       []Registry
+		Workspace        string
+		Environment      []string
+		EnvironmentFiles []string
+		Import           *FileList
+		Export           *FileList
+		Tasks            map[string]Task
+		Plans            map[string]*Plan
+		Metaplans        map[string][]string
 	}
 
 	Options struct {
@@ -31,11 +32,12 @@ type (
 	}
 
 	Override struct {
-		Options        *Options
-		Registries     []Registry
-		Environment    []string
-		ImportExcludes []string
-		ExportExcludes []string
+		Options          *Options
+		Registries       []Registry
+		Environment      []string
+		EnvironmentFiles []string
+		ImportExcludes   []string
+		ExportExcludes   []string
 	}
 )
 
@@ -43,6 +45,7 @@ func (c *Config) Merge(child *Config) error {
 	c.Options.Merge(child.Options)
 	c.Registries = append(c.Registries, child.Registries...)
 	c.Environment = append(c.Environment, child.Environment...)
+	c.EnvironmentFiles = append(c.EnvironmentFiles, child.EnvironmentFiles...)
 	c.Import.Merge(child.Import)
 	c.Export.Merge(child.Export)
 
@@ -97,6 +100,7 @@ func (c *Config) ApplyOverride(override *Override) {
 	c.Options.Merge(override.Options)
 	c.Registries = append(c.Registries, override.Registries...)
 	c.Environment = append(c.Environment, override.Environment...)
+	c.EnvironmentFiles = append(c.EnvironmentFiles, override.EnvironmentFiles...)
 	c.Import.Excludes = append(c.Import.Excludes, override.ImportExcludes...)
 	c.Export.Excludes = append(c.Export.Excludes, override.ExportExcludes...)
 }

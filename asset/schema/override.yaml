@@ -32,6 +32,8 @@ properties:
       type: object
   environment:
     $ref: '#/definitions/stringOrList'
+  env_file:
+    $ref: '#/definitions/stringOrList'
   import:
     $ref: '#/definitions/fileList'
   export:
