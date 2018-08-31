@@ -1,5 +1,5 @@
 <p align="center">
-    <img width="100" src="https://github.com/efritz/ij/blob/master/images/ij.svg" alt="IJ logo">
+    <img width="100" src="https://github.com/efritz/ij/blob/master/ij.svg" alt="IJ logo">
 </p>
 
 <p align="center">
