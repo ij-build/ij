@@ -52,7 +52,7 @@ func (s *ECRSuite) TestLogin(t sweet.T) {
 		"-e", "AWS_ACCOUNT_ID=testAccountID",
 		"-e", "AWS_REGION=testRegion",
 		"-e", "AWS_ROLE=testRole",
-		"ecr-token",
+		"efritz/ij-ecr-token:latest",
 	}))
 
 	Expect(runner.RunFuncCallCount()).To(Equal(1))
@@ -115,7 +115,7 @@ func (s *ECRSuite) TestLoginMappedEnvironment(t sweet.T) {
 		"-e", "AWS_ACCOUNT_ID=testAccountID",
 		"-e", "AWS_REGION=testRegion",
 		"-e", "AWS_ROLE=testRole",
-		"ecr-token",
+		"efritz/ij-ecr-token:latest",
 	}))
 
 	Expect(runner.RunFuncCallCount()).To(Equal(1))

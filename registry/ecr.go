@@ -29,7 +29,10 @@ type (
 	}
 )
 
-const ECRServerFormat = "https://%s.dkr.ecr.%s.amazonaws.com"
+const (
+	ECRServerFormat = "https://%s.dkr.ecr.%s.amazonaws.com"
+	ECRTokenImage   = "efritz/ij-ecr-token:latest"
+)
 
 func NewECRLogin(
 	ctx context.Context,
@@ -162,7 +165,7 @@ func getAWSToken(
 	}
 
 	args = append(args, credentials.Env()...)
-	args = append(args, "ecr-token")
+	args = append(args, ECRTokenImage)
 
 	token, stderr, err := runner.RunForOutput(
 		ctx,
