@@ -14,6 +14,7 @@ func (s *FilesSuite) TestNormalizeEnvironmentFile(t sweet.T) {
 	Y=2
 
 	Z=3
+	lower_case_guy=4
 	`)
 
 	Expect(err).To(BeNil())
@@ -21,6 +22,7 @@ func (s *FilesSuite) TestNormalizeEnvironmentFile(t sweet.T) {
 		"X=1",
 		"Y=2",
 		"Z=3",
+		"LOWER_CASE_GUY=4",
 	}))
 }
 

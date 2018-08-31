@@ -21,7 +21,13 @@ func NormalizeEnvironmentFile(text string) ([]string, error) {
 			)
 		}
 
-		lines = append(lines, line)
+		name, value := split(line)
+
+		lines = append(lines, fmt.Sprintf(
+			"%s=%s",
+			strings.ToUpper(name),
+			value,
+		))
 	}
 
 	return lines, nil

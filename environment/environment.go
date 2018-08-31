@@ -2,9 +2,7 @@ package environment
 
 import (
 	"fmt"
-	"os"
 	"sort"
-	"strings"
 )
 
 type Environment map[string]string
@@ -36,15 +34,4 @@ func (e Environment) Serialize() []string {
 	}
 
 	return lines
-}
-
-//
-// Helpers
-
-func split(value string) (string, string) {
-	if parts := strings.SplitN(value, "=", 2); len(parts) == 2 {
-		return parts[0], parts[1]
-	}
-
-	return value, os.Getenv(value)
 }
