@@ -102,40 +102,6 @@ func runMain() bool {
 }
 
 func runRun(cfg *config.Config) bool {
-	cfg.ApplyOverride(&config.Override{
-		Options: &config.Options{
-			SSHIdentities:       *sshIdentities,
-			ForceSequential:     *forceSequential,
-			HealthcheckInterval: *healthcheckInterval,
-		},
-		EnvironmentFiles: *envFiles,
-	})
-
-	envFromFile := []string{}
-	for _, path := range cfg.EnvironmentFiles {
-		content, err := ioutil.ReadFile(path)
-		if err != nil {
-			logging.EmergencyLog(
-				"error: failed to read environment file: %s",
-				err.Error(),
-			)
-
-			return false
-		}
-
-		lines, err := environment.NormalizeEnvironmentFile(string(content))
-		if err != nil {
-			logging.EmergencyLog(
-				"error: failed to read environment file: %s",
-				err.Error(),
-			)
-
-			return false
-		}
-
-		envFromFile = append(envFromFile, lines...)
-	}
-
 	enableSSHAgent, err := ssh.EnsureKeysAvailable(
 		cfg.Options.SSHIdentities,
 	)
@@ -155,7 +121,7 @@ func runRun(cfg *config.Config) bool {
 		*colorize,
 		*cpuShares,
 		enableSSHAgent,
-		append(envFromFile, *env...),
+		*env,
 		*keepWorkspace,
 		*loginForPlan,
 		*memory,
@@ -201,6 +167,7 @@ func withRegistrySet(config *config.Config, f func(*registry.RegistrySet, loggin
 	)
 
 	registryEnv := environment.Merge(
+		environment.Default(),
 		environment.New(config.Environment),
 		environment.New(*env),
 	)
@@ -250,7 +217,7 @@ func parseArgs() (string, error) {
 func loadConfig() (*config.Config, bool) {
 	loader := loader.NewLoader()
 
-	config, err := loader.Load(*configPath)
+	cfg, err := loader.Load(*configPath)
 	if err != nil {
 		logging.EmergencyLog(
 			"error: failed to load config: %s",
@@ -268,10 +235,9 @@ func loadConfig() (*config.Config, bool) {
 		)
 
 		return nil, false
-
 	}
 
-	if err := loader.ApplyOverrides(config, overridePaths); err != nil {
+	if err := loader.ApplyOverrides(cfg, overridePaths); err != nil {
 		logging.EmergencyLog(
 			"error: failed to apply overrides: %s",
 			err.Error(),
@@ -280,7 +246,43 @@ func loadConfig() (*config.Config, bool) {
 		return nil, false
 	}
 
-	if err := config.Resolve(); err != nil {
+	cfg.ApplyOverride(&config.Override{
+		Options: &config.Options{
+			SSHIdentities:       *sshIdentities,
+			ForceSequential:     *forceSequential,
+			HealthcheckInterval: *healthcheckInterval,
+		},
+		EnvironmentFiles: *envFiles,
+	})
+
+	envFromFile := []string{}
+	for _, path := range cfg.EnvironmentFiles {
+		content, err := ioutil.ReadFile(path)
+		if err != nil {
+			logging.EmergencyLog(
+				"error: failed to read environment file: %s",
+				err.Error(),
+			)
+
+			return nil, false
+		}
+
+		lines, err := environment.NormalizeEnvironmentFile(string(content))
+		if err != nil {
+			logging.EmergencyLog(
+				"error: failed to read environment file: %s",
+				err.Error(),
+			)
+
+			return nil, false
+		}
+
+		envFromFile = append(envFromFile, lines...)
+	}
+
+	*env = append(envFromFile, *env...)
+
+	if err := cfg.Resolve(); err != nil {
 		logging.EmergencyLog(
 			"error: failed to resolve config: %s",
 			err.Error(),
@@ -289,7 +291,7 @@ func loadConfig() (*config.Config, bool) {
 		return nil, false
 	}
 
-	if err := config.Validate(); err != nil {
+	if err := cfg.Validate(); err != nil {
 		logging.EmergencyLog(
 			"error: failed to validate config: %s",
 			err.Error(),
@@ -299,7 +301,7 @@ func loadConfig() (*config.Config, bool) {
 	}
 
 	for _, name := range *plans {
-		if !config.IsPlanDefined(name) {
+		if !cfg.IsPlanDefined(name) {
 			logging.EmergencyLog(
 				"error: unknown plan %s",
 				name,
@@ -309,7 +311,7 @@ func loadConfig() (*config.Config, bool) {
 		}
 	}
 
-	return config, true
+	return cfg, true
 }
 
 func getOverridePaths() ([]string, error) {
