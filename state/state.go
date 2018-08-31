@@ -160,7 +160,6 @@ func NewState(
 
 	if login {
 		registryEnv := environment.Merge(
-			environment.Default(),
 			environment.New(s.Config.Environment),
 			environment.New(s.Env),
 		)

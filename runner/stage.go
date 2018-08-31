@@ -92,7 +92,6 @@ func (r *StageRunner) buildEnvironment(
 	task config.Task,
 ) environment.Environment {
 	return environment.Merge(
-		environment.Default(),
 		environment.New(r.state.Config.Environment),
 		environment.New(task.GetEnvironment()),
 		environment.New(r.plan.Environment),
