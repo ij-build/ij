@@ -15,6 +15,7 @@ type (
 		project   string
 		scratch   string
 		workspace string
+		logger    logging.Logger
 		copier    *Copier
 	}
 
@@ -39,6 +40,7 @@ func NewTransferer(
 		project:   project,
 		scratch:   scratch,
 		workspace: workspace,
+		logger:    logger,
 		copier:    NewCopier(logger, project),
 	}
 }
@@ -49,7 +51,7 @@ func (t *Transferer) Import(patterns, blacklistPatterns []string) error {
 		return err
 	}
 
-	return runOnPatterns(patterns, t.project, true, true, func(pair filePair) error {
+	return runOnPatterns(patterns, t.project, true, t.logger, func(pair filePair) error {
 		return t.transferPath(pair.src, pair.dest, t.project, t.workspace, blacklist, "import")
 	})
 }
@@ -60,7 +62,7 @@ func (t *Transferer) Export(patterns, blacklistPatterns []string) error {
 		return err
 	}
 
-	return runOnPatterns(patterns, t.workspace, true, true, func(pair filePair) error {
+	return runOnPatterns(patterns, t.workspace, true, t.logger, func(pair filePair) error {
 		return t.transferPath(pair.src, pair.dest, t.workspace, t.project, blacklist, "export")
 	})
 }
@@ -114,7 +116,7 @@ func constructBlacklist(root string, patterns []string) (map[string]struct{}, er
 		allPatterns = append(DefaultBlacklist, patterns...)
 	)
 
-	err := runOnPatterns(allPatterns, root, false, false, func(pair filePair) error {
+	err := runOnPatterns(allPatterns, root, false, logging.NilLogger, func(pair filePair) error {
 		blacklist[pair.src] = struct{}{}
 		return nil
 	})
@@ -130,11 +132,11 @@ func runOnPatterns(
 	patterns []string,
 	root string,
 	split bool,
-	strict bool,
+	logger logging.Logger,
 	target func(filePair) error,
 ) error {
 	for _, pattern := range patterns {
-		if err := runOnPattern(pattern, root, split, strict, target); err != nil {
+		if err := runOnPattern(pattern, root, split, logger, target); err != nil {
 			return err
 		}
 	}
@@ -146,7 +148,7 @@ func runOnPattern(
 	pattern string,
 	root string,
 	split bool,
-	strict bool,
+	logger logging.Logger,
 	target func(filePair) error,
 ) error {
 	if strings.Contains(pattern, ":") {
@@ -160,7 +162,7 @@ func runOnPattern(
 		return runOnSplitPattern(pattern, root, target)
 	}
 
-	return runOnGlobPattern(pattern, root, strict, target)
+	return runOnGlobPattern(pattern, root, logger, target)
 }
 
 func runOnSplitPattern(
@@ -179,19 +181,29 @@ func runOnSplitPattern(
 func runOnGlobPattern(
 	pattern string,
 	root string,
-	strict bool,
+	logger logging.Logger,
 	target func(filePair) error,
 ) error {
 	paths, err := zglob.Glob(filepath.Join(root, pattern))
 	if err != nil {
-		if err == os.ErrNotExist && !strict {
+		if err == os.ErrNotExist {
+			logger.Warn(
+				nil,
+				"no files matched the pattern '%s'",
+				pattern,
+			)
+
 			return nil
 		}
 
-		return fmt.Errorf(
-			"failed to glob pattern %s: %s",
+		return err
+	}
+
+	if len(paths) == 0 {
+		logger.Warn(
+			nil,
+			"no files matched the pattern '%s'",
 			pattern,
-			err.Error(),
 		)
 	}
 

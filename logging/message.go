@@ -24,6 +24,7 @@ type (
 const (
 	LevelDebug LogLevel = iota
 	LevelInfo
+	LevelWarn
 	LevelError
 )
 

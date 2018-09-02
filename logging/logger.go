@@ -8,6 +8,7 @@ type (
 	Logger interface {
 		Debug(prefix *Prefix, format string, args ...interface{})
 		Info(prefix *Prefix, format string, args ...interface{})
+		Warn(prefix *Prefix, format string, args ...interface{})
 		Error(prefix *Prefix, format string, args ...interface{})
 	}
 
@@ -57,6 +58,10 @@ func (l *logger) Info(prefix *Prefix, format string, args ...interface{}) {
 	l.enqueue(LevelInfo, prefix, format, args)
 }
 
+func (l *logger) Warn(prefix *Prefix, format string, args ...interface{}) {
+	l.enqueue(LevelWarn, prefix, format, args)
+}
+
 func (l *logger) Error(prefix *Prefix, format string, args ...interface{}) {
 	l.enqueue(LevelError, prefix, format, args)
 }
@@ -86,4 +91,5 @@ func (l *logger) getTargets(level LogLevel) (io.Writer, io.Writer) {
 
 func (l *nilLogger) Debug(*Prefix, string, ...interface{}) {}
 func (l *nilLogger) Info(*Prefix, string, ...interface{})  {}
+func (l *nilLogger) Warn(*Prefix, string, ...interface{})  {}
 func (l *nilLogger) Error(*Prefix, string, ...interface{}) {}

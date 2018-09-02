@@ -50,6 +50,8 @@ func (r *PlanRunner) Run() bool {
 		r.state.Logger,
 	)
 
+	r.state.Logger.Info(nil, "Importing files to workspace")
+
 	importErr := transferer.Import(
 		r.state.Config.Import.Files,
 		r.state.Config.Import.Excludes,
@@ -75,6 +77,8 @@ func (r *PlanRunner) Run() bool {
 	if failure {
 		return false
 	}
+
+	r.state.Logger.Info(nil, "Exporting files from workspace")
 
 	exportErr := transferer.Export(
 		r.state.Config.Export.Files,

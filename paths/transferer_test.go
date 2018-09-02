@@ -191,7 +191,7 @@ func (s *TransfererSuite) TestConstructBlacklist(t sweet.T) {
 }
 
 func (s *TransfererSuite) TestRunOnPatternIllegal(t sweet.T) {
-	err := runOnPattern("foo/*:bar", "", false, false, func(_ filePair) error { return nil })
+	err := runOnPattern("foo/*:bar", "", false, logging.NilLogger, func(_ filePair) error { return nil })
 	Expect(err).NotTo(BeNil())
 	Expect(err.Error()).To(ContainSubstring("illegal pattern"))
 }
@@ -234,7 +234,7 @@ func (s *TransfererSuite) TestRunOnGlobPattern(t sweet.T) {
 		path3 = filepath.Join(name, "c", "foo.txt")
 	)
 
-	err := runOnGlobPattern("**/foo.txt", name, false, func(fp filePair) error {
+	err := runOnGlobPattern("**/foo.txt", name, logging.NilLogger, func(fp filePair) error {
 		args = append(args, fp)
 		return nil
 	})
@@ -251,7 +251,7 @@ func (s *TransfererSuite) TestRunOnGlobPatternError(t sweet.T) {
 	name := buildTempDir(map[string]string{"a/foo.txt": ""})
 	defer os.RemoveAll(name)
 
-	err := runOnGlobPattern("**/foo.txt", name, false, func(fp filePair) error {
+	err := runOnGlobPattern("**/foo.txt", name, logging.NilLogger, func(fp filePair) error {
 		return fmt.Errorf("utoh")
 	})
 
@@ -263,24 +263,13 @@ func (s *TransfererSuite) TestRunOnGlobPatternNoMatches(t sweet.T) {
 	defer os.RemoveAll(name)
 
 	called := false
-	err := runOnGlobPattern("foo.txt", name, false, func(fp filePair) error {
+	err := runOnGlobPattern("foo.txt", name, logging.NilLogger, func(fp filePair) error {
 		called = true
 		return nil
 	})
 
 	Expect(err).To(BeNil())
 	Expect(called).To(BeFalse())
-}
-
-func (s *TransfererSuite) TestRunOnGlobPatternNoMatchesStrict(t sweet.T) {
-	name := buildTempDir(nil)
-	defer os.RemoveAll(name)
-
-	err := runOnGlobPattern("foo.txt", name, true, func(fp filePair) error {
-		return nil
-	})
-
-	Expect(err).NotTo(BeNil())
 }
 
 func (s *TransfererSuite) TestSplitPathImplicitDestination(t sweet.T) {

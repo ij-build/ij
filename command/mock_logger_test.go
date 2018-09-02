@@ -16,6 +16,8 @@ type MockLogger struct {
 	histError []LoggerErrorParamSet
 	InfoFunc  func(*logging.Prefix, string, ...interface{})
 	histInfo  []LoggerInfoParamSet
+	WarnFunc  func(*logging.Prefix, string, ...interface{})
+	histWarn  []LoggerWarnParamSet
 	mutex     sync.RWMutex
 }
 type LoggerDebugParamSet struct {
@@ -33,12 +35,18 @@ type LoggerInfoParamSet struct {
 	Arg1 string
 	Arg2 []interface{}
 }
+type LoggerWarnParamSet struct {
+	Arg0 *logging.Prefix
+	Arg1 string
+	Arg2 []interface{}
+}
 
 func NewMockLogger() *MockLogger {
 	m := &MockLogger{}
 	m.DebugFunc = m.defaultDebugFunc
 	m.ErrorFunc = m.defaultErrorFunc
 	m.InfoFunc = m.defaultInfoFunc
+	m.WarnFunc = m.defaultWarnFunc
 	return m
 }
 func (m *MockLogger) Debug(v0 *logging.Prefix, v1 string, v2 ...interface{}) {
@@ -92,6 +100,23 @@ func (m *MockLogger) InfoFuncCallParams() []LoggerInfoParamSet {
 	return m.histInfo
 }
 
+func (m *MockLogger) Warn(v0 *logging.Prefix, v1 string, v2 ...interface{}) {
+	m.mutex.Lock()
+	m.histWarn = append(m.histWarn, LoggerWarnParamSet{v0, v1, v2})
+	m.mutex.Unlock()
+	m.WarnFunc(v0, v1, v2...)
+}
+func (m *MockLogger) WarnFuncCallCount() int {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return len(m.histWarn)
+}
+func (m *MockLogger) WarnFuncCallParams() []LoggerWarnParamSet {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return m.histWarn
+}
+
 func (m *MockLogger) defaultDebugFunc(v0 *logging.Prefix, v1 string, v2 ...interface{}) {
 	return
 }
@@ -99,5 +124,8 @@ func (m *MockLogger) defaultErrorFunc(v0 *logging.Prefix, v1 string, v2 ...inter
 	return
 }
 func (m *MockLogger) defaultInfoFunc(v0 *logging.Prefix, v1 string, v2 ...interface{}) {
+	return
+}
+func (m *MockLogger) defaultWarnFunc(v0 *logging.Prefix, v1 string, v2 ...interface{}) {
 	return
 }
