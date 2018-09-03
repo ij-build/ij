@@ -14,7 +14,6 @@ import (
 
 type State struct {
 	Config              *config.Config
-	Plans               []string
 	RunID               string
 	exportedEnv         []string
 	envMutex            sync.RWMutex
@@ -36,7 +35,6 @@ type State struct {
 
 func NewState(
 	config *config.Config,
-	plans []string,
 	colorize bool,
 	cpuShares string,
 	enableSSHAgent bool,
@@ -51,7 +49,6 @@ func NewState(
 
 	s = &State{
 		Config:         config,
-		Plans:          plans,
 		Env:            env,
 		CPUShares:      cpuShares,
 		EnableSSHAgent: enableSSHAgent,
@@ -61,40 +58,13 @@ func NewState(
 		Cleanup:        NewCleanup(),
 	}
 
-	//
-	// Generate a unique Run ID
-
-	if s.RunID, err = util.MakeID(); err != nil {
-		logging.EmergencyLog(
-			"error: failed to generate run id: %s",
-			err.Error(),
-		)
-
+	if err = s.setupRunID(); err != nil {
 		return
 	}
 
-	//
-	// Generate a scratch directory
-
-	s.Scratch = NewScratchSpace(s.RunID, keepWorkspace)
-
-	if err = s.Scratch.Setup(); err != nil {
-		logging.EmergencyLog(
-			"error: failed to create scratch directory: %s",
-			err.Error(),
-		)
-
+	if err = s.setupScratch(keepWorkspace); err != nil {
 		return
 	}
-
-	s.Cleanup.Register(func() {
-		if err := s.Scratch.Prune(); err != nil {
-			logging.EmergencyLog(
-				"error: failed to clean up scratch directory: %s",
-				err.Error(),
-			)
-		}
-	})
 
 	// If any of the remaining initialization fails, we
 	// don't want to keep a scratch directory around so
@@ -114,9 +84,65 @@ func NewState(
 		}
 	}()
 
-	//
-	// Setup Logging and start log processor
+	if err = s.setupLogger(verbose, colorize); err != nil {
+		return
+	}
 
+	if err = s.setupContainerLists(); err != nil {
+		return
+	}
+
+	if err = s.setupRegistries(login); err != nil {
+		return
+	}
+
+	if err = s.setupNetwork(); err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *State) setupRunID() error {
+	id, err := util.MakeID()
+	if err != nil {
+		logging.EmergencyLog(
+			"error: failed to generate run id: %s",
+			err.Error(),
+		)
+
+		return err
+	}
+
+	s.RunID = id
+	return nil
+}
+
+func (s *State) setupScratch(keepWorkspace bool) error {
+	s.Scratch = NewScratchSpace(s.RunID, keepWorkspace)
+
+	if err := s.Scratch.Setup(); err != nil {
+		logging.EmergencyLog(
+			"error: failed to create scratch directory: %s",
+			err.Error(),
+		)
+
+		return err
+	}
+
+	s.Cleanup.Register(func() {
+		if err := s.Scratch.Prune(); err != nil {
+			logging.EmergencyLog(
+				"error: failed to clean up scratch directory: %s",
+				err.Error(),
+			)
+		}
+	})
+
+	return nil
+}
+
+func (s *State) setupLogger(verbose, colorize bool) error {
 	s.LogProcessor = logging.NewProcessor(verbose, colorize)
 	s.LogProcessor.Start()
 	s.Cleanup.Register(s.LogProcessor.Shutdown)
@@ -131,7 +157,7 @@ func NewState(
 			err.Error(),
 		)
 
-		return nil, err
+		return err
 	}
 
 	s.Logger = s.LogProcessor.Logger(
@@ -140,9 +166,10 @@ func NewState(
 		true,
 	)
 
-	//
-	// Create Container Lists
+	return nil
+}
 
+func (s *State) setupContainerLists() error {
 	s.ContainerStopper = NewContainerStopper(
 		s.Logger,
 	)
@@ -154,64 +181,64 @@ func NewState(
 
 	s.Cleanup.Register(s.ContainerStopper.Execute)
 	s.Cleanup.Register(s.NetworkDisconnector.Execute)
+	return nil
+}
 
-	//
-	// Login to Registries
-
-	if login {
-		registryEnv := environment.Merge(
-			environment.New(s.Config.Environment),
-			environment.New(s.Env),
-		)
-
-		registrySet, setupErr := registry.NewRegistrySet(
-			s.Context,
-			s.Logger,
-			registryEnv,
-			s.Config.Registries,
-		)
-
-		if setupErr != nil {
-			s.ReportError(
-				nil,
-				"error: failed to resolve registries: %s",
-				err.Error(),
-			)
-
-			err = setupErr
-			return
-		}
-
-		if err = registrySet.Login(); err != nil {
-			s.ReportError(
-				nil,
-				"error: failed to log into registries: %s",
-				err.Error(),
-			)
-
-			return
-		}
-
-		s.Cleanup.Register(registrySet.Logout)
+func (s *State) setupRegistries(login bool) error {
+	if !login {
+		return nil
 	}
 
-	//
-	// Create Network
+	registryEnv := environment.Merge(
+		environment.New(s.Config.Environment),
+		environment.New(s.Env),
+	)
 
-	network, networkErr := NewNetwork(s.Context, s.RunID, s.Logger)
-	if networkErr != nil {
+	registrySet, err := registry.NewRegistrySet(
+		s.Context,
+		s.Logger,
+		registryEnv,
+		s.Config.Registries,
+	)
+
+	if err != nil {
+		s.ReportError(
+			nil,
+			"error: failed to resolve registries: %s",
+			err.Error(),
+		)
+
+		return err
+	}
+
+	if err = registrySet.Login(); err != nil {
+		s.ReportError(
+			nil,
+			"error: failed to log into registries: %s",
+			err.Error(),
+		)
+
+		return err
+	}
+
+	s.Cleanup.Register(registrySet.Logout)
+	return nil
+}
+
+func (s *State) setupNetwork() error {
+	network, err := NewNetwork(s.Context, s.RunID, s.Logger)
+	if err != nil {
 		s.ReportError(
 			nil,
 			"error: failed to create network: %s",
 			err.Error(),
 		)
 
-		err = networkErr
-		return
+		return err
 	}
 
 	s.Cleanup.Register(network.Teardown)
-	return
+	return nil
 }
 
 func (s *State) ExportEnv(line string) {
@@ -230,6 +257,15 @@ func (s *State) GetExportedEnv() []string {
 	}
 
 	return s.exportedEnv
+}
+
+func (s *State) BuildEnv(envs ...environment.Environment) environment.Environment {
+	return environment.Merge(
+		environment.New(s.Config.Environment),
+		environment.Merge(envs...),
+		environment.New(s.GetExportedEnv()),
+		environment.New(s.Env),
+	)
 }
 
 func (s *State) ReportError(
