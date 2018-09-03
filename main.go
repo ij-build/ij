@@ -67,7 +67,6 @@ func runRun(cfg *config.Config) bool {
 
 	state, err := state.NewState(
 		cfg,
-		*plans,
 		*colorize,
 		*cpuShares,
 		enableSSHAgent,
@@ -83,7 +82,7 @@ func runRun(cfg *config.Config) bool {
 		return false
 	}
 
-	return runner.NewPlanRunner(state).Run()
+	return runner.NewRunner(state, *plans).Run()
 }
 
 func runLogin(config *config.Config) bool {

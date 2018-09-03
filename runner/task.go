@@ -7,8 +7,8 @@ import (
 )
 
 type (
-	Runner interface {
-		Run() bool
+	TaskRunner interface {
+		Run(*RunContext) bool
 	}
 
 	baseRunner struct {
@@ -25,7 +25,7 @@ func NewBaseRunner(
 	state *state.State,
 	prefix *logging.Prefix,
 	factory BuilderSetFactory,
-) Runner {
+) TaskRunner {
 	return &baseRunner{
 		state:   state,
 		prefix:  prefix,
@@ -33,7 +33,7 @@ func NewBaseRunner(
 	}
 }
 
-func (r *baseRunner) Run() bool {
+func (r *baseRunner) Run(context *RunContext) bool {
 	r.state.Logger.Info(
 		r.prefix,
 		"Beginning task",

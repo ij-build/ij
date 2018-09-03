@@ -1,22 +1,12 @@
 package runner
 
 import (
-	"os"
-	"os/signal"
-	"syscall"
-
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/paths"
 	"github.com/efritz/ij/state"
 )
 
 type PlanRunner struct {
 	state *state.State
-}
-
-var shutdownSignals = []syscall.Signal{
-	syscall.SIGINT,
-	syscall.SIGTERM,
 }
 
 func NewPlanRunner(state *state.State) *PlanRunner {
@@ -25,101 +15,10 @@ func NewPlanRunner(state *state.State) *PlanRunner {
 	}
 }
 
-func (r *PlanRunner) Run() bool {
-	r.state.Logger.Info(
-		nil,
-		"Beginning run %s",
-		r.state.RunID,
-	)
-
-	go r.watchSignals()
-	defer r.state.Cleanup.Cleanup()
-
-	defer func() {
-		r.state.Logger.Info(
-			nil,
-			"Finished run %s",
-			r.state.RunID,
-		)
-	}()
-
-	transferer := paths.NewTransferer(
-		r.state.Scratch.Project(),
-		r.state.Scratch.Scratch(),
-		r.state.Scratch.Workspace(),
-		r.state.Logger,
-	)
-
-	r.state.Logger.Info(nil, "Importing files to workspace")
-
-	importErr := transferer.Import(
-		r.state.Config.Import.Files,
-		r.state.Config.Import.Excludes,
-	)
-
-	if importErr != nil {
-		r.state.Logger.Error(
-			nil,
-			"Failed to import files to workspace: %s",
-			importErr.Error(),
-		)
-
-		return false
-	}
-
-	failure := false
-	for _, name := range r.state.Plans {
-		if !r.runPlanOrMetaplan(name, logging.NewPrefix(), failure) {
-			failure = true
-		}
-	}
-
-	if failure {
-		return false
-	}
-
-	r.state.Logger.Info(nil, "Exporting files from workspace")
-
-	exportErr := transferer.Export(
-		r.state.Config.Export.Files,
-		r.state.Config.Export.Excludes,
-	)
-
-	if exportErr != nil {
-		r.state.Logger.Error(
-			nil,
-			"Failed to export files from workspace: %s",
-			exportErr.Error(),
-		)
-
-		return false
-	}
-
-	return true
-}
-
-func (r *PlanRunner) watchSignals() {
-	signals := make(chan os.Signal, 1)
-
-	for _, s := range shutdownSignals {
-		signal.Notify(signals, s)
-	}
-
-	for range signals {
-		r.state.Logger.Error(
-			nil,
-			"Received signal",
-		)
-
-		r.state.Cancel()
-		return
-	}
-}
-
-func (r *PlanRunner) runPlanOrMetaplan(
+func (r *PlanRunner) Run(
 	name string,
 	prefix *logging.Prefix,
-	failure bool,
+	context *RunContext,
 ) bool {
 	prefix = prefix.Append(name)
 
@@ -128,23 +27,29 @@ func (r *PlanRunner) runPlanOrMetaplan(
 		"Beginning plan",
 	)
 
-	// Stash this so we know if we failed due to a new
-	// error or to a failure of a previously failed plan.
-	previousFailure := failure
+	failure := context.Failure
 
 	if plans, ok := r.state.Config.Metaplans[name]; ok {
 		for _, plan := range plans {
-			if !r.runPlanOrMetaplan(plan, prefix.Append(plan), failure) {
+			result := r.Run(plan, prefix, &RunContext{
+				Failure:     failure,
+				Environment: context.Environment,
+			})
+
+			if !result {
 				failure = true
 			}
 		}
 	} else {
-		failure = !r.runPlan(name, prefix, failure)
+		failure = !r.runPlan(name, prefix, &RunContext{
+			Failure:     failure,
+			Environment: context.Environment,
+		})
 	}
 
 	if failure {
 		suffix := ""
-		if previousFailure {
+		if context.Failure {
 			suffix = " (due to previous failure)"
 		}
 
@@ -166,14 +71,17 @@ func (r *PlanRunner) runPlanOrMetaplan(
 func (r *PlanRunner) runPlan(
 	name string,
 	prefix *logging.Prefix,
-	failure bool,
+	context *RunContext,
 ) bool {
-	plan := r.state.Config.Plans[name]
+	var (
+		plan    = r.state.Config.Plans[name]
+		failure = context.Failure
+	)
 
 	for _, stage := range plan.Stages {
 		stagePrefix := prefix.Append(stage.Name)
 
-		if !stage.ShouldRun(failure) {
+		if !stage.ShouldRun(context.Failure) {
 			r.state.Logger.Info(
 				stagePrefix,
 				"Skipping stage",
@@ -182,7 +90,13 @@ func (r *PlanRunner) runPlan(
 			continue
 		}
 
-		if !NewStageRunner(r.state, plan, stage, stagePrefix).Run() {
+		runner := NewStageRunner(r.state, plan, stage, stagePrefix)
+		newContext := &RunContext{
+			Failure:     failure,
+			Environment: context.Environment,
+		}
+
+		if !runner.Run(newContext) {
 			r.state.Logger.Error(
 				stagePrefix,
 				"Stage failed",

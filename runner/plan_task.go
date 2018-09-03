@@ -21,7 +21,7 @@ func NewPlanTaskRunner(
 	task *config.PlanTask,
 	prefix *logging.Prefix,
 	env environment.Environment,
-) Runner {
+) TaskRunner {
 	return &planTaskRunner{
 		state:  state,
 		task:   task,
@@ -30,7 +30,7 @@ func NewPlanTaskRunner(
 	}
 }
 
-func (r *planTaskRunner) Run() bool {
+func (r *planTaskRunner) Run(context *RunContext) bool {
 	r.state.Logger.Info(
 		r.prefix,
 		"Beginning task",
@@ -45,11 +45,12 @@ func (r *planTaskRunner) Run() bool {
 		return false
 	}
 
-	// TODO - add environment
-
-	return NewPlanRunner(r.state).runPlanOrMetaplan(
+	return NewPlanRunner(r.state).Run(
 		r.task.Name,
 		r.prefix,
-		false, // TODO - how to get failure state?
+		&RunContext{
+			Failure:     context.Failure,
+			Environment: r.env,
+		},
 	)
 }

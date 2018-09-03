@@ -13,7 +13,7 @@ func NewRemoveTaskRunner(
 	task *config.RemoveTask,
 	prefix *logging.Prefix,
 	env environment.Environment,
-) Runner {
+) TaskRunner {
 	return NewBaseRunner(
 		state,
 		prefix,

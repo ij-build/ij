@@ -46,7 +46,7 @@ func NewRunTaskRunner(
 	task *config.RunTask,
 	prefix *logging.Prefix,
 	env environment.Environment,
-) Runner {
+) TaskRunner {
 	return &runTaskRunner{
 		state:  state,
 		task:   task,
@@ -55,7 +55,7 @@ func NewRunTaskRunner(
 	}
 }
 
-func (r *runTaskRunner) Run() bool {
+func (r *runTaskRunner) Run(context *RunContext) bool {
 	r.state.Logger.Info(
 		r.prefix,
 		"Beginning task",

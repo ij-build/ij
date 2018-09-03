@@ -19,7 +19,7 @@ func NewBuildTaskRunner(
 	task *config.BuildTask,
 	prefix *logging.Prefix,
 	env environment.Environment,
-) Runner {
+) TaskRunner {
 	factory := buildTaskCommandFactory(
 		state,
 		task,

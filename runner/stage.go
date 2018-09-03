@@ -18,7 +18,7 @@ type (
 		prefix *logging.Prefix
 	}
 
-	RunnerFunc func() bool
+	TaskRunnerFunc func() bool
 )
 
 func NewStageRunner(
@@ -35,18 +35,19 @@ func NewStageRunner(
 	}
 }
 
-func (r *StageRunner) Run() bool {
+func (r *StageRunner) Run(context *RunContext) bool {
 	r.state.Logger.Info(
 		r.prefix,
 		"Beginning stage",
 	)
 
-	runners := []RunnerFunc{}
+	runners := []TaskRunnerFunc{}
 	for i, stageTask := range r.stage.Tasks {
-		runners = append(runners, r.buildRunnerFunc(
+		runners = append(runners, r.buildTaskRunnerFunc(
 			stageTask,
 			i,
 			r.state.Config.Tasks[stageTask.Name],
+			context,
 		))
 	}
 
@@ -57,11 +58,12 @@ func (r *StageRunner) Run() bool {
 	return runParallel(runners)
 }
 
-func (r *StageRunner) buildRunnerFunc(
+func (r *StageRunner) buildTaskRunnerFunc(
 	stageTask *config.StageTask,
 	index int,
 	task config.Task,
-) RunnerFunc {
+	context *RunContext,
+) TaskRunnerFunc {
 	taskPrefix := r.prefix.Append(fmt.Sprintf(
 		"%s.%d",
 		task.GetName(),
@@ -69,7 +71,13 @@ func (r *StageRunner) buildRunnerFunc(
 	))
 
 	return func() bool {
-		if !r.buildRunner(task, taskPrefix, r.buildEnvironment(stageTask, task)).Run() {
+		runner := r.buildRunner(
+			task,
+			taskPrefix,
+			r.buildEnvironment(stageTask, context, task),
+		)
+
+		if !runner.Run(context) {
 			r.state.ReportError(
 				taskPrefix,
 				"Task has failed",
@@ -89,16 +97,15 @@ func (r *StageRunner) buildRunnerFunc(
 
 func (r *StageRunner) buildEnvironment(
 	stageTask *config.StageTask,
+	context *RunContext,
 	task config.Task,
 ) environment.Environment {
-	return environment.Merge(
-		environment.New(r.state.Config.Environment),
+	return r.state.BuildEnv(
 		environment.New(task.GetEnvironment()),
+		context.Environment,
 		environment.New(r.plan.Environment),
 		environment.New(r.stage.Environment),
 		environment.New(stageTask.Environment),
-		environment.New(r.state.GetExportedEnv()),
-		environment.New(r.state.Env),
 	)
 }
 
@@ -106,7 +113,7 @@ func (r *StageRunner) buildRunner(
 	task config.Task,
 	taskPrefix *logging.Prefix,
 	env environment.Environment,
-) Runner {
+) TaskRunner {
 	switch t := task.(type) {
 	case *config.BuildTask:
 		return NewBuildTaskRunner(r.state, t, taskPrefix, env)
@@ -126,7 +133,7 @@ func (r *StageRunner) buildRunner(
 //
 // Helpers
 
-func runSequential(runners []RunnerFunc) bool {
+func runSequential(runners []TaskRunnerFunc) bool {
 	for _, runner := range runners {
 		if !runner() {
 			return false
@@ -136,7 +143,7 @@ func runSequential(runners []RunnerFunc) bool {
 	return true
 }
 
-func runParallel(runners []RunnerFunc) bool {
+func runParallel(runners []TaskRunnerFunc) bool {
 	failures := make(chan bool, len(runners))
 	defer close(failures)
 
