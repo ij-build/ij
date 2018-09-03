@@ -12,6 +12,10 @@ func (t *PlanTask) GetType() string {
 	return "plan"
 }
 
+func (t *PlanTask) GetEnvironment() []string {
+	return t.Environment
+}
+
 func (t *PlanTask) Extend(task Task) error {
 	parent, ok := task.(*PlanTask)
 	if !ok {

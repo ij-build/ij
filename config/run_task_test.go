@@ -130,3 +130,12 @@ func (s *RunTaskSuite) TestExtendWrongType(t sweet.T) {
 
 	Expect(child.Extend(parent)).NotTo(BeNil())
 }
+
+func (s *RunTaskSuite) TestGetEnvironment(t sweet.T) {
+	task := &RunTask{
+		TaskMeta:    TaskMeta{Name: "task", Extends: ""},
+		Environment: []string{"env1", "env2", "env3"},
+	}
+
+	Expect(task.GetEnvironment()).To(Equal([]string{"env1", "env2", "env3"}))
+}
