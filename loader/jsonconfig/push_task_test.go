@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type PushSuite struct{}
+type PushTaskSuite struct{}
 
-func (s *PushSuite) TestTranslate(t sweet.T) {
+func (s *PushTaskSuite) TestTranslate(t sweet.T) {
 	task := &PushTask{
 		Extends: "parent",
 		Images:  json.RawMessage(`["i1", "i2", "i3"]`),
@@ -27,7 +27,7 @@ func (s *PushSuite) TestTranslate(t sweet.T) {
 	}))
 }
 
-func (s *PushSuite) TestTranslateStringLists(t sweet.T) {
+func (s *PushTaskSuite) TestTranslateStringLists(t sweet.T) {
 	task := &PushTask{
 		Extends: "parent",
 		Images:  json.RawMessage(`"i1"`),

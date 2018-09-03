@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type RemoveSuite struct{}
+type RemoveTaskSuite struct{}
 
-func (s *RemoveSuite) TestTranslate(t sweet.T) {
+func (s *RemoveTaskSuite) TestTranslate(t sweet.T) {
 	task := &RemoveTask{
 		Extends: "parent",
 		Images:  json.RawMessage(`["i1", "i2", "i3"]`),
@@ -27,7 +27,7 @@ func (s *RemoveSuite) TestTranslate(t sweet.T) {
 	}))
 }
 
-func (s *RemoveSuite) TestTranslateStringLists(t sweet.T) {
+func (s *RemoveTaskSuite) TestTranslateStringLists(t sweet.T) {
 	task := &RemoveTask{
 		Extends: "parent",
 		Images:  json.RawMessage(`"i1"`),

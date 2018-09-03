@@ -8,21 +8,21 @@ import (
 	"github.com/efritz/ij/state"
 )
 
-func NewPushCommandRunner(
+func NewRemoveTaskRunner(
 	state *state.State,
-	task *config.PushTask,
+	task *config.RemoveTask,
 	prefix *logging.Prefix,
 	env environment.Environment,
 ) Runner {
 	return NewBaseRunner(
 		state,
 		prefix,
-		makePushCommandFactory(task, env),
+		removeTaskComandFactory(task, env),
 	)
 }
 
-func makePushCommandFactory(
-	task *config.PushTask,
+func removeTaskComandFactory(
+	task *config.RemoveTask,
 	env environment.Environment,
 ) BuilderSetFactory {
 	return func() ([]*command.Builder, error) {
@@ -35,7 +35,7 @@ func makePushCommandFactory(
 		for _, image := range images {
 			builder := command.NewBuilder([]string{
 				"docker",
-				"push",
+				"remove",
 				image,
 			}, nil)
 

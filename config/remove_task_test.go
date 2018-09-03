@@ -5,15 +5,15 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type PushSuite struct{}
+type RemoveTaskSuite struct{}
 
-func (s *PushSuite) TestExtend(t sweet.T) {
-	parent := &PushTask{
+func (s *RemoveTaskSuite) TestExtend(t sweet.T) {
+	parent := &RemoveTask{
 		TaskMeta: TaskMeta{Name: "parent", Extends: ""},
 		Images:   []string{"parent-i1"},
 	}
 
-	child := &PushTask{
+	child := &RemoveTask{
 		TaskMeta: TaskMeta{Name: "child", Extends: "parent"},
 		Images:   []string{"child-i2", "child-i3"},
 	}
@@ -22,9 +22,9 @@ func (s *PushSuite) TestExtend(t sweet.T) {
 	Expect(child.Images).To(ConsistOf("parent-i1", "child-i2", "child-i3"))
 }
 
-func (s *PushSuite) TestExtendWrongType(t sweet.T) {
+func (s *RemoveTaskSuite) TestExtendWrongType(t sweet.T) {
 	parent := &RunTask{TaskMeta: TaskMeta{Name: "parent", Extends: ""}}
-	child := &PushTask{TaskMeta: TaskMeta{Name: "child", Extends: "parent"}}
+	child := &RemoveTask{TaskMeta: TaskMeta{Name: "child", Extends: "parent"}}
 
 	Expect(child.Extend(parent)).NotTo(BeNil())
 }

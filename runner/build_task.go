@@ -8,19 +8,19 @@ import (
 	"github.com/efritz/ij/state"
 )
 
-type buildCommandBuilderState struct {
+type buildTaskCommandBuilderState struct {
 	state *state.State
 	task  *config.BuildTask
 	env   environment.Environment
 }
 
-func NewBuildCommandRunner(
+func NewBuildTaskRunner(
 	state *state.State,
 	task *config.BuildTask,
 	prefix *logging.Prefix,
 	env environment.Environment,
 ) Runner {
-	factory := buildCommandFactory(
+	factory := buildTaskCommandFactory(
 		state,
 		task,
 		env,
@@ -33,13 +33,13 @@ func NewBuildCommandRunner(
 	)
 }
 
-func buildCommandFactory(
+func buildTaskCommandFactory(
 	state *state.State,
 	task *config.BuildTask,
 	env environment.Environment,
 ) BuilderFactory {
 	return func() (*command.Builder, error) {
-		s := &buildCommandBuilderState{
+		s := &buildTaskCommandBuilderState{
 			state: state,
 			task:  task,
 			env:   env,
@@ -60,12 +60,12 @@ func buildCommandFactory(
 	}
 }
 
-func (s *buildCommandBuilderState) addWorkspaceArg(cb *command.Builder) error {
+func (s *buildTaskCommandBuilderState) addWorkspaceArg(cb *command.Builder) error {
 	cb.AddArgs(s.state.Scratch.Workspace())
 	return nil
 }
 
-func (s *buildCommandBuilderState) addDockerfileOptions(cb *command.Builder) error {
+func (s *buildTaskCommandBuilderState) addDockerfileOptions(cb *command.Builder) error {
 	dockerfile, err := s.env.ExpandString(s.task.Dockerfile)
 	if err != nil {
 		return err
@@ -75,7 +75,7 @@ func (s *buildCommandBuilderState) addDockerfileOptions(cb *command.Builder) err
 	return nil
 }
 
-func (s *buildCommandBuilderState) addTagOptions(cb *command.Builder) error {
+func (s *buildTaskCommandBuilderState) addTagOptions(cb *command.Builder) error {
 	for _, tag := range s.task.Tags {
 		expanded, err := s.env.ExpandString(tag)
 		if err != nil {
@@ -88,7 +88,7 @@ func (s *buildCommandBuilderState) addTagOptions(cb *command.Builder) error {
 	return nil
 }
 
-func (s *buildCommandBuilderState) addLabelOptions(cb *command.Builder) error {
+func (s *buildTaskCommandBuilderState) addLabelOptions(cb *command.Builder) error {
 	for _, label := range s.task.Labels {
 		expanded, err := s.env.ExpandString(label)
 		if err != nil {

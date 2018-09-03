@@ -21,14 +21,14 @@ import (
 )
 
 type (
-	runCommandRunner struct {
+	runTaskRunner struct {
 		state  *state.State
 		task   *config.RunTask
 		prefix *logging.Prefix
 		env    environment.Environment
 	}
 
-	runCommandBuilderState struct {
+	runTaskCommandBuilderState struct {
 		state         *state.State
 		task          *config.RunTask
 		containerName string
@@ -41,21 +41,21 @@ const (
 	ScriptPath           = "/tmp/ij/script"
 )
 
-func NewRunCommandRunner(
+func NewRunTaskRunner(
 	state *state.State,
-	runTask *config.RunTask,
+	task *config.RunTask,
 	prefix *logging.Prefix,
 	env environment.Environment,
 ) Runner {
-	return &runCommandRunner{
+	return &runTaskRunner{
 		state:  state,
-		task:   runTask,
+		task:   task,
 		prefix: prefix,
 		env:    env,
 	}
 }
 
-func (r *runCommandRunner) Run() bool {
+func (r *runTaskRunner) Run() bool {
 	r.state.Logger.Info(
 		r.prefix,
 		"Beginning task",
@@ -93,7 +93,7 @@ func (r *runCommandRunner) Run() bool {
 		containerName,
 	)
 
-	builder, err := runCommandBuilderFactory(
+	builder, err := runTaskCommandBuilderFactory(
 		r.state,
 		r.task,
 		containerName,
@@ -128,7 +128,7 @@ func (r *runCommandRunner) Run() bool {
 	return r.runInBackground(containerName, args)
 }
 
-func (r *runCommandRunner) runInForeground(containerName string, args []string) bool {
+func (r *runTaskRunner) runInForeground(containerName string, args []string) bool {
 	outfile, errfile, err := r.state.Scratch.MakeLogFiles(
 		r.prefix.Serialize(logging.NilColorPicker),
 	)
@@ -172,7 +172,7 @@ func (r *runCommandRunner) runInForeground(containerName string, args []string) 
 	return r.exportEnvironmentFiles()
 }
 
-func (r *runCommandRunner) exportEnvironmentFiles() bool {
+func (r *runTaskRunner) exportEnvironmentFiles() bool {
 	paths, err := r.env.ExpandSlice(r.task.ExportEnvironmentFiles)
 	if err != nil {
 		r.state.ReportError(
@@ -193,7 +193,7 @@ func (r *runCommandRunner) exportEnvironmentFiles() bool {
 	return true
 }
 
-func (r *runCommandRunner) exportEnvironmentFile(path string) bool {
+func (r *runTaskRunner) exportEnvironmentFile(path string) bool {
 	realPath, err := filepath.Abs(filepath.Join(
 		r.state.Scratch.Workspace(),
 		path,
@@ -255,7 +255,7 @@ func (r *runCommandRunner) exportEnvironmentFile(path string) bool {
 	return true
 }
 
-func (r *runCommandRunner) runInBackground(containerName string, args []string) bool {
+func (r *runTaskRunner) runInBackground(containerName string, args []string) bool {
 	r.state.ContainerStopper.Add(containerName)
 
 	_, _, err := command.NewRunner(r.state.Logger).RunForOutput(
@@ -298,7 +298,7 @@ func (r *runCommandRunner) runInBackground(containerName string, args []string) 
 	return r.monitor(containerName)
 }
 
-func (r *runCommandRunner) monitor(containerName string) bool {
+func (r *runTaskRunner) monitor(containerName string) bool {
 	for {
 		status, err := getHealthStatus(
 			r.state.Context,
@@ -340,13 +340,13 @@ func (r *runCommandRunner) monitor(containerName string) bool {
 	}
 }
 
-func runCommandBuilderFactory(
+func runTaskCommandBuilderFactory(
 	state *state.State,
 	task *config.RunTask,
 	containerName string,
 	env environment.Environment,
 ) (*command.Builder, error) {
-	s := &runCommandBuilderState{
+	s := &runTaskCommandBuilderState{
 		state:         state,
 		task:          task,
 		containerName: containerName,
@@ -379,7 +379,7 @@ func runCommandBuilderFactory(
 //
 // Builders
 
-func (s *runCommandBuilderState) addImageArg(cb *command.Builder) error {
+func (s *runTaskCommandBuilderState) addImageArg(cb *command.Builder) error {
 	image, err := s.env.ExpandString(s.task.Image)
 	if err != nil {
 		return err
@@ -389,7 +389,7 @@ func (s *runCommandBuilderState) addImageArg(cb *command.Builder) error {
 	return nil
 }
 
-func (s *runCommandBuilderState) addCommandOptions(cb *command.Builder) error {
+func (s *runTaskCommandBuilderState) addCommandOptions(cb *command.Builder) error {
 	if s.task.Script != "" {
 		return nil
 	}
@@ -414,7 +414,7 @@ func (s *runCommandBuilderState) addCommandOptions(cb *command.Builder) error {
 	return nil
 }
 
-func (s *runCommandBuilderState) addContainerName(cb *command.Builder) error {
+func (s *runTaskCommandBuilderState) addContainerName(cb *command.Builder) error {
 	containerName, err := s.env.ExpandString(s.containerName)
 	if err != nil {
 		return err
@@ -424,7 +424,7 @@ func (s *runCommandBuilderState) addContainerName(cb *command.Builder) error {
 	return nil
 }
 
-func (s *runCommandBuilderState) addDetachOptions(cb *command.Builder) error {
+func (s *runTaskCommandBuilderState) addDetachOptions(cb *command.Builder) error {
 	if s.task.Detach {
 		cb.AddFlag("-d")
 	}
@@ -432,7 +432,7 @@ func (s *runCommandBuilderState) addDetachOptions(cb *command.Builder) error {
 	return nil
 }
 
-func (s *runCommandBuilderState) addEnvironmentOptions(cb *command.Builder) error {
+func (s *runTaskCommandBuilderState) addEnvironmentOptions(cb *command.Builder) error {
 	for _, line := range s.env.Serialize() {
 		expanded, err := s.env.ExpandString(line)
 		if err != nil {
@@ -445,7 +445,7 @@ func (s *runCommandBuilderState) addEnvironmentOptions(cb *command.Builder) erro
 	return nil
 }
 
-func (s *runCommandBuilderState) addHealthcheckOptions(cb *command.Builder) error {
+func (s *runTaskCommandBuilderState) addHealthcheckOptions(cb *command.Builder) error {
 	command, err := s.env.ExpandString(s.task.Healthcheck.Command)
 	if err != nil {
 		return err
@@ -466,13 +466,13 @@ func (s *runCommandBuilderState) addHealthcheckOptions(cb *command.Builder) erro
 	return nil
 }
 
-func (s *runCommandBuilderState) addLimitOptions(cb *command.Builder) error {
+func (s *runTaskCommandBuilderState) addLimitOptions(cb *command.Builder) error {
 	cb.AddFlagValue("--cpu-shares", s.state.CPUShares)
 	cb.AddFlagValue("--memory", s.state.Memory)
 	return nil
 }
 
-func (s *runCommandBuilderState) addNetworkOptions(cb *command.Builder) error {
+func (s *runTaskCommandBuilderState) addNetworkOptions(cb *command.Builder) error {
 	hostname, err := s.env.ExpandString(s.task.Hostname)
 	if err != nil {
 		return err
@@ -483,7 +483,7 @@ func (s *runCommandBuilderState) addNetworkOptions(cb *command.Builder) error {
 	return nil
 }
 
-func (s *runCommandBuilderState) addScriptOptions(cb *command.Builder) error {
+func (s *runTaskCommandBuilderState) addScriptOptions(cb *command.Builder) error {
 	if s.task.Script == "" {
 		return nil
 	}
@@ -519,7 +519,7 @@ func (s *runCommandBuilderState) addScriptOptions(cb *command.Builder) error {
 	return nil
 }
 
-func (s *runCommandBuilderState) addUserOptions(cb *command.Builder) error {
+func (s *runTaskCommandBuilderState) addUserOptions(cb *command.Builder) error {
 	user, err := user.Current()
 	if err != nil {
 		return err
@@ -536,7 +536,7 @@ func (s *runCommandBuilderState) addUserOptions(cb *command.Builder) error {
 	return nil
 }
 
-func (s *runCommandBuilderState) addSSHOptions(cb *command.Builder) error {
+func (s *runTaskCommandBuilderState) addSSHOptions(cb *command.Builder) error {
 	if !s.state.EnableSSHAgent {
 		return nil
 	}
@@ -547,7 +547,7 @@ func (s *runCommandBuilderState) addSSHOptions(cb *command.Builder) error {
 	return nil
 }
 
-func (s *runCommandBuilderState) addWorkspaceOptions(cb *command.Builder) error {
+func (s *runTaskCommandBuilderState) addWorkspaceOptions(cb *command.Builder) error {
 	workspace, err := s.env.ExpandString(s.task.Workspace)
 	if err != nil {
 		return err

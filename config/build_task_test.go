@@ -5,9 +5,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type BuildSuite struct{}
+type BuildTaskSuite struct{}
 
-func (s *BuildSuite) TestExtend(t sweet.T) {
+func (s *BuildTaskSuite) TestExtend(t sweet.T) {
 	parent := &BuildTask{
 		TaskMeta:   TaskMeta{Name: "parent", Extends: ""},
 		Dockerfile: "Dockerfile.parent",
@@ -31,7 +31,7 @@ func (s *BuildSuite) TestExtend(t sweet.T) {
 	Expect(child.Arguments).To(ConsistOf("parent-a1", "child-a2", "child-a3"))
 }
 
-func (s *BuildSuite) TestExtendNoOverwrite(t sweet.T) {
+func (s *BuildTaskSuite) TestExtendNoOverwrite(t sweet.T) {
 	parent := &BuildTask{
 		TaskMeta:   TaskMeta{Name: "parent", Extends: ""},
 		Dockerfile: "Dockerfile.parent",
@@ -45,7 +45,7 @@ func (s *BuildSuite) TestExtendNoOverwrite(t sweet.T) {
 	Expect(child.Dockerfile).To(Equal("Dockerfile.parent"))
 }
 
-func (s *BuildSuite) TestExtendWrongType(t sweet.T) {
+func (s *BuildTaskSuite) TestExtendWrongType(t sweet.T) {
 	parent := &RunTask{TaskMeta: TaskMeta{Name: "parent", Extends: ""}}
 	child := &BuildTask{TaskMeta: TaskMeta{Name: "child", Extends: "parent"}}
 

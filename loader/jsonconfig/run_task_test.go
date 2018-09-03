@@ -9,9 +9,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type RunSuite struct{}
+type RunTaskSuite struct{}
 
-func (s *RunSuite) TestTranslate(t sweet.T) {
+func (s *RunTaskSuite) TestTranslate(t sweet.T) {
 	task := &RunTask{
 		Extends:                "parent",
 		Image:                  "image",
@@ -52,7 +52,7 @@ func (s *RunSuite) TestTranslate(t sweet.T) {
 	}))
 }
 
-func (s *RunSuite) TestTranslateStringLists(t sweet.T) {
+func (s *RunTaskSuite) TestTranslateStringLists(t sweet.T) {
 	task := &RunTask{
 		Extends:                "parent",
 		Environment:            json.RawMessage(`"X=1"`),
@@ -72,7 +72,7 @@ func (s *RunSuite) TestTranslateStringLists(t sweet.T) {
 	}))
 }
 
-func (s *RunSuite) TestTranslateHealthcheck(t sweet.T) {
+func (s *RunTaskSuite) TestTranslateHealthcheck(t sweet.T) {
 	task := &RunTask{
 		Extends: "parent",
 		Healthcheck: &Healthcheck{

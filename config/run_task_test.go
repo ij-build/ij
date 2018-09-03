@@ -7,9 +7,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type RunSuite struct{}
+type RunTaskSuite struct{}
 
-func (s *RunSuite) TestExtend(t sweet.T) {
+func (s *RunTaskSuite) TestExtend(t sweet.T) {
 	parentHealthcheck := &Healthcheck{
 		Command:     "parent-command",
 		Interval:    time.Minute,
@@ -80,7 +80,7 @@ func (s *RunSuite) TestExtend(t sweet.T) {
 	Expect(child.ExportEnvironmentFiles).To(ConsistOf("parent-exp1", "child-exp1"))
 }
 
-func (s *RunSuite) TestExtendNoOverride(t sweet.T) {
+func (s *RunTaskSuite) TestExtendNoOverride(t sweet.T) {
 	parentHealthcheck := &Healthcheck{
 		Command:     "parent-command",
 		Interval:    time.Minute,
@@ -124,7 +124,7 @@ func (s *RunSuite) TestExtendNoOverride(t sweet.T) {
 	Expect(child.Healthcheck.StartPeriod).To(Equal(time.Minute))
 	Expect(child.Healthcheck.Timeout).To(Equal(time.Minute))
 }
-func (s *RunSuite) TestExtendWrongType(t sweet.T) {
+func (s *RunTaskSuite) TestExtendWrongType(t sweet.T) {
 	parent := &BuildTask{TaskMeta: TaskMeta{Name: "parent", Extends: ""}}
 	child := &RunTask{TaskMeta: TaskMeta{Name: "child", Extends: "parent"}}
 

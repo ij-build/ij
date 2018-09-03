@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type BuildSuite struct{}
+type BuildTaskSuite struct{}
 
-func (s *BuildSuite) TestTranslate(t sweet.T) {
+func (s *BuildTaskSuite) TestTranslate(t sweet.T) {
 	task := &BuildTask{
 		Extends:    "parent",
 		Dockerfile: "dockerfile",
@@ -33,7 +33,7 @@ func (s *BuildSuite) TestTranslate(t sweet.T) {
 	}))
 }
 
-func (s *BuildSuite) TestTranslateStringLists(t sweet.T) {
+func (s *BuildTaskSuite) TestTranslateStringLists(t sweet.T) {
 	task := &BuildTask{
 		Extends:    "parent",
 		Dockerfile: "dockerfile",
