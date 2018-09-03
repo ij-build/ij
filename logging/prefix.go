@@ -12,6 +12,10 @@ func NewPrefix(parts ...string) *Prefix {
 	}
 }
 
+func (p *Prefix) Len() int {
+	return len(p.parts)
+}
+
 func (p *Prefix) Append(part string) *Prefix {
 	parts := []string{}
 	for _, part := range p.parts {

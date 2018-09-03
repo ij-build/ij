@@ -45,10 +45,11 @@ func translateTask(
 	}
 
 	structMap := map[string]Task{
-		"run":    &RunTask{},
 		"build":  &BuildTask{},
+		"plan":   &PlanTask{},
 		"push":   &PushTask{},
 		"remove": &RemoveTask{},
+		"run":    &RunTask{},
 	}
 
 	task, ok := structMap[typeHint.Type]

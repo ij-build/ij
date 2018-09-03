@@ -1,0 +1,23 @@
+---
+
+definitions:
+  stringOrList:
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+
+type: object
+properties:
+  type:
+    type: string
+    enum:
+      - plan
+  extends:
+    type: string
+  name:
+    type: string
+  environment:
+    $ref: '#/definitions/stringOrList'
+additionalProperties: false

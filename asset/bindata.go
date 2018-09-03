@@ -8,6 +8,7 @@
 // schema/registry-gcr.yaml
 // schema/registry-server.yaml
 // schema/task-build.yaml
+// schema/task-plan.yaml
 // schema/task-push.yaml
 // schema/task-remove.yaml
 // schema/task-run.yaml
@@ -431,6 +432,46 @@ func schemaTaskBuildYaml() (*asset, error) {
 	return a, nil
 }
 
+var _schemaTaskPlanYaml = []byte(`---
+
+definitions:
+  stringOrList:
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+
+type: object
+properties:
+  type:
+    type: string
+    enum:
+      - plan
+  extends:
+    type: string
+  name:
+    type: string
+  environment:
+    $ref: '#/definitions/stringOrList'
+additionalProperties: false
+`)
+
+func schemaTaskPlanYamlBytes() ([]byte, error) {
+	return _schemaTaskPlanYaml, nil
+}
+
+func schemaTaskPlanYaml() (*asset, error) {
+	bytes, err := schemaTaskPlanYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "schema/task-plan.yaml", size: 333, mode: os.FileMode(420), modTime: time.Unix(1535910835, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _schemaTaskPushYaml = []byte(`---
 
 definitions:
@@ -645,6 +686,7 @@ var _bindata = map[string]func() (*asset, error){
 	"schema/registry-gcr.yaml": schemaRegistryGcrYaml,
 	"schema/registry-server.yaml": schemaRegistryServerYaml,
 	"schema/task-build.yaml": schemaTaskBuildYaml,
+	"schema/task-plan.yaml": schemaTaskPlanYaml,
 	"schema/task-push.yaml": schemaTaskPushYaml,
 	"schema/task-remove.yaml": schemaTaskRemoveYaml,
 	"schema/task-run.yaml": schemaTaskRunYaml,
@@ -699,6 +741,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"registry-gcr.yaml": &bintree{schemaRegistryGcrYaml, map[string]*bintree{}},
 		"registry-server.yaml": &bintree{schemaRegistryServerYaml, map[string]*bintree{}},
 		"task-build.yaml": &bintree{schemaTaskBuildYaml, map[string]*bintree{}},
+		"task-plan.yaml": &bintree{schemaTaskPlanYaml, map[string]*bintree{}},
 		"task-push.yaml": &bintree{schemaTaskPushYaml, map[string]*bintree{}},
 		"task-remove.yaml": &bintree{schemaTaskRemoveYaml, map[string]*bintree{}},
 		"task-run.yaml": &bintree{schemaTaskRunYaml, map[string]*bintree{}},

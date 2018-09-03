@@ -174,6 +174,18 @@ func (c *Config) validateTaskNames() error {
 }
 
 func (c *Config) validatePlanNames() error {
+	for name, task := range c.Tasks {
+		if planTask, ok := task.(*PlanTask); ok {
+			if !c.IsPlanDefined(planTask.Name) {
+				return fmt.Errorf(
+					"unknown plan name %s referenced in task %s",
+					planTask.Name,
+					name,
+				)
+			}
+		}
+	}
+
 	for name, plans := range c.Metaplans {
 		if _, ok := c.Plans[name]; ok {
 			return fmt.Errorf(

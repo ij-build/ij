@@ -108,14 +108,16 @@ func (r *StageRunner) buildRunner(
 	env environment.Environment,
 ) Runner {
 	switch t := task.(type) {
-	case *config.RunTask:
-		return NewRunCommandRunner(r.state, t, taskPrefix, env)
 	case *config.BuildTask:
-		return NewBuildCommandRunner(r.state, t, taskPrefix, env)
+		return NewBuildTaskRunner(r.state, t, taskPrefix, env)
 	case *config.PushTask:
-		return NewPushCommandRunner(r.state, t, taskPrefix, env)
+		return NewPushTaskRunner(r.state, t, taskPrefix, env)
 	case *config.RemoveTask:
-		return NewRemoveCommandRunner(r.state, t, taskPrefix, env)
+		return NewRemoveTaskRunner(r.state, t, taskPrefix, env)
+	case *config.RunTask:
+		return NewRunTaskRunner(r.state, t, taskPrefix, env)
+	case *config.PlanTask:
+		return NewPlanTaskRunner(r.state, t, taskPrefix, env)
 	}
 
 	panic("unexpected task type")
