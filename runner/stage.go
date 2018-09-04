@@ -84,10 +84,21 @@ func (r *StageRunner) buildTaskRunnerFunc(
 	))
 
 	return func() bool {
+		env := environment.Merge(
+			environment.New(r.config.Environment),
+			environment.New(task.GetEnvironment()),
+			context.Environment,
+			environment.New(r.plan.Environment),
+			environment.New(r.stage.Environment),
+			environment.New(stageTask.Environment),
+			environment.New(context.GetExportedEnv()),
+			environment.New(r.env),
+		)
+
 		runner := r.taskRunnerFactory(
 			task,
 			taskPrefix,
-			r.buildEnvironment(context, stageTask, task),
+			env,
 		)
 
 		if !runner.Run(context) {
@@ -108,23 +119,6 @@ func (r *StageRunner) buildTaskRunnerFunc(
 
 		return true
 	}
-}
-
-func (r *StageRunner) buildEnvironment(
-	context *RunContext,
-	stageTask *config.StageTask,
-	task config.Task,
-) environment.Environment {
-	return environment.Merge(
-		environment.New(r.config.Environment),
-		environment.New(task.GetEnvironment()),
-		context.Environment,
-		environment.New(r.plan.Environment),
-		environment.New(r.stage.Environment),
-		environment.New(stageTask.Environment),
-		environment.New(context.GetExportedEnv()),
-		environment.New(r.env),
-	)
 }
 
 //

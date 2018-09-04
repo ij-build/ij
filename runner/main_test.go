@@ -16,5 +16,6 @@ func TestMain(m *testing.M) {
 
 		s.AddSuite(&CleanupSuite{})
 		s.AddSuite(&ContainerListSuite{})
+		s.AddSuite(&ContextSuite{})
 	})
 }
