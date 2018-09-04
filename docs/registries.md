@@ -1,6 +1,6 @@
 # Registries
 
-A registry is an object containing authentication metadata for logging into a remote Docker registry. These objects use a tag field to determine the other available fields. Each of the following types are discussed in the section below.
+A registry is an object containing authentication metadata for logging into a remote Docker registry. These objects use the `type` property (shown below) to determine the other available properties. Each of the following registry types are discussed in the sections below.
 
 | Name | Required | Default | Description |
 | ---- | -------- | ------- | ----------- |
@@ -12,10 +12,10 @@ A Docker container registry which can be logged in via username and password.
 
 | Name          | Required | Default | Description |
 | ------------- | -------- | ------- | ----------- |
-| server        | yes      |         | The hostname of the registry. |
-| username      | yes      |         | The username used for login. |
 | password      |          |         | The password used for login. |
 | password_file |          |         | The path to a file on the host containing the password used for login. |
+| server        | yes      |         | The hostname of the registry. |
+| username      | yes      |         | The username used for login. |
 
 One of `password` and `password_file` variables must be supplied.
 
@@ -26,12 +26,12 @@ An AWS Elastic Container Registry which can be logged in via AWS account credent
 | Name              | Required | Default   | Description |
 | ----------------- | -------- | --------- | ----------- |
 | access_key_id     | yes      |           | The user's AWS credentials. |
-| secret_access_key | yes      |           | The user's AWS credentials. |
-| region            |          | us-east-1 | The region where the registry is available. |
 | account_id        |          |           | The identifier of the account owning the registry. |
+| region            |          | us-east-1 | The region where the registry is available. |
 | role              |          |           | The target assumed role of the provided account. |
+| secret_access_key | yes      |           | The user's AWS credentials. |
 
-If `role` and `account_id` are not supplied, then the registry is assumed to belong to the same account as the authenticated user. For cross-account use, the `role` and `account_id` variables can be supplied to force a role to be assumed on a secondary account. For more details, see the ecr-token [readme](https://github.com/efritz/ij/blob/master/images/ecr-token/README.md).
+If `role` and `account_id` are not supplied, then the registry is assumed to belong to the same account as the authenticated user. For cross-account use, the `role` and `account_id` variables can be supplied to force a role to be assumed on a secondary account. For more details, see the ecr-token [readme](https://github.com/efritz/ij/blob/master/images/ecr-token/README.md#user-content-ecr-token-generator).
 
 ## Google Cloud / GCR
 
