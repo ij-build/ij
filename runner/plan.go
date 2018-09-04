@@ -31,6 +31,24 @@ func NewPlanRunner(
 	}
 }
 
+func (r *PlanRunner) ShouldRun(context *RunContext, name string) bool {
+	if plans, ok := r.config.Metaplans[name]; ok {
+		for _, plan := range plans {
+			if r.ShouldRun(context, plan) {
+				return true
+			}
+		}
+	} else {
+		for _, stage := range r.config.Plans[name].Stages {
+			if stage.ShouldRun(context.Failure) && len(stage.Tasks) > 0 {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func (r *PlanRunner) Run(
 	context *RunContext,
 	name string,
@@ -38,14 +56,23 @@ func (r *PlanRunner) Run(
 ) bool {
 	prefix = prefix.Append(name)
 
-	r.logger.Info(
-		prefix,
-		"Beginning plan",
-	)
+	if !r.ShouldRun(context, name) {
+		r.logger.Info(
+			prefix,
+			"No tasks to perform",
+		)
+
+		return true
+	}
 
 	failure := context.Failure
 
 	if plans, ok := r.config.Metaplans[name]; ok {
+		r.logger.Info(
+			prefix,
+			"Beginning metaplan",
+		)
+
 		for _, plan := range plans {
 			newContext := NewRunContext(context)
 			newContext.Failure = failure
@@ -55,6 +82,11 @@ func (r *PlanRunner) Run(
 			}
 		}
 	} else {
+		r.logger.Info(
+			prefix,
+			"Beginning plan",
+		)
+
 		newContext := NewRunContext(context)
 		newContext.Failure = failure
 
@@ -95,15 +127,6 @@ func (r *PlanRunner) runPlan(
 	for _, stage := range plan.Stages {
 		stagePrefix := prefix.Append(stage.Name)
 
-		if !stage.ShouldRun(context.Failure) {
-			r.logger.Info(
-				stagePrefix,
-				"Skipping stage",
-			)
-
-			continue
-		}
-
 		runner := NewStageRunner(
 			r.ctx,
 			r.logger,
@@ -114,6 +137,15 @@ func (r *PlanRunner) runPlan(
 			stagePrefix,
 			r.env,
 		)
+
+		if !stage.ShouldRun(context.Failure) || len(stage.Tasks) == 0 {
+			r.logger.Info(
+				stagePrefix,
+				"No tasks to perform",
+			)
+
+			continue
+		}
 
 		newContext := NewRunContext(context)
 		newContext.Failure = failure

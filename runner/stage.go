@@ -22,8 +22,7 @@ type (
 		env               []string
 	}
 
-	TaskRunnerFunc    func() bool
-	TaskRunnerFactory func(config.Task, *logging.Prefix, environment.Environment) TaskRunner
+	TaskRunnerFunc func() bool
 )
 
 func NewStageRunner(
@@ -54,13 +53,29 @@ func (r *StageRunner) Run(context *RunContext) bool {
 		"Beginning stage",
 	)
 
-	runners := []TaskRunnerFunc{}
+	var (
+		runners   = []TaskRunnerFunc{}
+		ambiguous = map[string]struct{}{}
+		names     = map[string]struct{}{}
+	)
+
+	for _, stageTask := range r.stage.Tasks {
+		if _, ok := names[stageTask.Name]; ok {
+			ambiguous[stageTask.Name] = struct{}{}
+		}
+
+		names[stageTask.Name] = struct{}{}
+	}
+
 	for i, stageTask := range r.stage.Tasks {
+		_, ok := ambiguous[stageTask.Name]
+
 		runners = append(runners, r.buildTaskRunnerFunc(
 			stageTask,
 			i,
 			r.config.Tasks[stageTask.Name],
 			context,
+			ok,
 		))
 	}
 
@@ -76,12 +91,19 @@ func (r *StageRunner) buildTaskRunnerFunc(
 	index int,
 	task config.Task,
 	context *RunContext,
+	ambiguous bool,
 ) TaskRunnerFunc {
-	taskPrefix := r.prefix.Append(fmt.Sprintf(
-		"%s.%d",
-		task.GetName(),
-		index,
-	))
+	name := task.GetName()
+
+	if ambiguous {
+		name = fmt.Sprintf(
+			"%s.%d",
+			name,
+			index,
+		)
+	}
+
+	taskPrefix := r.prefix.Append(name)
 
 	return func() bool {
 		env := environment.Merge(
@@ -139,7 +161,9 @@ func runParallel(runners []TaskRunnerFunc) bool {
 	defer close(failures)
 
 	funcs := []func(){}
-	for _, runner := range runners {
+	for _, r := range runners {
+		runner := r
+
 		funcs = append(funcs, func() {
 			if ok := runner(); !ok {
 				failures <- false
@@ -147,7 +171,7 @@ func runParallel(runners []TaskRunnerFunc) bool {
 		})
 	}
 
-	util.RunParallel(funcs...)
+	util.RunParallel(funcs...).Wait()
 
 	select {
 	case <-failures:

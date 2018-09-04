@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/efritz/ij/command"
+	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
 )
 
@@ -11,6 +13,12 @@ type (
 	TaskRunner interface {
 		Run(*RunContext) bool
 	}
+
+	TaskRunnerFactory func(
+		config.Task,
+		*logging.Prefix,
+		environment.Environment,
+	) TaskRunner
 
 	baseRunner struct {
 		ctx     context.Context
