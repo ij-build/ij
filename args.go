@@ -12,9 +12,10 @@ var (
 	app = kingpin.New("ij", "IJ is a build tool using Docker containers.").Version(Version)
 
 	// Commands
-	run    = app.Command("run", "Run a plan or metaplan.").Default()
-	login  = app.Command("login", "Login to docker registries.")
-	logout = app.Command("logout", "Logout of docker registries.")
+	login      = app.Command("login", "Login to docker registries.")
+	logout     = app.Command("logout", "Logout of docker registries.")
+	rotateLogs = app.Command("rotate-logs", "Trim old run logs the .ij directory.")
+	run        = app.Command("run", "Run a plan or metaplan.").Default()
 
 	// Shared options
 	colorize   = app.Flag("color", "Enable colorized output.").Default("true").Bool()
