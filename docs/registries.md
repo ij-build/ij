@@ -1,35 +1,43 @@
 # Registries
 
-TODO
+A registry is an object containing authentication metadata for logging into a remote Docker registry. These objects use a tag field to determine the other available fields. Each of the following types are discussed in the section below.
 
-## AWS / ECR
-
-TODO
-
-| Name              | Required | Default | Description |
-| ----------------- | -------- | ------- | ----------- |
-| access_key_id     |          |         | |
-| secret_access_key |          |         | |
-| account_id        |          |         | |
-| region            |          |         | |
-| role              |          |         | |
-
-## Google Cloud / GCR
-
-TODO
-
-| Name     | Required | Default | Description |
-| -------- | -------- | ------- | ----------- |
-| hostname | | | |
-| key_file | | | |
+| Name | Required | Default | Description |
+| ---- | -------- | ------- | ----------- |
+| type |          | server  | The type of registry. May also be one of `ecr` or `gcr`. |
 
 ## Server
 
-TODO
+A Docker container registry which can be logged in via username and password.
 
 | Name          | Required | Default | Description |
 | ------------- | -------- | ------- | ----------- |
-| server        |          |         | |
-| username      |          |         | |
-| password      |          |         | |
-| password_file |          |         | |
+| server        | yes      |         | The hostname of the registry. |
+| username      | yes      |         | The username used for login. |
+| password      |          |         | The password used for login. |
+| password_file |          |         | The path to a file on the host containing the password used for login. |
+
+One of `password` and `password_file` variables must be supplied.
+
+## AWS / ECR
+
+An AWS Elastic Container Registry which can be logged in via AWS account credentials and an optional IAM role.
+
+| Name              | Required | Default   | Description |
+| ----------------- | -------- | --------- | ----------- |
+| access_key_id     | yes      |           | The user's AWS credentials. |
+| secret_access_key | yes      |           | The user's AWS credentials. |
+| region            |          | us-east-1 | The region where the registry is available. |
+| account_id        |          |           | The identifier of the account owning the registry. |
+| role              |          |           | The target assumed role of the provided account. |
+
+If `role` and `account_id` are not supplied, then the registry is assumed to belong to the same account as the authenticated user. For cross-account use, the `role` and `account_id` variables can be supplied to force a role to be assumed on a secondary account. For more details, see the ecr-token [readme](https://github.com/efritz/ij/blob/master/images/ecr-token/README.md).
+
+## Google Cloud / GCR
+
+A Google Container Registry which can be logged in via the [JSON Key File](https://cloud.google.com/container-registry/docs/advanced-authentication#json_key_file) authentication mechanism.
+
+| Name     | Required | Default | Description |
+| -------- | -------- | ------- | ----------- |
+| hostname |          | gcr.io  | The GCR hostname. May also be one of `us.gcr.io`, `eu.gcr.io`, or `asia.gcr.io`. |
+| key_file | yes      |         | The path to a [service account JSON key file](https://support.google.com/cloud/answer/6158849#serviceaccounts) on the host. |
