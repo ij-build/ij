@@ -1,4 +1,4 @@
-package state
+package scratch
 
 import (
 	"io/ioutil"

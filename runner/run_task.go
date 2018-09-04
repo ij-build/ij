@@ -16,23 +16,45 @@ import (
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/state"
+	"github.com/efritz/ij/scratch"
 	"github.com/efritz/ij/util"
 )
 
 type (
+	RunTaskRunnerFactory func(
+		*config.RunTask,
+		environment.Environment,
+		*logging.Prefix,
+	) TaskRunner
+
 	runTaskRunner struct {
-		state  *state.State
-		task   *config.RunTask
-		prefix *logging.Prefix
-		env    environment.Environment
+		ctx              context.Context
+		config           *config.Config
+		runID            string
+		scratch          *scratch.ScratchSpace
+		containerLists   *ContainerLists
+		containerOptions *containerOptions
+		logProcessor     logging.Processor
+		logger           logging.Logger
+		task             *config.RunTask
+		env              environment.Environment
+		prefix           *logging.Prefix
+	}
+
+	containerOptions struct {
+		EnableSSHAgent bool
+		CPUShares      string
+		Memory         string
 	}
 
 	runTaskCommandBuilderState struct {
-		state         *state.State
-		task          *config.RunTask
-		containerName string
-		env           environment.Environment
+		runID            string
+		config           *config.Config
+		containerOptions *containerOptions
+		scratch          *scratch.ScratchSpace
+		task             *config.RunTask
+		containerName    string
+		env              environment.Environment
 	}
 )
 
@@ -41,22 +63,39 @@ const (
 	ScriptPath           = "/tmp/ij/script"
 )
 
-func NewRunTaskRunner(
-	state *state.State,
-	task *config.RunTask,
-	prefix *logging.Prefix,
-	env environment.Environment,
-) TaskRunner {
-	return &runTaskRunner{
-		state:  state,
-		task:   task,
-		prefix: prefix,
-		env:    env,
+func NewRunTaskRunnerFactory(
+	ctx context.Context,
+	cfg *config.Config,
+	runID string,
+	scratch *scratch.ScratchSpace,
+	containerLists *ContainerLists,
+	containerOptions *containerOptions,
+	logProcessor logging.Processor,
+	logger logging.Logger,
+) RunTaskRunnerFactory {
+	return func(
+		task *config.RunTask,
+		env environment.Environment,
+		prefix *logging.Prefix,
+	) TaskRunner {
+		return &runTaskRunner{
+			ctx:              ctx,
+			runID:            runID,
+			config:           cfg,
+			scratch:          scratch,
+			containerLists:   containerLists,
+			containerOptions: containerOptions,
+			logProcessor:     logProcessor,
+			logger:           logger,
+			task:             task,
+			env:              env,
+			prefix:           prefix,
+		}
 	}
 }
 
 func (r *runTaskRunner) Run(context *RunContext) bool {
-	r.state.Logger.Info(
+	r.logger.Info(
 		r.prefix,
 		"Beginning task",
 	)
@@ -67,7 +106,7 @@ func (r *runTaskRunner) Run(context *RunContext) bool {
 	)
 
 	if !ok {
-		r.state.Logger.Error(
+		r.logger.Error(
 			r.prefix,
 			"Missing environment values: %s",
 			strings.Join(missing, ", "),
@@ -78,7 +117,7 @@ func (r *runTaskRunner) Run(context *RunContext) bool {
 
 	containerName, err := util.MakeID()
 	if err != nil {
-		r.state.Logger.Error(
+		r.logger.Error(
 			r.prefix,
 			"Failed to generate container id: %s",
 			err.Error(),
@@ -87,21 +126,24 @@ func (r *runTaskRunner) Run(context *RunContext) bool {
 		return false
 	}
 
-	r.state.Logger.Info(
+	r.logger.Info(
 		r.prefix,
 		"Launching container %s",
 		containerName,
 	)
 
 	builder, err := runTaskCommandBuilderFactory(
-		r.state,
+		r.runID,
+		r.config,
+		r.containerOptions,
+		r.scratch,
 		r.task,
 		containerName,
 		r.env,
 	)
 
 	if err != nil {
-		r.state.Logger.Error(
+		r.logger.Error(
 			r.prefix,
 			"Failed to build command args: %s",
 			err.Error(),
@@ -112,7 +154,7 @@ func (r *runTaskRunner) Run(context *RunContext) bool {
 
 	args, _, err := builder.Build()
 	if err != nil {
-		r.state.Logger.Error(
+		r.logger.Error(
 			r.prefix,
 			"Failed to build command args: %s",
 			err.Error(),
@@ -121,20 +163,24 @@ func (r *runTaskRunner) Run(context *RunContext) bool {
 		return false
 	}
 
-	if !r.task.Detach {
-		return r.runInForeground(containerName, args)
+	if r.task.Detach {
+		return r.runInBackground(containerName, args)
 	}
 
-	return r.runInBackground(containerName, args)
+	return r.runInForeground(context, containerName, args)
 }
 
-func (r *runTaskRunner) runInForeground(containerName string, args []string) bool {
-	outfile, errfile, err := r.state.Scratch.MakeLogFiles(
+func (r *runTaskRunner) runInForeground(
+	context *RunContext,
+	containerName string,
+	args []string,
+) bool {
+	outfile, errfile, err := r.scratch.MakeLogFiles(
 		r.prefix.Serialize(logging.NilColorPicker),
 	)
 
 	if err != nil {
-		r.state.Logger.Error(
+		r.logger.Error(
 			r.prefix,
 			"Failed to create task run log files: %s",
 			err.Error(),
@@ -143,24 +189,26 @@ func (r *runTaskRunner) runInForeground(containerName string, args []string) boo
 		return false
 	}
 
-	logger := r.state.LogProcessor.Logger(
+	logger := r.logProcessor.Logger(
 		outfile,
 		errfile,
 		false,
 	)
 
-	r.state.NetworkDisconnector.Add(containerName)
-	defer r.state.NetworkDisconnector.Remove(containerName)
+	r.containerLists.NetworkDisconnector.Add(containerName)
+	defer r.containerLists.NetworkDisconnector.Remove(containerName)
 
 	err = command.NewRunner(logger).Run(
-		r.state.Context,
+		r.ctx,
 		args,
 		nil,
 		r.prefix,
 	)
 
 	if err != nil {
-		r.state.ReportError(
+		ReportError(
+			r.ctx,
+			r.logger,
 			r.prefix,
 			"Command failed: %s",
 			err.Error(),
@@ -169,13 +217,15 @@ func (r *runTaskRunner) runInForeground(containerName string, args []string) boo
 		return false
 	}
 
-	return r.exportEnvironmentFiles()
+	return r.exportEnvironmentFiles(context)
 }
 
-func (r *runTaskRunner) exportEnvironmentFiles() bool {
+func (r *runTaskRunner) exportEnvironmentFiles(context *RunContext) bool {
 	paths, err := r.env.ExpandSlice(r.task.ExportEnvironmentFiles)
 	if err != nil {
-		r.state.ReportError(
+		ReportError(
+			r.ctx,
+			r.logger,
 			r.prefix,
 			"Failed to build build export environment files: %s",
 			err.Error(),
@@ -185,7 +235,7 @@ func (r *runTaskRunner) exportEnvironmentFiles() bool {
 	}
 
 	for _, path := range paths {
-		if !r.exportEnvironmentFile(path) {
+		if !r.exportEnvironmentFile(context, path) {
 			return false
 		}
 	}
@@ -193,14 +243,14 @@ func (r *runTaskRunner) exportEnvironmentFiles() bool {
 	return true
 }
 
-func (r *runTaskRunner) exportEnvironmentFile(path string) bool {
-	realPath, err := filepath.Abs(filepath.Join(
-		r.state.Scratch.Workspace(),
-		path,
-	))
+func (r *runTaskRunner) exportEnvironmentFile(context *RunContext, path string) bool {
+	workspace := r.scratch.Workspace()
 
+	realPath, err := filepath.Abs(filepath.Join(workspace, path))
 	if err != nil {
-		r.state.ReportError(
+		ReportError(
+			r.ctx,
+			r.logger,
 			r.prefix,
 			"Failed to construct export environment file path: %s",
 			err.Error(),
@@ -209,10 +259,10 @@ func (r *runTaskRunner) exportEnvironmentFile(path string) bool {
 		return false
 	}
 
-	workspace := r.state.Scratch.Workspace()
-
 	if !strings.HasPrefix(realPath, workspace) {
-		r.state.ReportError(
+		ReportError(
+			r.ctx,
+			r.logger,
 			r.prefix,
 			"export environment file is outside of workspace directory: %s",
 			realPath,
@@ -221,7 +271,7 @@ func (r *runTaskRunner) exportEnvironmentFile(path string) bool {
 		return false
 	}
 
-	r.state.Logger.Info(
+	r.logger.Info(
 		r.prefix,
 		"Injecting environment from file %s",
 		fmt.Sprintf("~%s", realPath[len(workspace):]),
@@ -229,7 +279,7 @@ func (r *runTaskRunner) exportEnvironmentFile(path string) bool {
 
 	data, err := ioutil.ReadFile(realPath)
 	if err != nil {
-		r.state.Logger.Error(
+		r.logger.Error(
 			r.prefix,
 			"Failed to read environment file: %s",
 			err.Error(),
@@ -240,7 +290,7 @@ func (r *runTaskRunner) exportEnvironmentFile(path string) bool {
 
 	lines, err := environment.NormalizeEnvironmentFile(string(data))
 	if err != nil {
-		r.state.Logger.Error(
+		r.logger.Error(
 			r.prefix,
 			err.Error(),
 		)
@@ -249,23 +299,25 @@ func (r *runTaskRunner) exportEnvironmentFile(path string) bool {
 	}
 
 	for _, line := range lines {
-		r.state.ExportEnv(line)
+		context.ExportEnv(line)
 	}
 
 	return true
 }
 
 func (r *runTaskRunner) runInBackground(containerName string, args []string) bool {
-	r.state.ContainerStopper.Add(containerName)
+	r.containerLists.ContainerStopper.Add(containerName)
 
-	_, _, err := command.NewRunner(r.state.Logger).RunForOutput(
+	_, _, err := command.NewRunner(r.logger).RunForOutput(
 		context.Background(),
 		args,
 		nil,
 	)
 
 	if err != nil {
-		r.state.ReportError(
+		ReportError(
+			r.ctx,
+			r.logger,
 			r.prefix,
 			"Command failed: %s",
 			err.Error(),
@@ -275,14 +327,16 @@ func (r *runTaskRunner) runInBackground(containerName string, args []string) boo
 	}
 
 	hasHealthcheck, err := hasHealthcheck(
-		r.state.Context,
+		r.ctx,
 		containerName,
-		r.state.Logger,
+		r.logger,
 		r.prefix,
 	)
 
 	if err != nil {
-		r.state.ReportError(
+		ReportError(
+			r.ctx,
+			r.logger,
 			r.prefix,
 			"Failed to determine if container has a healthcheck: %s",
 			err.Error(),
@@ -301,14 +355,16 @@ func (r *runTaskRunner) runInBackground(containerName string, args []string) boo
 func (r *runTaskRunner) monitor(containerName string) bool {
 	for {
 		status, err := getHealthStatus(
-			r.state.Context,
+			r.ctx,
 			containerName,
-			r.state.Logger,
+			r.logger,
 			r.prefix,
 		)
 
 		if err != nil {
-			r.state.ReportError(
+			ReportError(
+				r.ctx,
+				r.logger,
 				r.prefix,
 				"Failed to check container health: %s",
 				err.Error(),
@@ -318,7 +374,7 @@ func (r *runTaskRunner) monitor(containerName string) bool {
 		}
 
 		if status == "healthy" {
-			r.state.Logger.Info(
+			r.logger.Info(
 				r.prefix,
 				"Container is healthy",
 			)
@@ -326,31 +382,37 @@ func (r *runTaskRunner) monitor(containerName string) bool {
 			return true
 		}
 
-		r.state.Logger.Info(
+		r.logger.Info(
 			r.prefix,
 			"Container is not yet healthy (currently %s)",
 			status,
 		)
 
 		select {
-		case <-time.After(r.state.Config.Options.HealthcheckInterval):
-		case <-r.state.Context.Done():
+		case <-time.After(r.config.Options.HealthcheckInterval):
+		case <-r.ctx.Done():
 			return false
 		}
 	}
 }
 
 func runTaskCommandBuilderFactory(
-	state *state.State,
+	runID string,
+	config *config.Config,
+	containerOptions *containerOptions,
+	scratch *scratch.ScratchSpace,
 	task *config.RunTask,
 	containerName string,
 	env environment.Environment,
 ) (*command.Builder, error) {
 	s := &runTaskCommandBuilderState{
-		state:         state,
-		task:          task,
-		containerName: containerName,
-		env:           env,
+		runID:            runID,
+		config:           config,
+		containerOptions: containerOptions,
+		scratch:          scratch,
+		task:             task,
+		containerName:    containerName,
+		env:              env,
 	}
 
 	return command.NewBuilder(
@@ -467,8 +529,8 @@ func (s *runTaskCommandBuilderState) addHealthcheckOptions(cb *command.Builder) 
 }
 
 func (s *runTaskCommandBuilderState) addLimitOptions(cb *command.Builder) error {
-	cb.AddFlagValue("--cpu-shares", s.state.CPUShares)
-	cb.AddFlagValue("--memory", s.state.Memory)
+	cb.AddFlagValue("--cpu-shares", s.containerOptions.CPUShares)
+	cb.AddFlagValue("--memory", s.containerOptions.Memory)
 	return nil
 }
 
@@ -478,7 +540,7 @@ func (s *runTaskCommandBuilderState) addNetworkOptions(cb *command.Builder) erro
 		return err
 	}
 
-	cb.AddFlagValue("--network", s.state.RunID)
+	cb.AddFlagValue("--network", s.runID)
 	cb.AddFlagValue("--network-alias", hostname)
 	return nil
 }
@@ -493,7 +555,7 @@ func (s *runTaskCommandBuilderState) addScriptOptions(cb *command.Builder) error
 		return err
 	}
 
-	path, err := s.state.Scratch.WriteScript(script)
+	path, err := s.scratch.WriteScript(script)
 	if err != nil {
 		return err
 	}
@@ -537,7 +599,7 @@ func (s *runTaskCommandBuilderState) addUserOptions(cb *command.Builder) error {
 }
 
 func (s *runTaskCommandBuilderState) addSSHOptions(cb *command.Builder) error {
-	if !s.state.EnableSSHAgent {
+	if !s.containerOptions.EnableSSHAgent {
 		return nil
 	}
 
@@ -553,9 +615,11 @@ func (s *runTaskCommandBuilderState) addWorkspaceOptions(cb *command.Builder) er
 		return err
 	}
 
-	workspace, err = s.env.ExpandString(s.state.Config.Workspace)
-	if err != nil {
-		return err
+	if workspace == "" {
+		workspace, err = s.env.ExpandString(s.config.Workspace)
+		if err != nil {
+			return err
+		}
 	}
 
 	if workspace == "" {
@@ -564,7 +628,7 @@ func (s *runTaskCommandBuilderState) addWorkspaceOptions(cb *command.Builder) er
 
 	mount := fmt.Sprintf(
 		"%s:%s",
-		s.state.Scratch.Workspace(),
+		s.scratch.Workspace(),
 		workspace,
 	)
 

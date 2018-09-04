@@ -10,7 +10,6 @@ import (
 	"github.com/efritz/ij/registry"
 	"github.com/efritz/ij/runner"
 	"github.com/efritz/ij/ssh"
-	"github.com/efritz/ij/state"
 )
 
 const Version = "0.1.0"
@@ -65,7 +64,7 @@ func runRun(cfg *config.Config) bool {
 		return false
 	}
 
-	state, err := state.NewState(
+	runner, err := runner.SetupRunner(
 		cfg,
 		*colorize,
 		*cpuShares,
@@ -82,7 +81,7 @@ func runRun(cfg *config.Config) bool {
 		return false
 	}
 
-	return runner.NewRunner(state, *plans).Run()
+	return runner.Run(*plans)
 }
 
 func runLogin(config *config.Config) bool {

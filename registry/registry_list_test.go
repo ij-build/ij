@@ -12,7 +12,7 @@ import (
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/state/mocks"
+	"github.com/efritz/ij/registry/mocks"
 )
 
 type RegistrySetSuite struct{}

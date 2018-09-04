@@ -1,48 +1,65 @@
 package runner
 
 import (
+	"context"
+
 	"github.com/efritz/ij/command"
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/state"
 )
 
-type buildTaskCommandBuilderState struct {
-	state *state.State
-	task  *config.BuildTask
-	env   environment.Environment
-}
+type (
+	BuildTaskRunnerFactory func(
+		*config.BuildTask,
+		environment.Environment,
+		*logging.Prefix,
+	) TaskRunner
 
-func NewBuildTaskRunner(
-	state *state.State,
-	task *config.BuildTask,
-	prefix *logging.Prefix,
-	env environment.Environment,
-) TaskRunner {
-	factory := buildTaskCommandFactory(
-		state,
-		task,
-		env,
-	)
+	buildTaskCommandBuilderState struct {
+		ctx       context.Context
+		logger    logging.Logger
+		workspace string
+		env       environment.Environment
+		task      *config.BuildTask
+	}
+)
 
-	return NewBaseRunner(
-		state,
-		prefix,
-		NewMultiFactory(factory),
-	)
+func NewBuildTaskRunnerFactory(
+	ctx context.Context,
+	workspace string,
+	logger logging.Logger,
+) BuildTaskRunnerFactory {
+	return func(
+		task *config.BuildTask,
+		env environment.Environment,
+		prefix *logging.Prefix,
+	) TaskRunner {
+		factory := buildTaskCommandFactory(
+			workspace,
+			task,
+			env,
+		)
+
+		return NewBaseRunner(
+			ctx,
+			NewMultiFactory(factory),
+			logger,
+			prefix,
+		)
+	}
 }
 
 func buildTaskCommandFactory(
-	state *state.State,
+	workspace string,
 	task *config.BuildTask,
 	env environment.Environment,
 ) BuilderFactory {
 	return func() (*command.Builder, error) {
 		s := &buildTaskCommandBuilderState{
-			state: state,
-			task:  task,
-			env:   env,
+			workspace: workspace,
+			task:      task,
+			env:       env,
 		}
 
 		return command.NewBuilder(
@@ -61,7 +78,7 @@ func buildTaskCommandFactory(
 }
 
 func (s *buildTaskCommandBuilderState) addWorkspaceArg(cb *command.Builder) error {
-	cb.AddArgs(s.state.Scratch.Workspace())
+	cb.AddArgs(s.workspace)
 	return nil
 }
 

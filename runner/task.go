@@ -1,9 +1,10 @@
 package runner
 
 import (
+	"context"
+
 	"github.com/efritz/ij/command"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/state"
 )
 
 type (
@@ -12,9 +13,10 @@ type (
 	}
 
 	baseRunner struct {
-		state   *state.State
-		prefix  *logging.Prefix
+		ctx     context.Context
 		factory BuilderSetFactory
+		logger  logging.Logger
+		prefix  *logging.Prefix
 	}
 
 	BuilderFactory    func() (*command.Builder, error)
@@ -22,26 +24,28 @@ type (
 )
 
 func NewBaseRunner(
-	state *state.State,
-	prefix *logging.Prefix,
+	ctx context.Context,
 	factory BuilderSetFactory,
+	logger logging.Logger,
+	prefix *logging.Prefix,
 ) TaskRunner {
 	return &baseRunner{
-		state:   state,
+		ctx:     ctx,
+		logger:  logger,
 		prefix:  prefix,
 		factory: factory,
 	}
 }
 
 func (r *baseRunner) Run(context *RunContext) bool {
-	r.state.Logger.Info(
+	r.logger.Info(
 		r.prefix,
 		"Beginning task",
 	)
 
 	builders, err := r.factory()
 	if err != nil {
-		r.state.Logger.Error(
+		r.logger.Error(
 			r.prefix,
 			"Failed to build command args: %s",
 			err.Error(),
@@ -53,7 +57,7 @@ func (r *baseRunner) Run(context *RunContext) bool {
 	for _, builder := range builders {
 		args, stdin, err := builder.Build()
 		if err != nil {
-			r.state.Logger.Error(
+			r.logger.Error(
 				r.prefix,
 				"Failed to build command args: %s",
 				err.Error(),
@@ -62,15 +66,17 @@ func (r *baseRunner) Run(context *RunContext) bool {
 			return false
 		}
 
-		err = command.NewRunner(r.state.Logger).Run(
-			r.state.Context,
+		err = command.NewRunner(r.logger).Run(
+			r.ctx,
 			args,
 			stdin,
 			r.prefix,
 		)
 
 		if err != nil {
-			r.state.ReportError(
+			ReportError(
+				r.ctx,
+				r.logger,
 				r.prefix,
 				"Command failed: %s",
 				err.Error(),

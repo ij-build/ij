@@ -1,42 +1,55 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/state"
 	"github.com/efritz/ij/util"
 )
 
 type (
 	StageRunner struct {
-		state  *state.State
-		plan   *config.Plan
-		stage  *config.Stage
-		prefix *logging.Prefix
+		ctx               context.Context
+		logger            logging.Logger
+		config            *config.Config
+		taskRunnerFactory TaskRunnerFactory
+		plan              *config.Plan
+		stage             *config.Stage
+		prefix            *logging.Prefix
+		env               []string
 	}
 
-	TaskRunnerFunc func() bool
+	TaskRunnerFunc    func() bool
+	TaskRunnerFactory func(config.Task, *logging.Prefix, environment.Environment) TaskRunner
 )
 
 func NewStageRunner(
-	state *state.State,
+	ctx context.Context,
+	logger logging.Logger,
+	config *config.Config,
+	taskRunnerFactory TaskRunnerFactory,
 	plan *config.Plan,
 	stage *config.Stage,
 	prefix *logging.Prefix,
+	env []string,
 ) *StageRunner {
 	return &StageRunner{
-		state:  state,
-		plan:   plan,
-		stage:  stage,
-		prefix: prefix,
+		ctx:               ctx,
+		logger:            logger,
+		config:            config,
+		taskRunnerFactory: taskRunnerFactory,
+		plan:              plan,
+		stage:             stage,
+		prefix:            prefix,
+		env:               env,
 	}
 }
 
 func (r *StageRunner) Run(context *RunContext) bool {
-	r.state.Logger.Info(
+	r.logger.Info(
 		r.prefix,
 		"Beginning stage",
 	)
@@ -46,12 +59,12 @@ func (r *StageRunner) Run(context *RunContext) bool {
 		runners = append(runners, r.buildTaskRunnerFunc(
 			stageTask,
 			i,
-			r.state.Config.Tasks[stageTask.Name],
+			r.config.Tasks[stageTask.Name],
 			context,
 		))
 	}
 
-	if !r.stage.Parallel || r.state.Config.Options.ForceSequential {
+	if !r.stage.Parallel || r.config.Options.ForceSequential {
 		return runSequential(runners)
 	}
 
@@ -71,14 +84,16 @@ func (r *StageRunner) buildTaskRunnerFunc(
 	))
 
 	return func() bool {
-		runner := r.buildRunner(
+		runner := r.taskRunnerFactory(
 			task,
 			taskPrefix,
-			r.buildEnvironment(stageTask, context, task),
+			r.buildEnvironment(context, stageTask, task),
 		)
 
 		if !runner.Run(context) {
-			r.state.ReportError(
+			ReportError(
+				r.ctx,
+				r.logger,
 				taskPrefix,
 				"Task has failed",
 			)
@@ -86,7 +101,7 @@ func (r *StageRunner) buildTaskRunnerFunc(
 			return false
 		}
 
-		r.state.Logger.Info(
+		r.logger.Info(
 			taskPrefix,
 			"Task has completed successfully",
 		)
@@ -96,38 +111,20 @@ func (r *StageRunner) buildTaskRunnerFunc(
 }
 
 func (r *StageRunner) buildEnvironment(
-	stageTask *config.StageTask,
 	context *RunContext,
+	stageTask *config.StageTask,
 	task config.Task,
 ) environment.Environment {
-	return r.state.BuildEnv(
+	return environment.Merge(
+		environment.New(r.config.Environment),
 		environment.New(task.GetEnvironment()),
 		context.Environment,
 		environment.New(r.plan.Environment),
 		environment.New(r.stage.Environment),
 		environment.New(stageTask.Environment),
+		environment.New(context.GetExportedEnv()),
+		environment.New(r.env),
 	)
-}
-
-func (r *StageRunner) buildRunner(
-	task config.Task,
-	taskPrefix *logging.Prefix,
-	env environment.Environment,
-) TaskRunner {
-	switch t := task.(type) {
-	case *config.BuildTask:
-		return NewBuildTaskRunner(r.state, t, taskPrefix, env)
-	case *config.PushTask:
-		return NewPushTaskRunner(r.state, t, taskPrefix, env)
-	case *config.RemoveTask:
-		return NewRemoveTaskRunner(r.state, t, taskPrefix, env)
-	case *config.RunTask:
-		return NewRunTaskRunner(r.state, t, taskPrefix, env)
-	case *config.PlanTask:
-		return NewPlanTaskRunner(r.state, t, taskPrefix, env)
-	}
-
-	panic("unexpected task type")
 }
 
 //

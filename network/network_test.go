@@ -1,4 +1,4 @@
-package state
+package network
 
 //go:generate go-mockgen github.com/efritz/ij/command -i Runner -d mocks -f
 
@@ -9,8 +9,9 @@ import (
 
 	"github.com/aphistic/sweet"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/state/mocks"
 	. "github.com/onsi/gomega"
+
+	"github.com/efritz/ij/network/mocks"
 )
 
 type NetworkSuite struct{}

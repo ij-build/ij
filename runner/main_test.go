@@ -1,4 +1,4 @@
-package state
+package runner
 
 import (
 	"testing"
@@ -16,7 +16,5 @@ func TestMain(m *testing.M) {
 
 		s.AddSuite(&CleanupSuite{})
 		s.AddSuite(&ContainerListSuite{})
-		s.AddSuite(&NetworkSuite{})
-		s.AddSuite(&ScratchSuite{})
 	})
 }

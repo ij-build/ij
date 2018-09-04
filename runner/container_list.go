@@ -1,4 +1,4 @@
-package state
+package runner
 
 import (
 	"context"
@@ -9,13 +9,20 @@ import (
 	"github.com/efritz/ij/util"
 )
 
-type ContainerList struct {
-	description string
-	target      func(string)
-	logger      logging.Logger
-	containers  map[string]struct{}
-	mutex       sync.RWMutex
-}
+type (
+	ContainerList struct {
+		description string
+		target      func(string)
+		logger      logging.Logger
+		containers  map[string]struct{}
+		mutex       sync.RWMutex
+	}
+
+	ContainerLists struct {
+		ContainerStopper    *ContainerList
+		NetworkDisconnector *ContainerList
+	}
+)
 
 func NewContainerList(
 	description string,

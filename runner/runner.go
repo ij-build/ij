@@ -1,19 +1,27 @@
 package runner
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/efritz/ij/environment"
+	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/logging"
 	"github.com/efritz/ij/paths"
-	"github.com/efritz/ij/state"
+	"github.com/efritz/ij/scratch"
 )
 
 type Runner struct {
-	state *state.State
-	plans []string
+	ctx               context.Context
+	logger            logging.Logger
+	config            *config.Config
+	taskRunnerFactory TaskRunnerFactory
+	scratch           *scratch.ScratchSpace
+	cleanup           *Cleanup
+	runID             string
+	cancel            func()
+	env               []string
 }
 
 var shutdownSignals = []syscall.Signal{
@@ -21,47 +29,64 @@ var shutdownSignals = []syscall.Signal{
 	syscall.SIGTERM,
 }
 
-func NewRunner(state *state.State, plans []string) *Runner {
+func NewRunner(
+	ctx context.Context,
+	logger logging.Logger,
+	config *config.Config,
+	taskRunnerFactory TaskRunnerFactory,
+	scratch *scratch.ScratchSpace,
+	cleanup *Cleanup,
+	runID string,
+	cancel func(),
+	env []string,
+) *Runner {
 	return &Runner{
-		state: state,
-		plans: plans,
+		ctx:               ctx,
+		logger:            logger,
+		config:            config,
+		taskRunnerFactory: taskRunnerFactory,
+		scratch:           scratch,
+		cleanup:           cleanup,
+		runID:             runID,
+		cancel:            cancel,
+		env:               env,
 	}
 }
 
-func (r *Runner) Run() bool {
-	r.state.Logger.Info(
+func (r *Runner) Run(plans []string) bool {
+	r.logger.Info(
 		nil,
 		"Beginning run %s",
-		r.state.RunID,
+		r.runID,
 	)
 
 	go r.watchSignals()
-	defer r.state.Cleanup.Cleanup()
+	defer r.cleanup.Cleanup()
 
 	defer func() {
-		r.state.Logger.Info(
+		r.logger.Info(
 			nil,
 			"Finished run %s",
-			r.state.RunID,
+			r.runID,
 		)
 	}()
 
 	transferer := paths.NewTransferer(
-		r.state.Scratch.Project(),
-		r.state.Scratch.Scratch(),
-		r.state.Scratch.Workspace(),
-		r.state.Logger,
+		r.scratch.Project(),
+		r.scratch.Scratch(),
+		r.scratch.Workspace(),
+		r.logger,
 	)
 
-	r.state.Logger.Info(nil, "Importing files to workspace")
+	r.logger.Info(nil, "Importing files to workspace")
 
 	importErr := transferer.Import(
-		r.state.Config.Import.Files,
-		r.state.Config.Import.Excludes,
+		r.config.Import.Files,
+		r.config.Import.Excludes,
 	)
 
 	if importErr != nil {
-		r.state.Logger.Error(
+		r.logger.Error(
 			nil,
 			"Failed to import files to workspace: %s",
 			importErr.Error(),
@@ -70,14 +95,24 @@ func (r *Runner) Run() bool {
 		return false
 	}
 
-	failure := false
-	for _, name := range r.plans {
-		result := NewPlanRunner(r.state).Run(name, logging.NewPrefix(), &RunContext{
-			Failure:     failure,
-			Environment: environment.New(nil),
-		})
+	var (
+		failure     = false
+		rootContext = NewRunContext(nil)
+	)
 
-		if !result {
+	for _, name := range plans {
+		runner := NewPlanRunner(
+			r.ctx,
+			r.config,
+			r.taskRunnerFactory,
+			r.logger,
+			r.env,
+		)
+
+		newContext := NewRunContext(rootContext)
+		newContext.Failure = failure
+
+		if !runner.Run(newContext, name, logging.NewPrefix()) {
 			failure = true
 		}
 	}
@@ -86,15 +121,15 @@ func (r *Runner) Run() bool {
 		return false
 	}
 
-	r.state.Logger.Info(nil, "Exporting files from workspace")
+	r.logger.Info(nil, "Exporting files from workspace")
 
 	exportErr := transferer.Export(
-		r.state.Config.Export.Files,
-		r.state.Config.Export.Excludes,
+		r.config.Export.Files,
+		r.config.Export.Excludes,
 	)
 
 	if exportErr != nil {
-		r.state.Logger.Error(
+		r.logger.Error(
 			nil,
 			"Failed to export files from workspace: %s",
 			exportErr.Error(),
@@ -114,12 +149,12 @@ func (r *Runner) watchSignals() {
 	}
 
 	for range signals {
-		r.state.Logger.Error(
+		r.logger.Error(
 			nil,
 			"Received signal",
 		)
 
-		r.state.Cancel()
+		r.cancel()
 		return
 	}
 }

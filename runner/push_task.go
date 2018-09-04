@@ -1,24 +1,36 @@
 package runner
 
 import (
+	"context"
+
 	"github.com/efritz/ij/command"
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/state"
 )
 
-func NewPushTaskRunner(
-	state *state.State,
-	task *config.PushTask,
-	prefix *logging.Prefix,
-	env environment.Environment,
-) TaskRunner {
-	return NewBaseRunner(
-		state,
-		prefix,
-		makePushTaskCommandFactory(task, env),
-	)
+type PushTaskRunnerFactory func(
+	*config.PushTask,
+	environment.Environment,
+	*logging.Prefix,
+) TaskRunner
+
+func NewPushTaskRunnerFactory(
+	ctx context.Context,
+	logger logging.Logger,
+) PushTaskRunnerFactory {
+	return func(
+		task *config.PushTask,
+		env environment.Environment,
+		prefix *logging.Prefix,
+	) TaskRunner {
+		return NewBaseRunner(
+			ctx,
+			makePushTaskCommandFactory(task, env),
+			logger,
+			prefix,
+		)
+	}
 }
 
 func makePushTaskCommandFactory(

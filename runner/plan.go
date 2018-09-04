@@ -1,50 +1,64 @@
 package runner
 
 import (
+	"context"
+
+	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/state"
 )
 
 type PlanRunner struct {
-	state *state.State
+	ctx               context.Context
+	config            *config.Config
+	taskRunnerFactory TaskRunnerFactory
+	logger            logging.Logger
+	env               []string
 }
 
-func NewPlanRunner(state *state.State) *PlanRunner {
+func NewPlanRunner(
+	ctx context.Context,
+	config *config.Config,
+	taskRunnerFactory TaskRunnerFactory,
+	logger logging.Logger,
+	env []string,
+) *PlanRunner {
 	return &PlanRunner{
-		state: state,
+		ctx:               ctx,
+		config:            config,
+		taskRunnerFactory: taskRunnerFactory,
+		logger:            logger,
+		env:               env,
 	}
 }
 
 func (r *PlanRunner) Run(
+	context *RunContext,
 	name string,
 	prefix *logging.Prefix,
-	context *RunContext,
 ) bool {
 	prefix = prefix.Append(name)
 
-	r.state.Logger.Info(
+	r.logger.Info(
 		prefix,
 		"Beginning plan",
 	)
 
 	failure := context.Failure
 
-	if plans, ok := r.state.Config.Metaplans[name]; ok {
+	if plans, ok := r.config.Metaplans[name]; ok {
 		for _, plan := range plans {
-			result := r.Run(plan, prefix, &RunContext{
-				Failure:     failure,
-				Environment: context.Environment,
-			})
+			newContext := NewRunContext(context)
+			newContext.Failure = failure
 
-			if !result {
+			if !r.Run(newContext, plan, prefix) {
 				failure = true
 			}
 		}
 	} else {
-		failure = !r.runPlan(name, prefix, &RunContext{
-			Failure:     failure,
-			Environment: context.Environment,
-		})
+		newContext := NewRunContext(context)
+		newContext.Failure = failure
+
+		failure = !r.runPlan(newContext, name, prefix)
 	}
 
 	if failure {
@@ -53,13 +67,13 @@ func (r *PlanRunner) Run(
 			suffix = " (due to previous failure)"
 		}
 
-		r.state.Logger.Error(
+		r.logger.Error(
 			prefix,
 			"Plan failed%s",
 			suffix,
 		)
 	} else {
-		r.state.Logger.Info(
+		r.logger.Info(
 			prefix,
 			"Plan completed successfully",
 		)
@@ -69,12 +83,12 @@ func (r *PlanRunner) Run(
 }
 
 func (r *PlanRunner) runPlan(
+	context *RunContext,
 	name string,
 	prefix *logging.Prefix,
-	context *RunContext,
 ) bool {
 	var (
-		plan    = r.state.Config.Plans[name]
+		plan    = r.config.Plans[name]
 		failure = context.Failure
 	)
 
@@ -82,7 +96,7 @@ func (r *PlanRunner) runPlan(
 		stagePrefix := prefix.Append(stage.Name)
 
 		if !stage.ShouldRun(context.Failure) {
-			r.state.Logger.Info(
+			r.logger.Info(
 				stagePrefix,
 				"Skipping stage",
 			)
@@ -90,14 +104,22 @@ func (r *PlanRunner) runPlan(
 			continue
 		}
 
-		runner := NewStageRunner(r.state, plan, stage, stagePrefix)
-		newContext := &RunContext{
-			Failure:     failure,
-			Environment: context.Environment,
-		}
+		runner := NewStageRunner(
+			r.ctx,
+			r.logger,
+			r.config,
+			r.taskRunnerFactory,
+			plan,
+			stage,
+			stagePrefix,
+			r.env,
+		)
+
+		newContext := NewRunContext(context)
+		newContext.Failure = failure
 
 		if !runner.Run(newContext) {
-			r.state.Logger.Error(
+			r.logger.Error(
 				stagePrefix,
 				"Stage failed",
 			)
@@ -106,7 +128,7 @@ func (r *PlanRunner) runPlan(
 			continue
 		}
 
-		r.state.Logger.Info(
+		r.logger.Info(
 			stagePrefix,
 			"Stage completed successfully",
 		)

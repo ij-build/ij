@@ -1,24 +1,36 @@
 package runner
 
 import (
+	"context"
+
 	"github.com/efritz/ij/command"
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/state"
 )
 
-func NewRemoveTaskRunner(
-	state *state.State,
-	task *config.RemoveTask,
-	prefix *logging.Prefix,
-	env environment.Environment,
-) TaskRunner {
-	return NewBaseRunner(
-		state,
-		prefix,
-		removeTaskComandFactory(task, env),
-	)
+type RemoveTaskRunnerFactory func(
+	*config.RemoveTask,
+	environment.Environment,
+	*logging.Prefix,
+) TaskRunner
+
+func NewRemoveTaskRunnerFactory(
+	ctx context.Context,
+	logger logging.Logger,
+) RemoveTaskRunnerFactory {
+	return func(
+		task *config.RemoveTask,
+		env environment.Environment,
+		prefix *logging.Prefix,
+	) TaskRunner {
+		return NewBaseRunner(
+			ctx,
+			removeTaskComandFactory(task, env),
+			logger,
+			prefix,
+		)
+	}
 }
 
 func removeTaskComandFactory(

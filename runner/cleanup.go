@@ -1,4 +1,4 @@
-package state
+package runner
 
 import "sync"
 

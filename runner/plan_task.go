@@ -4,40 +4,53 @@ import (
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/state"
 )
 
 const PrefixMaxLength = 20
 
-type planTaskRunner struct {
-	state  *state.State
-	task   *config.PlanTask
-	prefix *logging.Prefix
-	env    environment.Environment
-}
+type (
+	PlanTaskRunnerFactory func(
+		*config.PlanTask,
+		environment.Environment,
+		*logging.Prefix,
+	) TaskRunner
 
-func NewPlanTaskRunner(
-	state *state.State,
-	task *config.PlanTask,
-	prefix *logging.Prefix,
-	env environment.Environment,
-) TaskRunner {
-	return &planTaskRunner{
-		state:  state,
-		task:   task,
-		prefix: prefix,
-		env:    env,
+	planTaskRunner struct {
+		runner *PlanRunner
+		logger logging.Logger
+		task   *config.PlanTask
+		env    environment.Environment
+		prefix *logging.Prefix
+	}
+)
+
+func NewPlanTaskRunnerFactory(
+	runner *PlanRunner,
+	logger logging.Logger,
+) PlanTaskRunnerFactory {
+	return func(
+		task *config.PlanTask,
+		env environment.Environment,
+		prefix *logging.Prefix,
+	) TaskRunner {
+		return &planTaskRunner{
+			runner: runner,
+			logger: logger,
+			task:   task,
+			env:    env,
+			prefix: prefix,
+		}
 	}
 }
 
 func (r *planTaskRunner) Run(context *RunContext) bool {
-	r.state.Logger.Info(
+	r.logger.Info(
 		r.prefix,
 		"Beginning task",
 	)
 
 	if r.prefix.Len() > PrefixMaxLength {
-		r.state.Logger.Error(
+		r.logger.Error(
 			r.prefix,
 			"plan call history exceeds max depth",
 		)
@@ -45,12 +58,8 @@ func (r *planTaskRunner) Run(context *RunContext) bool {
 		return false
 	}
 
-	return NewPlanRunner(r.state).Run(
-		r.task.Name,
-		r.prefix,
-		&RunContext{
-			Failure:     context.Failure,
-			Environment: r.env,
-		},
-	)
+	newContext := NewRunContext(context)
+	newContext.Environment = r.env
+
+	return r.runner.Run(newContext, r.task.Name, r.prefix)
 }
