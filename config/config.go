@@ -49,9 +49,7 @@ func (c *Config) Merge(child *Config) error {
 	c.Import.Merge(child.Import)
 	c.Export.Merge(child.Export)
 
-	if child.Workspace != "" {
-		c.Workspace = child.Workspace
-	}
+	c.Workspace = extendString(child.Workspace, c.Workspace)
 
 	for name, task := range child.Tasks {
 		c.Tasks[name] = task
@@ -86,7 +84,10 @@ func (c *Config) Merge(child *Config) error {
 }
 
 func (o *Options) Merge(child *Options) {
-	o.SSHIdentities = append(o.SSHIdentities, child.SSHIdentities...)
+	if len(child.SSHIdentities) > 0 {
+		o.SSHIdentities = child.SSHIdentities
+	}
+
 	o.ForceSequential = extendBool(child.ForceSequential, o.ForceSequential)
 	o.HealthcheckInterval = extendDuration(child.HealthcheckInterval, o.HealthcheckInterval)
 }

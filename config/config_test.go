@@ -72,7 +72,7 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 	}
 
 	Expect(parent.Merge(child)).To(BeNil())
-	Expect(parent.Options.SSHIdentities).To(ConsistOf("parent-ssh1", "child-ssh2", "child-ssh3"))
+	Expect(parent.Options.SSHIdentities).To(ConsistOf("child-ssh2", "child-ssh3"))
 	Expect(parent.Options.ForceSequential).To(BeTrue())
 	Expect(parent.Options.HealthcheckInterval).To(Equal(time.Second * 10))
 	Expect(parent.Registries).To(ConsistOf(
@@ -144,7 +144,7 @@ func (s *ConfigSuite) TestApplyOverride(t sweet.T) {
 	}
 
 	config.ApplyOverride(override)
-	Expect(config.Options.SSHIdentities).To(Equal([]string{"config-ssh", "override-ssh"}))
+	Expect(config.Options.SSHIdentities).To(Equal([]string{"override-ssh"}))
 	Expect(config.Options.ForceSequential).To(BeTrue())
 	Expect(config.Options.HealthcheckInterval).To(Equal(time.Second * 10))
 	Expect(config.Registries).To(Equal([]Registry{
