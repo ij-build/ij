@@ -29,6 +29,10 @@ func (t *BuildTask) Translate(name string) (config.Task, error) {
 		Extends: t.Extends,
 	}
 
+	if t.Dockerfile == "" {
+		t.Dockerfile = "Dockerfile"
+	}
+
 	return &config.BuildTask{
 		TaskMeta:   meta,
 		Dockerfile: t.Dockerfile,
