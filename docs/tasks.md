@@ -18,7 +18,7 @@ A run task runs a Docker container.
 | command                 |          | ''         | The command to run. If this value contains shell-specific tokens (e.g. chaining, pipes, or redirection), then `script` property should be used instead. |
 | detach                  |          | false      | If true, this container is run in the background until container exit or the end of the build plan. |
 | entrypoint              |          | ''         | The entrypoint of the container. |
-| environment             |          | []         | A list additional environment variable definitions. Value may be a string or a list. |
+| environment             |          | []         | A list of environment variable definitions. Value may be a string or a list. |
 | export_environment_file |          | ''         | The path (relative to the working directory) to the file where exported environment variables are written. |
 | healthcheck             |          | {}         | A [healthcheck configuration object](https://github.com/efritz/ij/blob/master/docs/tasks.md#user-content-healthcheck-configuration). |
 | hostname                |          | ''         | The container's network alias. |
@@ -27,7 +27,7 @@ A run task runs a Docker container.
 | script                  |          | ''         | Lke the `command` property, but supports multi-line strings and shell features. |
 | shell                   |          | /bin/sh    | The shell used to invoke the supplied script. |
 | user                    |          | ''         | The username to invoke the command or script under. |
-| workspace               |          | /workspace | The working directory within the container. If a global value is set, that is used as a fallback before using the default. |
+| workspace               |          |            | The working directory within the container. If a global value is set, that is used as a fallback. |
 
 Some of these properties work only in tandem (or mutually exclusively) with other properties:
 
@@ -38,7 +38,7 @@ Some of these properties work only in tandem (or mutually exclusively) with othe
 
 This task will run containers in the foreground (blocking until the container exits) unless `detach` is set to true. The task succeeds if the container exits with a zero status. When `detach` is set to true, the container will be run in the background. If the container defines a healthcheck (either via Dockerfile or the task healthcheck configuration defined below), the task will block until the container becomes healthy. The task succeeds if the container becomes healthy.
 
-The file referenced by `export_environment_file` should contain lines of the form `VAR=VAL`. Whitespace and `#` comments ignored. Each of these lines will be added to the working environment set made available to tasks in future stages in the same run.
+The file referenced by `export_environment_file` should be formatted like an env file as discussed in the documentation on [environments](https://github.com/efritz/ij/blob/master/docs/environment.md). Each relevant line of the file will be added to the working environment set made available to tasks in future stages in the same run.
 
 ### Healthcheck Configuration
 
