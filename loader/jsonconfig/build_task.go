@@ -11,7 +11,6 @@ type BuildTask struct {
 	Dockerfile string          `json:"dockerfile"`
 	Tags       json.RawMessage `json:"tags"`
 	Labels     json.RawMessage `json:"labels"`
-	Arguments  json.RawMessage `json:"arguments"`
 }
 
 func (t *BuildTask) Translate(name string) (config.Task, error) {
@@ -21,11 +20,6 @@ func (t *BuildTask) Translate(name string) (config.Task, error) {
 	}
 
 	labels, err := unmarshalStringList(t.Labels)
-	if err != nil {
-		return nil, err
-	}
-
-	arguments, err := unmarshalStringList(t.Arguments)
 	if err != nil {
 		return nil, err
 	}
@@ -40,6 +34,5 @@ func (t *BuildTask) Translate(name string) (config.Task, error) {
 		Dockerfile: t.Dockerfile,
 		Tags:       tags,
 		Labels:     labels,
-		Arguments:  arguments,
 	}, nil
 }

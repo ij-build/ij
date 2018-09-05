@@ -13,7 +13,6 @@ func (s *BuildTaskSuite) TestExtend(t sweet.T) {
 		Dockerfile: "Dockerfile.parent",
 		Tags:       []string{"parent-t1"},
 		Labels:     []string{"parent-l1"},
-		Arguments:  []string{"parent-a1"},
 	}
 
 	child := &BuildTask{
@@ -21,14 +20,12 @@ func (s *BuildTaskSuite) TestExtend(t sweet.T) {
 		Dockerfile: "Dockerfile.child",
 		Tags:       []string{"child-t2", "child-t3"},
 		Labels:     []string{"child-l2", "child-l3"},
-		Arguments:  []string{"child-a2", "child-a3"},
 	}
 
 	Expect(child.Extend(parent)).To(BeNil())
 	Expect(child.Dockerfile).To(Equal("Dockerfile.child"))
 	Expect(child.Tags).To(ConsistOf("parent-t1", "child-t2", "child-t3"))
 	Expect(child.Labels).To(ConsistOf("parent-l1", "child-l2", "child-l3"))
-	Expect(child.Arguments).To(ConsistOf("parent-a1", "child-a2", "child-a3"))
 }
 
 func (s *BuildTaskSuite) TestExtendNoOverwrite(t sweet.T) {

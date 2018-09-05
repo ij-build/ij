@@ -16,7 +16,6 @@ func (s *BuildTaskSuite) TestTranslate(t sweet.T) {
 		Dockerfile: "dockerfile",
 		Tags:       json.RawMessage(`["t1", "t2", "t3"]`),
 		Labels:     json.RawMessage(`["l1", "l2", "l3"]`),
-		Arguments:  json.RawMessage(`["a1", "a2", "a3"]`),
 	}
 
 	translated, err := task.Translate("build")
@@ -29,7 +28,6 @@ func (s *BuildTaskSuite) TestTranslate(t sweet.T) {
 		Dockerfile: "dockerfile",
 		Tags:       []string{"t1", "t2", "t3"},
 		Labels:     []string{"l1", "l2", "l3"},
-		Arguments:  []string{"a1", "a2", "a3"},
 	}))
 }
 
@@ -39,7 +37,6 @@ func (s *BuildTaskSuite) TestTranslateStringLists(t sweet.T) {
 		Dockerfile: "dockerfile",
 		Tags:       json.RawMessage(`"t1"`),
 		Labels:     json.RawMessage(`"l1"`),
-		Arguments:  json.RawMessage(`"a1"`),
 	}
 
 	translated, err := task.Translate("build")
@@ -52,6 +49,5 @@ func (s *BuildTaskSuite) TestTranslateStringLists(t sweet.T) {
 		Dockerfile: "dockerfile",
 		Tags:       []string{"t1"},
 		Labels:     []string{"l1"},
-		Arguments:  []string{"a1"},
 	}))
 }

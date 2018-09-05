@@ -7,7 +7,6 @@ type BuildTask struct {
 	Dockerfile string
 	Tags       []string
 	Labels     []string
-	Arguments  []string
 }
 
 func (t *BuildTask) GetType() string {
@@ -27,6 +26,5 @@ func (t *BuildTask) Extend(task Task) error {
 	t.Dockerfile = extendString(t.Dockerfile, parent.Dockerfile)
 	t.Tags = append(parent.Tags, t.Tags...)
 	t.Labels = append(parent.Labels, t.Labels...)
-	t.Arguments = append(parent.Arguments, t.Arguments...)
 	return nil
 }

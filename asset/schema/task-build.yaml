@@ -22,6 +22,4 @@ properties:
     $ref: '#/definitions/stringOrList'
   labels:
     $ref: '#/definitions/stringOrList'
-  arguments:
-    $ref: '#/definitions/stringOrList'
 additionalProperties: false
