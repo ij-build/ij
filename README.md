@@ -17,7 +17,7 @@ A build is defined by a sequence of [tasks](https://github.com/efritz/ij/blob/ma
 
 ## Installation
 
-Simply run `go get -u github.com/efritz/ij/...`.
+Simply run `go install github.com/efritz/ij`.
 
 ## Usage
 
