@@ -13,11 +13,7 @@ IJ is a build tool using Docker containers.
 
 ## Concepts
 
-A build is defined by a sequence of [tasks](https://github.com/efritz/ij/blob/master/docs/tasks.md#user-content-tasks) which perform some unit of work (e.g. building a binary, running integration tests, pushing artifacts to a remote server), usually within a docker container. This ensures that the development host stays clean, and that the exact build dependencies are available within the container (no more development tool version hell).
-
-The build process is defined by assembling a sequence of tasks into a [plan](https://github.com/efritz/ij/blob/master/docs/plans.md#user-content-plans). A build is simply the invocation of one or more plans.
-
-A project's [config file](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-config) declares tasks and plans which builds the project.
+A build is defined by a sequence of [tasks](https://github.com/efritz/ij/blob/master/docs/tasks.md#user-content-tasks) which perform some unit of work (e.g. building a binary, running integration tests, pushing artifacts to a remote server), usually within a docker container. This ensures that the development host stays clean, and that the exact build dependencies are available within the container (no more development tool version hell). The build process is defined by assembling a sequence of tasks into a [plan](https://github.com/efritz/ij/blob/master/docs/plans.md#user-content-plans). A build is simply the invocation of one or more plans. A project's [config file](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-config) declares tasks and plans which builds the project.
 
 ## Installation
 
