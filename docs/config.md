@@ -16,7 +16,9 @@ A configuration file defines tasks (units of work) and plans (configurations of 
 | tasks       | {}         | A name-task mapping object. See [tasks](https://github.com/efritz/ij/blob/master/docs/tasks.md#user-content-tasks) for the definition of these objects. |
 | workspace   | /workspace | The default workspace to use for [run tasks](https://github.com/efritz/ij/blob/master/docs/tasks.md#user-content-run-task). |
 
-For details on the `env_file` and `environment` properties, see the documentation on [environments](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment).
+See the section on [extending a config](https://github.com/efritz/ij/blob/master/docs/extend.md#user-content-extending-a-config) about the semantics of the `extends` property.
+
+See the documentation on [environments](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment) for details on the `env_file` and `environment` properties.
 
 ## Options
 

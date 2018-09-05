@@ -13,4 +13,4 @@ An override file is basically a [config](https://github.com/efritz/ij/blob/maste
 | options     | |
 | registries  | |
 
-The values of all fields *except* for `ssh-identities` will be appended to the parent. In the case of environment variables, the values defined in the override are given precedence in the case of name collision. Any ssh-identities specified in an override file will *replace* ssh-identities defined in the parent.
+The values of all properties *except* for `ssh-identities` will be appended to the parent. In the case of environment variables, the values defined in the override are given precedence in the case of name collision. Any ssh-identities specified in an override file will *replace* ssh-identities defined in the parent.

@@ -9,6 +9,8 @@ A task is an object representing a unit of work in the run of a build plan. Thes
 
 See the section on [extending a task](https://github.com/efritz/ij/blob/master/docs/extend.md#user-content-extending-a-task) about the semantics of the `extends` property. It may be of note that the `extends` property does **not** support environment expansion.
 
+The `type` property is not always required when not the default value -- if the `extends` property is set and the `type` property is not, then the value of the `type` property is inferred by type of the parent task. It is an error to supply both the `type` and `extends` property in an inconsistent manner (it is not possible to extend a task of a different type).
+
 ## Run Task
 
 A run task runs a Docker container.
