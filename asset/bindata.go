@@ -218,6 +218,32 @@ definitions:
       - type: array
         items:
           type: string
+  stage:
+    type: object
+    properties:
+      name:
+        type: string
+      before_stage:
+        type: string
+      after_stage:
+        type: string
+      tasks:
+        type: array
+        items:
+          $ref: '#/definitions/stageTask'
+      run-mode:
+        type: string
+        enum:
+          - always
+          - on-success
+          - on-failure
+      parallel:
+        type: boolean
+      environment:
+        $ref: '#/definitions/stringOrList'
+    additionalProperties: false
+    required:
+      - name
   stageTask:
     oneOf:
       - type: string
@@ -238,31 +264,7 @@ properties:
   stages:
     type: array
     items:
-      type: object
-      properties:
-        name:
-          type: string
-        before_stage:
-          type: string
-        after_stage:
-          type: string
-        tasks:
-          type: array
-          items:
-            $ref: '#/definitions/stageTask'
-        run-mode:
-          type: string
-          enum:
-            - always
-            - on-success
-            - on-failure
-        parallel:
-          type: boolean
-        environment:
-          $ref: '#/definitions/stringOrList'
-      additionalProperties: false
-      required:
-        - name
+      $ref: '#/definitions/stage'
   environment:
     $ref: '#/definitions/stringOrList'
 additionalProperties: false
@@ -278,7 +280,7 @@ func schemaPlanYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/plan.yaml", size: 1127, mode: os.FileMode(420), modTime: time.Unix(1535669790, 0)}
+	info := bindataFileInfo{name: "schema/plan.yaml", size: 1120, mode: os.FileMode(420), modTime: time.Unix(1536107777, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -412,8 +414,6 @@ properties:
     $ref: '#/definitions/stringOrList'
   labels:
     $ref: '#/definitions/stringOrList'
-  arguments:
-    $ref: '#/definitions/stringOrList'
 additionalProperties: false
 `)
 
@@ -427,7 +427,7 @@ func schemaTaskBuildYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-build.yaml", size: 434, mode: os.FileMode(420), modTime: time.Unix(1535585899, 0)}
+	info := bindataFileInfo{name: "schema/task-build.yaml", size: 382, mode: os.FileMode(420), modTime: time.Unix(1536105065, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

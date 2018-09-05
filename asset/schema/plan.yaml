@@ -7,6 +7,32 @@ definitions:
       - type: array
         items:
           type: string
+  stage:
+    type: object
+    properties:
+      name:
+        type: string
+      before_stage:
+        type: string
+      after_stage:
+        type: string
+      tasks:
+        type: array
+        items:
+          $ref: '#/definitions/stageTask'
+      run-mode:
+        type: string
+        enum:
+          - always
+          - on-success
+          - on-failure
+      parallel:
+        type: boolean
+      environment:
+        $ref: '#/definitions/stringOrList'
+    additionalProperties: false
+    required:
+      - name
   stageTask:
     oneOf:
       - type: string
@@ -27,31 +53,7 @@ properties:
   stages:
     type: array
     items:
-      type: object
-      properties:
-        name:
-          type: string
-        before_stage:
-          type: string
-        after_stage:
-          type: string
-        tasks:
-          type: array
-          items:
-            $ref: '#/definitions/stageTask'
-        run-mode:
-          type: string
-          enum:
-            - always
-            - on-success
-            - on-failure
-        parallel:
-          type: boolean
-        environment:
-          $ref: '#/definitions/stringOrList'
-      additionalProperties: false
-      required:
-        - name
+      $ref: '#/definitions/stage'
   environment:
     $ref: '#/definitions/stringOrList'
 additionalProperties: false
