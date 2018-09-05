@@ -7,7 +7,7 @@ A task is an object representing a unit of work in the run of a build plan. Thes
 | extends |          | ''      | The name of the task this task extends (if any). |
 | type    |          | run     | The type of task. May also be one of `build`, `push`, `remove`, or `plan`. |
 
-See the section on [extending a task](https://github.com/efritz/ij/blob/master/docs/extend.md#user-content-extending-a-task) about the semantics of the `extends` property. It may be of note that the `extends` property does **not** support environment substitution.
+See the section on [extending a task](https://github.com/efritz/ij/blob/master/docs/extend.md#user-content-extending-a-task) about the semantics of the `extends` property. It may be of note that the `extends` property does **not** support environment expansion.
 
 ## Run Task
 
@@ -87,4 +87,8 @@ A plan task (recursively) invokes a plan or a metaplan defined in the same confi
 | environment |          | []      | A list additional environment variable definitions. Value may be a string or a list. |
 | name        | yes      |         | The name of the plan or metaplan to invoke. |
 
-It may be of note that the `name` property does **not** support environment substitution.
+It may be of note that the `name` property does **not** support environment expansion.
+
+### Plan Task Environment
+
+The [environment](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment) built to execute a plan task is merged into the environment of the target plan. The environment active at the time of this task invocation is inserted after the override environment, but before the environment of a task referenced by the target plan.

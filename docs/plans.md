@@ -6,7 +6,7 @@ A plan is a configuration of tasks organized into *stages*, described below.
 | ----------- | -------- | ------- | ----------- |
 | environment |          | []      | A list of environment variable definitions. Value may be a string or a list. |
 | extend      |          | false   | Whether or not the plan is extending a plan defined in the parent config with the same name. |
-| stages      |          | []      | A list of [stage](https://github.com/efritz/ij/blob/master/docs/plan.md#user-content-stage) objects. |
+| stages      |          | []      | A list of [stage](https://github.com/efritz/ij/blob/master/docs/plans.md#user-content-stage) objects. |
 
 See the section on [extending a plan](https://github.com/efritz/ij/blob/master/docs/extend.md#user-content-extending-a-plan) about the semantics of the `extends` property.
 
@@ -22,7 +22,7 @@ A stage is a direct collection of tasks.
 | name         | yes      |            | The name of the stage. Must be unique within the plan. |
 | parallel     |          | false      | Whether or not to run tasks sequentially or in parallel. |
 | run-mode     |          | on-success | One of `on-success`, `on-failure`, or `always`. Determines if a stage should run in the presence of a previous stage failure. |
-| tasks        |          | []         | A list of task names to run. |
+| tasks        |          | []         | A list of tasks to run. Values in this list can be a string (the task name), or a object with a `name` and `environment` property. |
 
 See the section on [extending a plan](https://github.com/efritz/ij/blob/master/docs/extend.md#user-content-extending-a-plan) about the semantics of the `after_stage` and `before_stage` properties.
 
