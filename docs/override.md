@@ -1,8 +1,8 @@
-# Override
+# Override Files
 
 Developers can define user and project-level overrides which are applied on top of a config. A user-level override is read from `~/.ij/override.yaml`, and a project-level override file is read from `ij.override.yaml` or `ij.override.yml` in the project directory. Project-overrides take precedence over user-level overrides.
 
-An override file is basically a [config](https://github.com/efritz/ij/blob/master/docs/config.md) with some properties stripped. The following properties are supported.
+An override file is basically a [config](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-config) with some properties stripped. The following properties are supported.
 
 | Name        | Notes |
 | ----------- | ----- |

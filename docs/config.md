@@ -12,15 +12,15 @@ A configuration file defines tasks (units of work) and plans (configurations of 
 | metaplans   | {}         | A name-metaplan mapping object. See [plans](https://github.com/efritz/ij/blob/master/docs/plans.md#user-content-metaplans) for the definition of these objects. |
 | options     | {}         | An [options object](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-options). |
 | plans       | {}         | A name-plan mapping object. See [plans](https://github.com/efritz/ij/blob/master/docs/plans.md#user-content-plans) for the definition of these objects. |
-| registries  | []         | A list of [docker registries](https://github.com/efritz/ij/blob/master/docs/registries.md) used for login. |
+| registries  | []         | A list of [docker registries](https://github.com/efritz/ij/blob/master/docs/registries.md#user-content-registries) used for login. |
 | tasks       | {}         | A name-task mapping object. See [tasks](https://github.com/efritz/ij/blob/master/docs/tasks.md#user-content-tasks) for the definition of these objects. |
 | workspace   | /workspace | The default workspace to use for [run tasks](https://github.com/efritz/ij/blob/master/docs/tasks.md#user-content-run-task). |
 
-For details on the `env_file` and `environment` properties, see the documentation on [environments](https://github.com/efritz/ij/blob/master/docs/environment.md).
+For details on the `env_file` and `environment` properties, see the documentation on [environments](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment).
 
 ## Options
 
-The following options can be amended/overridden by [override files](https://github.com/efritz/ij/blob/master/docs/override.md) or via command line arguments.
+The following options can be amended/overridden by [override files](https://github.com/efritz/ij/blob/master/docs/override.md#user-content-override-files) or via command line arguments.
 
 | Name                 | Default | Description |
 | -------------------- | ------- | ----------- |

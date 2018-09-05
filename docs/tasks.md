@@ -38,7 +38,7 @@ Some of these properties work only in tandem (or mutually exclusively) with othe
 
 This task will run containers in the foreground (blocking until the container exits) unless `detach` is set to true. The task succeeds if the container exits with a zero status. When `detach` is set to true, the container will be run in the background. If the container defines a healthcheck (either via Dockerfile or the task healthcheck configuration defined below), the task will block until the container becomes healthy. The task succeeds if the container becomes healthy.
 
-The file referenced by `export_environment_file` should be formatted like an env file as discussed in the documentation on [environments](https://github.com/efritz/ij/blob/master/docs/environment.md). Each relevant line of the file will be added to the working environment set made available to tasks in future stages in the same run.
+The file referenced by `export_environment_file` should be formatted like an env file as discussed in the documentation on [environments](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment). Each relevant line of the file will be added to the working environment set made available to tasks in future stages in the same run.
 
 ### Healthcheck Configuration
 
