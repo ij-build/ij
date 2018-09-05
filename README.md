@@ -35,11 +35,9 @@ There are currently four IJ subcommands (`run`, `login`, `logout`, and `rotate-l
 | no-color |            | Disable colorized output. |
 | verbose  | v          | Show debug-level output. |
 
-### Run
+### Run Command
 
-This command can be invoked as `ij [run]? (plan-name)*`. The run keyword is assumed if not supplied.
-
-This command runs a series of plans or metaplans defined in the config file. If no plan-names are supplied, the plan named `default` is invoked.
+This command can be invoked as `ij [run]? (plan-name)*`. The run keyword is assumed if not supplied. This command runs a series of plans or metaplans defined in the config file. If no plan-names are supplied, the plan named `default` is invoked.
 
 | Name                 | Short Flag | Description |
 | -------------------- | ---------- | ----------- |
@@ -52,23 +50,17 @@ This command runs a series of plans or metaplans defined in the config file. If 
 | ssh-identity         |            | An additional SSH key fingerprint required to be present in the host's SSH agent. |
 | timeout              |            | The maximum time a build plan can run in total. |
 
-### Login
+### Login Command
 
-This command can be invoked as `ij login`.
+This command can be invoked as `ij login`. Login to all [registries](https://github.com/efritz/ij/blob/master/docs/registries.md#user-content-registries) defined in the config file.
 
-Login to all [registries](https://github.com/efritz/ij/blob/master/docs/registries.md#user-content-registries) defined in the config file.
+### Logout Command
 
-### Logout
+This command can be invoked as `ij logout`. Logout from all [registries](https://github.com/efritz/ij/blob/master/docs/registries.md#user-content-registries) defined in the config file.
 
-This command can be invoked as `ij logout`.
+### Rotate Logs Command
 
-Logout from all [registries](https://github.com/efritz/ij/blob/master/docs/registries.md#user-content-registries) defined in the config file.
-
-### Rotate Logs
-
-This command can be invoked as `ij rotate-logs`.
-
-Remove all but the most recent run from the `.ij` directory in the current project.
+This command can be invoked as `ij rotate-logs`. Remove all but the most recent run from the `.ij` directory in the current project.
 
 ## License
 
