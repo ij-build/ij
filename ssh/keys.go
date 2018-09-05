@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"strings"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
@@ -46,13 +45,13 @@ func matchIdentity(identity string, keys []*agent.Key) bool {
 			fingerprints = []string{
 				fpSHA256,
 				fpMD5,
-				fmt.Sprintf("sha256:%s", fpSHA256),
-				fmt.Sprintf("md5:%s", fpMD5),
+				fmt.Sprintf("SHA256:%s", fpSHA256),
+				fmt.Sprintf("MD5:%s", fpMD5),
 			}
 		)
 
 		for _, fp := range fingerprints {
-			if strings.ToUpper(identity) == strings.ToUpper(fp) {
+			if identity == fp {
 				return true
 			}
 		}
