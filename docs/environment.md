@@ -24,4 +24,4 @@ Any environment file containing a non-empty, non-comment line with no `=` symbol
 
 # Environment Expansion
 
-Almost all tasks properties (unless otherwise noted) will replace names references of the form `$VAR` and `${VAR}` with the value defined in the environment at the time the task is invoked. If `VAR` is not defined in the environment, the reference will remain untouched. Expansion happens recursively, so if a substituted value also contains a name reference, it will also be substituted.
+Almost all tasks and registry object properties (unless otherwise noted) will replace names references of the form `$VAR` and `${VAR}` with the value defined in the environment at the time the task is invoked. If `VAR` is not defined in the environment, the reference will remain untouched. Expansion happens recursively, so if a substituted value also contains a name reference, it will also be substituted.

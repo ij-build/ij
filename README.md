@@ -11,6 +11,59 @@
 
 IJ is a build tool using Docker containers.
 
+## Concepts
+
+TODO
+
+See [config file format](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-config) documentation for the format of a build configuration file.
+
+## Usage
+
+There are currently four IJ subcommands (`run`, `login`, `logout`, and `rotate-logs`) each discussed below. The following command line flags are applicable for all IJ commands.
+
+| Long       | Short | Description |
+| ---------- | ----- | ----------- |
+| --config   | -f    | The path to the config file. If not supplied, `ij.yaml` and `ij.yml` are attempted in the current directory. |
+| --env      | -e    | Set an environment variable. Use `-e VAR=VAL` to set an explicit value for the variable `VAR`. Use `-e VAR` to use the host value of `$VAR`. |
+| --env-file |       | The path to an [environment file](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment-file). |
+| --no-color |       | Disable colorized output. |
+| --verbose  |  -v   | Show debug-level output. |
+
+### Run
+
+This command can be invoked as `ij [run]? (plan-name)*`. The run keyword is assumed if not supplied.
+
+This command runs a series of plans or metaplans defined in the config file. If no plan-names are supplied, the plan named `default` is invoked.
+
+| Long                   | Short | Description |
+| ---------------------- | ----- | ----------- |
+| --cpu-shares           | -c    | The proc limit for run task containers. |
+| --force-sequential     |       | Disable running tasks in parallel. |
+| --healthcheck-interval |       | How frequently to check the health of service containers. |
+| --keep-workspace       | -k    | Do not prune the scratch directory (useful for debugging failed plans). |
+| --login                |       | Login to registries before invoking plans and logout from registries after (useful for builds that push image artifacts). |
+| --memory               | -m    | The memory limit for run task containers. |
+| --ssh-identity         |       | An additional SSH key fingerprint required to be present in the host's SSH agent. |
+| --timeout              |       | The maximum time a build plan can run in total. |
+
+### Login
+
+This command can be invoked as `ij login`.
+
+Login to all [registries](https://github.com/efritz/ij/blob/master/docs/registries.md#user-content-registries) defined in the config file.
+
+### Logout
+
+This command can be invoked as `ij logout`.
+
+Logout from all [registries](https://github.com/efritz/ij/blob/master/docs/registries.md#user-content-registries) defined in the config file.
+
+### Rotate Logs
+
+This command can be invoked as `ij rotate-logs`.
+
+Remove all but the most recent run from the `.ij` directory in the current project.
+
 ## License
 
 Copyright (c) 2018 Eric Fritz

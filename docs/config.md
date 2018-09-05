@@ -4,7 +4,7 @@ A configuration file defines tasks (units of work) and plans (configurations of 
 
 | Name        | Default    | Description |
 | ----------- | ---------- | ----------- |
-| env_file    | []         | A list paths to environment files on the host. Value may be a string or a list. |
+| env_file    | []         | A list paths to [environment file](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment-file) on the host. Value may be a string or a list. |
 | environment | []         | A list of environment variable definitions. Value may be a string or a list. |
 | export      | {}         | A [file list object](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-file-list) describing the export phase. |
 | extends     | ''         | The path (relative/absolute on-disk, or an HTTP(S) URL) to the parent configuration. |
