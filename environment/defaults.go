@@ -23,11 +23,10 @@ func Default() Environment {
 	if repo, err := getVCS(); err == nil {
 		name := strings.ToUpper(repo.Name())
 
-		lines = append(lines, fmt.Sprintf("%s_COMMIT=%s", name, repo.Commit()))
+		lines = append(lines, fmt.Sprintf("%s_BRANCH_NORMALIZED=%s", name, normalize(repo.Branch())))
+		lines = append(lines, fmt.Sprintf("%s_BRANCH=%s", name, repo.Branch()))
 		lines = append(lines, fmt.Sprintf("%s_COMMIT_SHORT=%s", name, repo.ShortCommit()))
 		lines = append(lines, fmt.Sprintf("%s_COMMIT=%s", name, repo.Commit()))
-		lines = append(lines, fmt.Sprintf("%s_BRANCH=%s", name, repo.Branch()))
-		lines = append(lines, fmt.Sprintf("%s_BRANCH_NORMALIZED=%s", name, normalize(repo.Branch())))
 		lines = append(lines, fmt.Sprintf("%s_REMOTE=%s", name, repo.Remote("")))
 	}
 
