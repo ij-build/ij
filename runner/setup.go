@@ -73,6 +73,17 @@ func SetupRunner(
 		return
 	}
 
+	_, err = setupNetwork(
+		ctx,
+		runID,
+		cleanup,
+		logger,
+	)
+
+	if err != nil {
+		return
+	}
+
 	containerLists := setupContainerLists(
 		runID,
 		cleanup,
@@ -86,17 +97,6 @@ func SetupRunner(
 		logger,
 		overrideEnv,
 		login,
-	)
-
-	if err != nil {
-		return
-	}
-
-	_, err = setupNetwork(
-		ctx,
-		runID,
-		cleanup,
-		logger,
 	)
 
 	if err != nil {
