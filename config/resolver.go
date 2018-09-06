@@ -36,10 +36,22 @@ func (r *TaskExtendsResolver) resolve(task Task) error {
 	var (
 		name    = task.GetName()
 		extends = task.GetExtends()
-		parent  = r.config.Tasks[extends]
 	)
 
-	if _, ok := r.resolved[name]; extends == "" || ok {
+	if extends == "" {
+		return nil
+	}
+
+	parent, ok := r.config.Tasks[extends]
+	if !ok {
+		return fmt.Errorf(
+			"unknown task name %s referenced in task %s",
+			extends,
+			name,
+		)
+	}
+
+	if _, ok := r.resolved[name]; ok {
 		return nil
 	}
 
