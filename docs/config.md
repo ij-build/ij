@@ -59,6 +59,8 @@ A file list object controls the files which move into the workspace on import an
 
 Files matching a pattern in the `files` property will be *recursively* transferred in or out of the workspace. If that file also matches a pattern in the `exclude` property, it will be skipped. All symlinks are skipped during transfer. Glob patterns support `*` for optional text and `**` for multiple directories. The directories `.ij` and `.git` are implicitly blacklisted on import.
 
+A file pattern may also have the form `src:dest`. This allows importing the source file into the workspace at a particular target location in the workspace, and exporting the source file from the workspace into a particular location in the project directory. If this form is used, glob patterns are not allowed.
+
 ```yaml
 import:
   files:
