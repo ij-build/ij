@@ -54,6 +54,53 @@ Supplying any of the following parameters will overwrite any healthcheck defined
 | start_period |          |         | The duration after container startup in which failed health checks are not counted against the retry count. |
 | timeout      |          |         | The maximum runtime of a single health check. |
 
+### Example
+
+This first example runs the image `${GO_IMAGE}`, defined in the global environment section. It defines a single `script` which adds a GitHub public key to the known hosts file and installs vendor dependencies via, but only if the `vendor` directory was not imported from the host.
+
+```yaml
+environment:
+  - GO_IMAGE=registry.example.io/devops/go-build:master-latest
+
+tasks:
+  glide-install:
+    image: ${GO_IMAGE}
+    script: |
+      if [ -d vendor ]; then
+        # Skip if vendor was imported from host
+        exit 0;
+      fi
+
+      # Install deps from glide.yaml (may include private repos)
+      ssh-keyscan -H github.com 2> /dev/null 1> ~/.ssh/known_hosts
+      glide install
+
+# plans not shown
+```
+
+The second example declares a task to run `redis` in the background, and another task to run the image `api` with an environment pointed to the redis hostname. This example shows building blocks useful for end-to-end integration testing with a live (locally-hosted) database.
+
+```yaml
+environment:
+  - REDIS_HOST=redis.ij
+
+tasks:
+  redis:
+    image: redis
+    detach: true
+    hostname: ${REDIS_HOST}
+    healthcheck:
+      command: redis-cli ping
+      interval: 1s
+
+  api:
+    image: api
+    environment:
+      - API_REDIS_HOST=${REDIS_HOST}
+
+# plans not shown
+```
+
 ## Build Task
 
 A build task builds a Docker image from a Dockerfile.
@@ -64,6 +111,26 @@ A build task builds a Docker image from a Dockerfile.
 | labels     |          | []         | Metadata for the resulting image. Value may be a string or a list. |
 | tags       |          | []         | A list of tags for the resulting image. Value may be a string or a list. |
 
+### Example
+
+This example tags an image with the project's current git status, and adds the same information plus the time of the build to the image labels.
+
+```yaml
+tasks:
+  build-api:
+    type: build
+    dockerfile: Dockerfile.api
+    tags:
+      - registry.example.io/devops/api:${GIT_BRANCH_NORMALIZED}-latest
+      - registry.example.io/devops/api:${GIT_BRANCH_NORMALIZED}-${GIT_COMMIT_SHORT}
+    labels:
+      - BUILD_TIME=${BUILD_TIME}
+      - GIT_BRANCH=${GIT_BRANCH}
+      - GIT_COMMIT=${GIT_COMMIT}
+
+# plans not shown
+```
+
 ## Push Task
 
 A push task pushes image tags to a remote registry. For this task to succeed, the target registry must be writable by the current host and user. This may require previously running `ij login` or invoking this plan with the `--login` option.
@@ -72,6 +139,21 @@ A push task pushes image tags to a remote registry. For this task to succeed, th
 | ------ | -------- | ------- | ----------- |
 | images |          | []      | A list of image tags to push to a remote registry. Value may be a string or a list. |
 
+### Example
+
+This example speaks for itself.
+
+```yaml
+tasks:
+  push-images:
+    type: push
+    images:
+      - registry.example.io/devops/api:${GIT_BRANCH_NORMALIZED}-latest
+      - registry.example.io/devops/api:${GIT_BRANCH_NORMALIZED}-${GIT_COMMIT_SHORT}
+
+# plans not shown
+```
+
 ## Remove Task
 
 A remove task removes image from the host.
@@ -79,6 +161,21 @@ A remove task removes image from the host.
 | Name   | Required | Default | Description |
 | ------ | -------- | ------- | ----------- |
 | images |          | []      | A list of image tags to remove from the host. Value may be a string or a list. |
+
+### Example
+
+This example speaks for itself.
+
+```yaml
+tasks:
+  remove-images:
+    type: remove
+    images:
+      - registry.example.io/devops/api:${GIT_BRANCH_NORMALIZED}-latest
+      - registry.example.io/devops/api:${GIT_BRANCH_NORMALIZED}-${GIT_COMMIT_SHORT}
+
+# plans not shown
+```
 
 ## Plan Task
 
@@ -94,3 +191,46 @@ It may be of note that the `name` property does **not** support environment expa
 ### Plan Task Environment
 
 The [environment](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment) built to execute a plan task is merged into the environment of the target plan. The environment active at the time of this task invocation is inserted after the override environment, but before the environment of a task referenced by the target plan.
+
+### Example
+
+The following example defines the plans `build` and `test`, both of which have a set of tasks that must be run first. This sequence of dependencies are expressed as a separate plan which is called recursively via the `go-deps` task. This example is a bit contrived, but this basic strategy is beneficial for common dependencies, long sequences of tasks, and when extending a plan defined in a parent config.
+
+```yaml
+tasks:
+  go-deps:
+    type: plan
+    name: go-deps
+
+plans:
+  build:
+    stages:
+      - name: deps
+        tasks:
+          - go-deps
+      - name: build
+        tasks:
+          - go-build
+
+  test:
+    stages:
+      - name: deps
+        tasks:
+          - go-deps
+      - name: test
+        tasks:
+          - go-test
+
+  go-deps:
+    stages:
+      - name: vendors
+        tasks:
+          - install-vendors
+      - name: deps
+        tasks:
+          - generate-protobuf
+          - generate-mocks
+        parallel: true
+
+# additional tasks not shown
+```
