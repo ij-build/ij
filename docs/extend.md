@@ -16,6 +16,45 @@ A child task (with the `extends` property set) extends its parent task. If the c
 
 It is legal to form a task extend chain (*a* extends *b*, *b* extends *c*, etc), but this chain may not contain cycles.
 
+## Example
+
+This example defines the `venv-py2` and `venv-py3` tasks. Both tasks extend the same base task but update the environment so that different binary names are used by the script.
+
+```yaml
+tasks:
+  venv:
+    image: ${PY_IMAGE}
+    shell: /bin/bash
+    script: |
+      if [ ! -d ${VENV_NAME} ]; then
+        virtualenv ${VENV_NAME} --python=${VENV_PYTHON}
+      fi
+
+      source ./${VENV_NAME}/bin/activate
+      ${VENV_PIP} install -U pip
+      ls requirements* | xargs -I {} ${VENV_PIP} install -r {}
+    required_environment:
+      - VENV_NAME
+      - VENV_PYTHON
+      - VENV_PIP
+
+  venv-py2:
+    extends: venv
+    environment:
+      - VENV_NAME=venv2
+      - VENV_PYTHON=python2
+      - VENV_PIP=pip
+
+  venv-py3:
+    extends: venv
+    environment:
+      - VENV_NAME=venv3
+      - VENV_PYTHON=python3
+      - VENV_PIP=pip3
+
+# plans not shown
+```
+
 # Extending a Plan
 
 This section applies when a child and parent config both define a plan with the same name. If the plan defined in the child config does not have its `extend` property set to true, then the plan defined in the child config overwrites the plan defined in the parent config. In this section we describe the other case.
@@ -28,3 +67,46 @@ First, the environment of the child plan is appended onto the environment of the
 4. Otherwise, there is an ambiguity error and the stage cannot be inserted into the parent plan.
 
 In the first case, `before_stage` and `after_stage` must not be set in the child stage. In all cases, `before_stage` and `after_stage` must not **both** be set.
+
+## Example
+
+The parent config file in this example declares a four-stage plan for running integration tests. The parent declares only the structure of the plan and does not reference any tasks.
+
+```yaml
+# parent.yaml
+
+plans:
+  test-integration:
+    stages:
+      - name: deps
+      - name: services
+      - name: migrations
+      - name: test
+```
+
+The project config file, extending the parent config, refines the integration test plan by adding tasks to the migrations and test stages, and adds an additional stage to run fixtures.
+
+```yaml
+# ij.yaml
+
+extends: parent.yaml
+
+plans:
+  test-integration:
+    extend: true
+    stages:
+      - name: migrations
+        tasks:
+          - api-migrate-postgres
+          - api-migrate-cassandra
+        parallel: true
+      - name: fixtures
+        after_stage: migrations
+        tasks:
+          - fixtures
+      - name: test
+        tasks:
+          - test
+
+# tasks not shown
+```

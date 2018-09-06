@@ -14,6 +14,14 @@ If a variable is defined multiple times in a single environment, the last value 
 - the environment exported by a previous run task
 - the command line `--environment` and `--env-file` flags
 
+The `BUILD_TIME` environment variable containing the ISO8601-formatted current UTC time is available by default. If the project directory is controlled by git, the following environment variables are also available:
+
+- *GIT_REMOTE*
+- *GIT_COMMIT*
+- *GIT_BRANCH*
+- *GIT_COMMIT_SHORT* (the first 12 chars of the commit hash)
+- *GIT_BRANCH_NORMALIZED* (non-alphanum characters replaced by a dash)
+
 # Environment Files
 
 Contents of an environment file can be interpreted as environment assignments using the `env_file` property of the config and override files, the `--env-file` command line argument, or from an `exported_environment_file` property of a run task.

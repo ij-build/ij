@@ -27,7 +27,7 @@ There are currently four IJ subcommands (`run`, `login`, `logout`, and `rotate-l
 | -------- | ---------- | ----------- |
 | config   | f          | The path to the config file. If not supplied, `ij.yaml` and `ij.yml` are attempted in the current directory. |
 | env      | e          | Set an environment variable. Use `-e VAR=VAL` to set an explicit value for the variable `VAR`. Use `-e VAR` to use the host value of `$VAR`. |
-| env-file |            | The path to an [environment file](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment-file). |
+| env-file |            | The path to an [environment file](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment-files). |
 | no-color |            | Disable colorized output. |
 | verbose  | v          | Show debug-level output. |
 

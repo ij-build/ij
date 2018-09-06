@@ -33,3 +33,27 @@ If the `run mode` property is set to `on-success` (the default), then the stage 
 # Metaplans
 
 A metaplan is simply a list of plans and is semantically equivalent to running the stages of the listed plans back-to-back. A metaplan can be referenced in any place that a plan can be referenced.
+
+# Example
+
+This example defines a plan with two stages. The first stage installs golang dependencies and the second stage builds three golang binaries in parallel.
+
+```yaml
+plans:
+  build:
+    stages:
+      - name: vendors
+        tasks:
+          - install-vendors
+      - name: build
+        tasks:
+          - name: go-build
+            environment: APP=a
+          - name: go-build
+            environment: APP=b
+          - name: go-build
+            environment: APP=c
+        parallel: true
+
+# tasks not shown
+```

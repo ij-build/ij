@@ -41,3 +41,23 @@ A Google Container Registry which can be logged in via the [JSON Key File](https
 | -------- | -------- | ------- | ----------- |
 | hostname |          | gcr.io  | The GCR hostname. May also be one of `us.gcr.io`, `eu.gcr.io`, or `asia.gcr.io`. |
 | key_file | yes      |         | The path to a [service account JSON key file](https://support.google.com/cloud/answer/6158849#serviceaccounts) on the host. |
+
+# Example
+
+This example illustrates a registry list with all three registry types. It is suggested to store server registry credentials (when it is not possible to use password_file) as well as AWS credentials in the user's global override file.
+
+```yaml
+registries:
+  - server: registry.example.io
+    username: admin
+    password: secret
+
+  - type: ecr
+    access_key_id: ${AWS_ACCESS_KEY_ID}
+    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+    account_id: 641844361036
+    role: Developer
+
+  - type: gcr
+    key_file: /etc/docker-agent-keyfile.json
+```
