@@ -6,7 +6,7 @@ A configuration file defines tasks (units of work) and plans (configurations of 
 | ----------- | ---------- | ----------- |
 | env_file    | []         | A list paths to [environment file](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment-files) on the host. Value may be a string or a list. |
 | environment | []         | A list of environment variable definitions. Value may be a string or a list. |
-| export      | {}         | An [export file list object](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-export-file-list) describing the export phase. |
+| export      | {}         | An [export file list object](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-export-file-lists) describing the export phase. |
 | extends     | ''         | The path (relative/absolute on-disk, or an HTTP(S) URL) to the parent configuration. |
 | import      | {}         | An [import file list object](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-import-file-list) describing the import phase. |
 | metaplans   | {}         | A name-metaplan mapping object. See [plans](https://github.com/efritz/ij/blob/master/docs/plans.md#user-content-metaplans) for the definition of these objects. |
