@@ -14,8 +14,8 @@ type (
 		Workspace        string                     `json:"workspace"`
 		Environment      json.RawMessage            `json:"environment"`
 		EnvironmentFiles json.RawMessage            `json:"env_file"`
-		Import           *FileList                  `json:"import"`
-		Export           *FileList                  `json:"export"`
+		Import           *ImportFileList            `json:"import"`
+		Export           *ExportFileList            `json:"export"`
 		Tasks            map[string]json.RawMessage `json:"tasks"`
 		Plans            map[string]*Plan           `json:"plans"`
 		Metaplans        map[string][]string        `json:"metaplans"`
@@ -27,9 +27,15 @@ type (
 		HealthcheckInterval Duration        `json:"healthcheck-interval"`
 	}
 
-	FileList struct {
+	ImportFileList struct {
 		Files    json.RawMessage `json:"files"`
 		Excludes json.RawMessage `json:"excludes"`
+	}
+
+	ExportFileList struct {
+		Files         json.RawMessage `json:"files"`
+		Excludes      json.RawMessage `json:"excludes"`
+		CleanExcludes json.RawMessage `json:"clean_excludes"`
 	}
 )
 
@@ -117,7 +123,7 @@ func (c *Options) Translate() (*config.Options, error) {
 	}, nil
 }
 
-func (l *FileList) Translate() (*config.FileList, error) {
+func (l *ImportFileList) Translate() (*config.ImportFileList, error) {
 	files, err := unmarshalStringList(l.Files)
 	if err != nil {
 		return nil, err
@@ -128,8 +134,31 @@ func (l *FileList) Translate() (*config.FileList, error) {
 		return nil, err
 	}
 
-	return &config.FileList{
+	return &config.ImportFileList{
 		Files:    files,
 		Excludes: excludes,
+	}, nil
+}
+
+func (l *ExportFileList) Translate() (*config.ExportFileList, error) {
+	files, err := unmarshalStringList(l.Files)
+	if err != nil {
+		return nil, err
+	}
+
+	excludes, err := unmarshalStringList(l.Excludes)
+	if err != nil {
+		return nil, err
+	}
+
+	cleanExcludes, err := unmarshalStringList(l.CleanExcludes)
+	if err != nil {
+		return nil, err
+	}
+
+	return &config.ExportFileList{
+		Files:         files,
+		Excludes:      excludes,
+		CleanExcludes: cleanExcludes,
 	}, nil
 }

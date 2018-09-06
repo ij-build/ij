@@ -23,11 +23,11 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 		Workspace:        "/go/src/example.com",
 		Environment:      json.RawMessage(`"X=1"`),
 		EnvironmentFiles: json.RawMessage(`"./env"`),
-		Import: &FileList{
+		Import: &ImportFileList{
 			Files:    json.RawMessage(`"."`),
 			Excludes: json.RawMessage(`"**/__pycache__"`),
 		},
-		Export: &FileList{
+		Export: &ExportFileList{
 			Files: json.RawMessage(`"**/junit*.xml"`),
 		},
 		Tasks: map[string]json.RawMessage{
@@ -60,11 +60,11 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 		Workspace:        "/go/src/example.com",
 		Environment:      []string{"X=1"},
 		EnvironmentFiles: []string{"./env"},
-		Import: &config.FileList{
+		Import: &config.ImportFileList{
 			Files:    []string{"."},
 			Excludes: []string{"**/__pycache__"},
 		},
-		Export: &config.FileList{
+		Export: &config.ExportFileList{
 			Files: []string{"**/junit*.xml"},
 		},
 		Tasks: map[string]config.Task{
@@ -112,11 +112,11 @@ func (s *ConfigSuite) TestTranslateStringLists(t sweet.T) {
 		},
 		Environment:      json.RawMessage(`["X=1", "Y=2"]`),
 		EnvironmentFiles: json.RawMessage(`["./env", "./env.secret"]`),
-		Import: &FileList{
+		Import: &ImportFileList{
 			Files:    json.RawMessage(`["src", "test"]`),
 			Excludes: json.RawMessage(`["*.cache", "*.temp"]`),
 		},
-		Export: &FileList{
+		Export: &ExportFileList{
 			Files: json.RawMessage(`["*.txt", "*.go"]`),
 		},
 		Tasks:     map[string]json.RawMessage{},
@@ -133,11 +133,11 @@ func (s *ConfigSuite) TestTranslateStringLists(t sweet.T) {
 		Registries:       []config.Registry{},
 		Environment:      []string{"X=1", "Y=2"},
 		EnvironmentFiles: []string{"./env", "./env.secret"},
-		Import: &config.FileList{
+		Import: &config.ImportFileList{
 			Files:    []string{"src", "test"},
 			Excludes: []string{"*.cache", "*.temp"},
 		},
-		Export: &config.FileList{
+		Export: &config.ExportFileList{
 			Files: []string{"*.txt", "*.go"},
 		},
 		Tasks:     map[string]config.Task{},

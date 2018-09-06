@@ -22,8 +22,8 @@ func (s *OverrideSuite) TestTranslate(t sweet.T) {
 			json.RawMessage(`{"type": "gcr", "key_file": "secret.key"}`),
 		},
 		Environment: json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
-		Import:      &FileList{Excludes: json.RawMessage(`"**/__pycache__"`)},
-		Export:      &FileList{},
+		Import:      &ImportFileList{Excludes: json.RawMessage(`"**/__pycache__"`)},
+		Export:      &ExportFileList{CleanExcludes: json.RawMessage(`["*.txt", "*.pdf"]`)},
 	}
 
 	translated, err := jsonOverride.Translate()
@@ -42,6 +42,7 @@ func (s *OverrideSuite) TestTranslate(t sweet.T) {
 		},
 		Environment:    []string{"X=1", "Y=2", "Z=3"},
 		ImportExcludes: []string{"**/__pycache__"},
+		CleanExcludes:  []string{"*.txt", "*.pdf"},
 	}))
 }
 
@@ -49,8 +50,8 @@ func (s *OverrideSuite) TestTranslateStringLists(t sweet.T) {
 	jsonOverride := &Override{
 		Options:     &Options{},
 		Environment: json.RawMessage(`"X=1"`),
-		Import:      &FileList{},
-		Export:      &FileList{},
+		Import:      &ImportFileList{},
+		Export:      &ExportFileList{},
 	}
 
 	translated, err := jsonOverride.Translate()

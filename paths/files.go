@@ -7,6 +7,10 @@ import (
 )
 
 func DirContents(dirname string) ([]os.FileInfo, error) {
+	if exists, err := DirExists(dirname); err == nil && !exists {
+		return nil, nil
+	}
+
 	dir, err := os.Open(dirname)
 	if err != nil {
 		return nil, err
@@ -20,6 +24,18 @@ func DirContents(dirname string) ([]os.FileInfo, error) {
 	}
 
 	return entries, nil
+}
+
+func PathExists(path string) (bool, error) {
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			err = nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
 }
 
 func FileExists(path string) (bool, error) {

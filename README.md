@@ -21,7 +21,7 @@ Simply run `go install github.com/efritz/ij`.
 
 ## Usage
 
-There are currently four IJ subcommands (`run`, `login`, `logout`, and `rotate-logs`) each discussed below. The following command line flags are applicable for all IJ commands.
+There are currently four IJ subcommands (`run`, `login`, `logout`, `clean`, and `rotate-logs`) each discussed below. The following command line flags are applicable for all IJ commands.
 
 | Name     | Short Flag | Description |
 | -------- | ---------- | ----------- |
@@ -57,6 +57,14 @@ This command can be invoked as `ij logout`. Logout from all [registries](https:/
 ### Rotate Logs Command
 
 This command can be invoked as `ij rotate-logs`. Remove all but the most recent run from the `.ij` directory in the current project.
+
+### Clean Command
+
+This command can be invoked as `ij clean`. Remove files exported from the workspace on previous runs.
+
+| Name                 | Short Flag | Description |
+| -------------------- | ---------- | ----------- |
+| --force              |            | Do not prompt before removing files or directories. |
 
 ## License
 

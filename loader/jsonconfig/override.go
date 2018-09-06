@@ -11,8 +11,8 @@ type Override struct {
 	Registries       []json.RawMessage `json:"registries"`
 	Environment      json.RawMessage   `json:"environment"`
 	EnvironmentFiles json.RawMessage   `json:"env_file"`
-	Import           *FileList         `json:"import"`
-	Export           *FileList         `json:"export"`
+	Import           *ImportFileList   `json:"import"`
+	Export           *ExportFileList   `json:"export"`
 }
 
 func (o *Override) Translate() (*config.Override, error) {
@@ -58,5 +58,6 @@ func (o *Override) Translate() (*config.Override, error) {
 		EnvironmentFiles: environmentFiles,
 		ImportExcludes:   importList.Excludes,
 		ExportExcludes:   exportList.Excludes,
+		CleanExcludes:    exportList.CleanExcludes,
 	}, nil
 }

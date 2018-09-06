@@ -19,8 +19,8 @@ func (s *LoaderSuite) TestLoad(t sweet.T) {
 	Expect(loaded).To(Equal(&config.Config{
 		Options:     &config.Options{},
 		Registries:  []config.Registry{},
-		Import:      &config.FileList{},
-		Export:      &config.FileList{},
+		Import:      &config.ImportFileList{},
+		Export:      &config.ExportFileList{},
 		Environment: []string{"X=1", "Y=2", "Z=3"},
 		Tasks: map[string]config.Task{
 			"x": &config.BuildTask{TaskMeta: config.TaskMeta{Name: "x"}, Dockerfile: "Dockerfile.x"},
@@ -75,8 +75,8 @@ func (s *LoaderSuite) TestLoadFromURL(t sweet.T) {
 	Expect(loaded).To(Equal(&config.Config{
 		Options:     &config.Options{},
 		Registries:  []config.Registry{},
-		Import:      &config.FileList{},
-		Export:      &config.FileList{},
+		Import:      &config.ImportFileList{},
+		Export:      &config.ExportFileList{},
 		Environment: []string{"X=1", "Y=2", "Z=3"},
 		Tasks:       map[string]config.Task{},
 		Plans:       map[string]*config.Plan{},
@@ -90,8 +90,8 @@ func (s *LoaderSuite) TestLoadExtends(t sweet.T) {
 	Expect(loaded).To(Equal(&config.Config{
 		Options:     &config.Options{},
 		Registries:  []config.Registry{},
-		Import:      &config.FileList{},
-		Export:      &config.FileList{},
+		Import:      &config.ImportFileList{},
+		Export:      &config.ExportFileList{},
 		Environment: []string{"X=1", "Y=2", "Z=3", "X=10", "W=20"},
 		Tasks:       map[string]config.Task{},
 		Plans:       map[string]*config.Plan{},
@@ -102,8 +102,8 @@ func (s *LoaderSuite) TestLoadExtends(t sweet.T) {
 func (s *LoaderSuite) TestOverride(t sweet.T) {
 	config := &config.Config{
 		Options:     &config.Options{},
-		Import:      &config.FileList{},
-		Export:      &config.FileList{},
+		Import:      &config.ImportFileList{},
+		Export:      &config.ExportFileList{},
 		Environment: []string{"X=1"},
 	}
 

@@ -64,12 +64,22 @@ definitions:
       - type: array
         items:
           type: string
-  fileList:
+  importFileList:
     type: object
     properties:
       files:
         $ref: '#/definitions/stringOrList'
       excludes:
+        $ref: '#/definitions/stringOrList'
+    additionalProperties: false
+  exportFileList:
+    type: object
+    properties:
+      files:
+        $ref: '#/definitions/stringOrList'
+      excludes:
+        $ref: '#/definitions/stringOrList'
+      clean_excludes:
         $ref: '#/definitions/stringOrList'
     additionalProperties: false
 
@@ -102,9 +112,9 @@ properties:
   env_file:
     $ref: '#/definitions/stringOrList'
   import:
-    $ref: '#/definitions/fileList'
+    $ref: '#/definitions/importFileList'
   export:
-    $ref: '#/definitions/fileList'
+    $ref: '#/definitions/exportFileList'
   tasks:
     type: object
   plans:
@@ -124,7 +134,7 @@ func schemaConfigYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/config.yaml", size: 1068, mode: os.FileMode(420), modTime: time.Unix(1535675967, 0)}
+	info := bindataFileInfo{name: "schema/config.yaml", size: 1349, mode: os.FileMode(420), modTime: time.Unix(1536261033, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -146,7 +156,7 @@ func schemaMetaplanYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/metaplan.yaml", size: 39, mode: os.FileMode(420), modTime: time.Unix(1535585373, 0)}
+	info := bindataFileInfo{name: "schema/metaplan.yaml", size: 39, mode: os.FileMode(420), modTime: time.Unix(1535635147, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -160,10 +170,18 @@ definitions:
       - type: array
         items:
           type: string
-  fileList:
+  importFileList:
     type: object
     properties:
       excludes:
+        $ref: '#/definitions/stringOrList'
+    additionalProperties: false
+  exportFileList:
+    type: object
+    properties:
+      excludes:
+        $ref: '#/definitions/stringOrList'
+      clean_excludes:
         $ref: '#/definitions/stringOrList'
     additionalProperties: false
 
@@ -188,9 +206,9 @@ properties:
   env_file:
     $ref: '#/definitions/stringOrList'
   import:
-    $ref: '#/definitions/fileList'
+    $ref: '#/definitions/importFileList'
   export:
-    $ref: '#/definitions/fileList'
+    $ref: '#/definitions/exportFileList'
 additionalProperties: false
 `)
 
@@ -204,7 +222,7 @@ func schemaOverrideYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/override.yaml", size: 805, mode: os.FileMode(420), modTime: time.Unix(1535675970, 0)}
+	info := bindataFileInfo{name: "schema/override.yaml", size: 1030, mode: os.FileMode(420), modTime: time.Unix(1536261348, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -286,7 +304,7 @@ func schemaPlanYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/plan.yaml", size: 1231, mode: os.FileMode(420), modTime: time.Unix(1536197671, 0)}
+	info := bindataFileInfo{name: "schema/plan.yaml", size: 1231, mode: os.FileMode(420), modTime: time.Unix(1536237744, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -322,7 +340,7 @@ func schemaRegistryEcrYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/registry-ecr.yaml", size: 260, mode: os.FileMode(420), modTime: time.Unix(1535585448, 0)}
+	info := bindataFileInfo{name: "schema/registry-ecr.yaml", size: 260, mode: os.FileMode(420), modTime: time.Unix(1535635147, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -357,7 +375,7 @@ func schemaRegistryGcrYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/registry-gcr.yaml", size: 244, mode: os.FileMode(420), modTime: time.Unix(1535672872, 0)}
+	info := bindataFileInfo{name: "schema/registry-gcr.yaml", size: 244, mode: os.FileMode(420), modTime: time.Unix(1535721713, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -391,7 +409,7 @@ func schemaRegistryServerYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/registry-server.yaml", size: 227, mode: os.FileMode(420), modTime: time.Unix(1535586850, 0)}
+	info := bindataFileInfo{name: "schema/registry-server.yaml", size: 227, mode: os.FileMode(420), modTime: time.Unix(1535635147, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -433,7 +451,7 @@ func schemaTaskBuildYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-build.yaml", size: 382, mode: os.FileMode(420), modTime: time.Unix(1536105065, 0)}
+	info := bindataFileInfo{name: "schema/task-build.yaml", size: 382, mode: os.FileMode(420), modTime: time.Unix(1536154409, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -473,7 +491,7 @@ func schemaTaskPlanYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-plan.yaml", size: 333, mode: os.FileMode(420), modTime: time.Unix(1535910835, 0)}
+	info := bindataFileInfo{name: "schema/task-plan.yaml", size: 333, mode: os.FileMode(420), modTime: time.Unix(1536154409, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -511,7 +529,7 @@ func schemaTaskPushYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-push.yaml", size: 303, mode: os.FileMode(420), modTime: time.Unix(1535585887, 0)}
+	info := bindataFileInfo{name: "schema/task-push.yaml", size: 303, mode: os.FileMode(420), modTime: time.Unix(1535635147, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -549,7 +567,7 @@ func schemaTaskRemoveYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-remove.yaml", size: 305, mode: os.FileMode(420), modTime: time.Unix(1535585875, 0)}
+	info := bindataFileInfo{name: "schema/task-remove.yaml", size: 305, mode: os.FileMode(420), modTime: time.Unix(1535635147, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -627,7 +645,7 @@ func schemaTaskRunYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-run.yaml", size: 1013, mode: os.FileMode(420), modTime: time.Unix(1535669827, 0)}
+	info := bindataFileInfo{name: "schema/task-run.yaml", size: 1013, mode: os.FileMode(420), modTime: time.Unix(1535721713, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

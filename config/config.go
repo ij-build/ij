@@ -13,8 +13,8 @@ type (
 		Workspace        string
 		Environment      []string
 		EnvironmentFiles []string
-		Import           *FileList
-		Export           *FileList
+		Import           *ImportFileList
+		Export           *ExportFileList
 		Tasks            map[string]Task
 		Plans            map[string]*Plan
 		Metaplans        map[string][]string
@@ -26,9 +26,15 @@ type (
 		HealthcheckInterval time.Duration
 	}
 
-	FileList struct {
+	ImportFileList struct {
 		Files    []string
 		Excludes []string
+	}
+
+	ExportFileList struct {
+		Files         []string
+		Excludes      []string
+		CleanExcludes []string
 	}
 
 	Override struct {
@@ -38,6 +44,7 @@ type (
 		EnvironmentFiles []string
 		ImportExcludes   []string
 		ExportExcludes   []string
+		CleanExcludes    []string
 	}
 )
 
@@ -92,9 +99,15 @@ func (o *Options) Merge(child *Options) {
 	o.HealthcheckInterval = extendDuration(child.HealthcheckInterval, o.HealthcheckInterval)
 }
 
-func (f *FileList) Merge(child *FileList) {
+func (f *ImportFileList) Merge(child *ImportFileList) {
 	f.Files = append(f.Files, child.Files...)
 	f.Excludes = append(f.Excludes, child.Excludes...)
+}
+
+func (f *ExportFileList) Merge(child *ExportFileList) {
+	f.Files = append(f.Files, child.Files...)
+	f.Excludes = append(f.Excludes, child.Excludes...)
+	f.CleanExcludes = append(f.CleanExcludes, child.CleanExcludes...)
 }
 
 func (c *Config) ApplyOverride(override *Override) {
@@ -104,6 +117,7 @@ func (c *Config) ApplyOverride(override *Override) {
 	c.EnvironmentFiles = append(c.EnvironmentFiles, override.EnvironmentFiles...)
 	c.Import.Excludes = append(c.Import.Excludes, override.ImportExcludes...)
 	c.Export.Excludes = append(c.Export.Excludes, override.ExportExcludes...)
+	c.Export.CleanExcludes = append(c.Export.CleanExcludes, override.CleanExcludes...)
 }
 
 func (c *Config) Resolve() error {

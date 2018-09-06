@@ -45,8 +45,8 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 
 	payload := &jsonconfig.Config{
 		Options:   &jsonconfig.Options{},
-		Import:    &jsonconfig.FileList{},
-		Export:    &jsonconfig.FileList{},
+		Import:    &jsonconfig.ImportFileList{},
+		Export:    &jsonconfig.ExportFileList{},
 		Tasks:     map[string]json.RawMessage{},
 		Plans:     map[string]*jsonconfig.Plan{},
 		Metaplans: map[string][]string{},
@@ -81,8 +81,8 @@ func (l *Loader) applyOverride(config *config.Config, path string) error {
 
 	payload := &jsonconfig.Override{
 		Options: &jsonconfig.Options{},
-		Import:  &jsonconfig.FileList{},
-		Export:  &jsonconfig.FileList{},
+		Import:  &jsonconfig.ImportFileList{},
+		Export:  &jsonconfig.ExportFileList{},
 	}
 
 	if err := json.Unmarshal(data, payload); err != nil {

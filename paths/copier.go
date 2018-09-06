@@ -40,7 +40,7 @@ func (c *Copier) copy(
 	if _, ok := blacklist[src]; ok {
 		c.logger.Debug(
 			nil,
-			"Skipping import of blacklisted file %s",
+			"Skipping transfer of blacklisted file %s",
 			c.displayPath(src),
 		)
 
@@ -50,7 +50,7 @@ func (c *Copier) copy(
 	if info.Mode()&os.ModeSymlink != 0 {
 		c.logger.Debug(
 			nil,
-			"Skipping import of symlink %s",
+			"Skipping transfer of symlink %s",
 			c.displayPath(src),
 		)
 

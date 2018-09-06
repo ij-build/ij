@@ -17,8 +17,10 @@ func TestMain(m *testing.M) {
 	sweet.Run(m, func(s *sweet.S) {
 		s.RegisterPlugin(junit.NewPlugin())
 
-		s.AddSuite(&FilesSuite{})
 		s.AddSuite(&CopierSuite{})
+		s.AddSuite(&FilesSuite{})
+		s.AddSuite(&PatternsSuite{})
+		s.AddSuite(&RemoverSuite{})
 		s.AddSuite(&TransfererSuite{})
 	})
 }

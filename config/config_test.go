@@ -18,12 +18,13 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 		Environment:      []string{"parent-env1"},
 		EnvironmentFiles: []string{"parent-envfile1"},
 		Workspace:        "parent-workspace",
-		Import: &FileList{
+		Import: &ImportFileList{
 			Files:    []string{"parent-imp1"},
 			Excludes: []string{"parent-exc1"},
 		},
-		Export: &FileList{
-			Files: []string{"parent-exp1"},
+		Export: &ExportFileList{
+			Files:         []string{"parent-exp1"},
+			CleanExcludes: []string{"parent-clean-exc1"},
 		},
 		Tasks: map[string]Task{
 			"t1": &BuildTask{TaskMeta: TaskMeta{Name: "t1", Extends: ""}, Dockerfile: "a"},
@@ -49,11 +50,11 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 		Workspace:        "child-workspace",
 		Environment:      []string{"child-env2", "child-env3"},
 		EnvironmentFiles: []string{"child-envfile2", "child-envfile3"},
-		Import: &FileList{
+		Import: &ImportFileList{
 			Files:    []string{"child-imp2", "child-imp3"},
 			Excludes: []string{"child-exc2", "child-exc3"},
 		},
-		Export: &FileList{
+		Export: &ExportFileList{
 			Files: []string{"child-exp2", "child-exp3"},
 		},
 		Tasks: map[string]Task{
@@ -83,8 +84,9 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 	Expect(parent.Environment).To(ConsistOf("parent-env1", "child-env2", "child-env3"))
 	Expect(parent.EnvironmentFiles).To(ConsistOf("parent-envfile1", "child-envfile2", "child-envfile3"))
 	Expect(parent.Import.Files).To(ConsistOf("parent-imp1", "child-imp2", "child-imp3"))
-	Expect(parent.Export.Files).To(ConsistOf("parent-exp1", "child-exp2", "child-exp3"))
 	Expect(parent.Import.Excludes).To(ConsistOf("parent-exc1", "child-exc2", "child-exc3"))
+	Expect(parent.Export.Files).To(ConsistOf("parent-exp1", "child-exp2", "child-exp3"))
+	Expect(parent.Export.CleanExcludes).To(ConsistOf("parent-clean-exc1"))
 
 	Expect(parent.Tasks).To(HaveLen(3))
 	Expect(parent.Tasks["t1"].(*BuildTask).Dockerfile).To(Equal("a"))
@@ -106,14 +108,14 @@ func (s *ConfigSuite) TestMergeNoOverride(t sweet.T) {
 	parent := &Config{
 		Options:   &Options{},
 		Workspace: "parent-workspace",
-		Import:    &FileList{},
-		Export:    &FileList{},
+		Import:    &ImportFileList{},
+		Export:    &ExportFileList{},
 	}
 
 	child := &Config{
 		Options: &Options{},
-		Import:  &FileList{},
-		Export:  &FileList{},
+		Import:  &ImportFileList{},
+		Export:  &ExportFileList{},
 	}
 
 	Expect(parent.Merge(child)).To(BeNil())
@@ -127,8 +129,13 @@ func (s *ConfigSuite) TestApplyOverride(t sweet.T) {
 		},
 		Registries:  []Registry{&GCRRegistry{KeyFile: "config-gcr"}},
 		Environment: []string{"X=1", "Y=2"},
-		Import:      &FileList{Files: []string{"."}, Excludes: []string{".temp"}},
-		Export:      &FileList{Files: []string{"*.py*"}, Excludes: nil},
+		Import: &ImportFileList{
+			Files:    []string{"."},
+			Excludes: []string{".temp"},
+		},
+		Export: &ExportFileList{
+			Files: []string{"*.py*"},
+		},
 	}
 
 	override := &Override{

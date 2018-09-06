@@ -12,6 +12,7 @@ var (
 	app = kingpin.New("ij", "IJ is a build tool using Docker containers.").Version(Version)
 
 	// Commands
+	clean      = app.Command("clean", "Remove exported files.")
 	login      = app.Command("login", "Login to docker registries.")
 	logout     = app.Command("logout", "Logout of docker registries.")
 	rotateLogs = app.Command("rotate-logs", "Trim old run logs the .ij directory.")
@@ -34,6 +35,9 @@ var (
 	memory              = run.Flag("memory", "The amount of memory to give each container.").Short('m').String()
 	planTimeout         = run.Flag("timeout", "Maximum amount of time a plan can run. 0 to disable.").Default("15m").Duration()
 	sshIdentities       = run.Flag("ssh-identity", "Enable ssh-agent for the given identities.").Strings()
+
+	// Clean Options
+	forceClean = clean.Flag("force", "Do not require confirmation before removing matching files.").Default("false").Bool()
 
 	defaultConfigPaths = []string{
 		"ij.yaml",

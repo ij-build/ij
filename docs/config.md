@@ -6,9 +6,9 @@ A configuration file defines tasks (units of work) and plans (configurations of 
 | ----------- | ---------- | ----------- |
 | env_file    | []         | A list paths to [environment file](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment-files) on the host. Value may be a string or a list. |
 | environment | []         | A list of environment variable definitions. Value may be a string or a list. |
-| export      | {}         | A [file list object](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-file-list) describing the export phase. |
+| export      | {}         | An [export file list object](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-export-file-list) describing the export phase. |
 | extends     | ''         | The path (relative/absolute on-disk, or an HTTP(S) URL) to the parent configuration. |
-| import      | {}         | A [file list object](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-file-list) describing the import phase. |
+| import      | {}         | An [import file list object](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-import-file-list) describing the import phase. |
 | metaplans   | {}         | A name-metaplan mapping object. See [plans](https://github.com/efritz/ij/blob/master/docs/plans.md#user-content-metaplans) for the definition of these objects. |
 | options     | {}         | An [options object](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-options). |
 | plans       | {}         | A name-plan mapping object. See [plans](https://github.com/efritz/ij/blob/master/docs/plans.md#user-content-plans) for the definition of these objects. |
@@ -48,18 +48,18 @@ options:
     ssh-identities: '*'
 ```
 
-## File List
+## Import File Lists
 
-A file list object controls the files which move into the workspace on import and back into the project directory on export. Each direction is configured independently.
+An import list object controls the files which move into the workspace on import.
 
 | Name    | Default | Description |
 | ------- | ------- | ----------- |
-| exclude | []      | Glob patterns for files to be ignored during import or export. Value may be a string or a list. |
-| files   | []      | Glob patterns for files targeted for transfer during import or export. Value may be a string or a list. |
+| exclude | []      | Glob patterns for files to be ignored during import. Value may be a string or a list. |
+| files   | []      | Glob patterns for files targeted for transfer during import. Value may be a string or a list. |
 
-Files matching a pattern in the `files` property will be *recursively* transferred in or out of the workspace. If that file also matches a pattern in the `exclude` property, it will be skipped. All symlinks are skipped during transfer. Glob patterns support `*` for optional text and `**` for multiple directories. The directories `.ij` and `.git` are implicitly blacklisted on import.
+Files matching a pattern in the `files` property will be *recursively* transferred into the workspace. If that file also matches a pattern in the `exclude` property, it will be skipped. All symlinks are skipped during transfer. Glob patterns support `*` for optional text and `**` for multiple directories. The directories `.ij` and `.git` are implicitly blacklisted on import.
 
-A file pattern may also have the form `src:dest`. This allows importing the source file into the workspace at a particular target location in the workspace, and exporting the source file from the workspace into a particular location in the project directory. If this form is used, glob patterns are not allowed.
+A file pattern may also have the form `src:dest`. This allows importing the source file into the workspace at a particular target location in the workspace, and exporting the source file from the workspace into a particular location in the project directory. If this form is used, glob patterns are not allowed. This form is also not allowed for exclude patterns.
 
 ```yaml
 import:
@@ -69,8 +69,24 @@ import:
   excludes:
     - .hg
     - node_modules
+```
 
+## Export File List
+
+An import list object controls the files which move back into the project directory on export.
+
+| Name          | Default | Description |
+| ------------- | ------- | ----------- |
+| clean_exclude | []      | Glob patterns for files to be ignored during the clean command. Value may be a string or a list. |
+| exclude       | []      | Glob patterns for files to be ignored during import. Value may be a string or a list. |
+| files         | []      | Glob patterns for files targeted for transfer during import. Value may be a string or a list. |
+
+Files matching a pattern in the `files` property will be *recursively* transferred from the workspace. If that file also matches a pattern in the `exclude` property, it will be skipped. Glob patterns are also supported, as described above.
+
+```yaml
 export:
   files:
     - '**/junit*.xml'
+  clean_excludes:
+    - vendor
 ```

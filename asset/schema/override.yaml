@@ -7,10 +7,18 @@ definitions:
       - type: array
         items:
           type: string
-  fileList:
+  importFileList:
     type: object
     properties:
       excludes:
+        $ref: '#/definitions/stringOrList'
+    additionalProperties: false
+  exportFileList:
+    type: object
+    properties:
+      excludes:
+        $ref: '#/definitions/stringOrList'
+      clean_excludes:
         $ref: '#/definitions/stringOrList'
     additionalProperties: false
 
@@ -35,7 +43,7 @@ properties:
   env_file:
     $ref: '#/definitions/stringOrList'
   import:
-    $ref: '#/definitions/fileList'
+    $ref: '#/definitions/importFileList'
   export:
-    $ref: '#/definitions/fileList'
+    $ref: '#/definitions/exportFileList'
 additionalProperties: false

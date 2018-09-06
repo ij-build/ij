@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
@@ -19,6 +22,7 @@ import (
 const Version = "0.1.0"
 
 var commandRunners = map[string]func(*config.Config) bool{
+	"clean":       runClean,
 	"login":       runLogin,
 	"logout":      runLogout,
 	"rotate-logs": runRotateLogs,
@@ -53,6 +57,58 @@ func runMain() bool {
 	}
 
 	panic("unexpected command type")
+}
+
+func runClean(config *config.Config) bool {
+	wd, err := os.Getwd()
+	if err != nil {
+		logging.EmergencyLog(
+			"error: failed to get working directory: %s",
+			err.Error(),
+		)
+
+		return false
+	}
+
+	err = paths.NewRemover(wd).Remove(
+		config.Export.Files,
+		config.Export.CleanExcludes,
+		cleanPromptFactory(wd),
+	)
+
+	if err != nil {
+		logging.EmergencyLog(
+			"Failed to clean exported files: %s",
+			err.Error(),
+		)
+
+		return false
+	}
+
+	return true
+}
+
+func cleanPromptFactory(wd string) func(string) (bool, error) {
+	reader := bufio.NewReader(os.Stdin)
+
+	return func(path string) (bool, error) {
+		if *forceClean {
+			return true, nil
+		}
+
+		fmt.Printf("remove '%s'? ", path[len(wd):])
+
+		text, err := reader.ReadString('\n')
+		if err != nil {
+			return false, err
+		}
+
+		if strings.ToLower(strings.TrimSpace(text)) == "y" {
+			return true, nil
+		}
+
+		return false, nil
+	}
 }
 
 func runLogin(config *config.Config) bool {
