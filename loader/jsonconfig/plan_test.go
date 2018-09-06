@@ -12,13 +12,19 @@ type PlanSuite struct{}
 
 func (s *PlanSuite) TestTranslate(t sweet.T) {
 	plan := &Plan{
-		Extend: true,
+		Extend:   true,
+		Disabled: "${DISABLED}",
 		Stages: []*Stage{
 			&Stage{
-				Name: "bar",
+				Name:     "bar",
+				Disabled: "${STAGE_DISABLED}",
 				Tasks: []json.RawMessage{
 					json.RawMessage(`"t1"`),
-					json.RawMessage(`{"name":"t2", "environment": ["W=5"]}`),
+					json.RawMessage(`{
+						"name":"t2",
+						"environment": ["W=5"],
+						"disabled": "${STAGE_TASK_DISABLED}"
+					}`),
 				},
 				Parallel: true,
 			},
@@ -36,14 +42,20 @@ func (s *PlanSuite) TestTranslate(t sweet.T) {
 	translated, err := plan.Translate("foo")
 	Expect(err).To(BeNil())
 	Expect(translated).To(Equal(&config.Plan{
-		Name:   "foo",
-		Extend: true,
+		Name:     "foo",
+		Extend:   true,
+		Disabled: "${DISABLED}",
 		Stages: []*config.Stage{
 			&config.Stage{
-				Name: "bar",
+				Name:     "bar",
+				Disabled: "${STAGE_DISABLED}",
 				Tasks: []*config.StageTask{
 					&config.StageTask{Name: "t1"},
-					&config.StageTask{Name: "t2", Environment: []string{"W=5"}},
+					&config.StageTask{
+						Name:        "t2",
+						Environment: []string{"W=5"},
+						Disabled:    "${STAGE_TASK_DISABLED}",
+					},
 				},
 				RunMode:  config.RunModeOnSuccess,
 				Parallel: true,

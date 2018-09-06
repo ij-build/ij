@@ -4,6 +4,7 @@ import "fmt"
 
 type Plan struct {
 	Name        string
+	Disabled    string
 	Extend      bool
 	Stages      []*Stage
 	Environment []string
@@ -16,6 +17,7 @@ func (p *Plan) Merge(child *Plan) error {
 		}
 	}
 
+	p.Disabled = extendString(child.Disabled, p.Disabled)
 	p.Environment = append(p.Environment, child.Environment...)
 	return nil
 }

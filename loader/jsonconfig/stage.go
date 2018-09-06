@@ -10,6 +10,7 @@ import (
 type (
 	Stage struct {
 		Name        string            `json:"name"`
+		Disabled    string            `json:"disabled"`
 		BeforeStage string            `json:"before_stage"`
 		AfterStage  string            `json:"after_stage"`
 		Tasks       []json.RawMessage `json:"tasks"`
@@ -20,6 +21,7 @@ type (
 
 	StageTask struct {
 		Name        string          `json:"name"`
+		Disabled    string          `json:"disabled"`
 		Environment json.RawMessage `json:"environment"`
 	}
 )
@@ -47,6 +49,7 @@ func (s *Stage) Translate() (*config.Stage, error) {
 
 	return &config.Stage{
 		Name:        s.Name,
+		Disabled:    s.Disabled,
 		BeforeStage: s.BeforeStage,
 		AfterStage:  s.AfterStage,
 		Tasks:       stageTasks,
@@ -89,6 +92,7 @@ func unmarshalStageTask(raw json.RawMessage) (*config.StageTask, error) {
 
 	return &config.StageTask{
 		Name:        stageTask.Name,
+		Disabled:    stageTask.Disabled,
 		Environment: environment,
 	}, nil
 }

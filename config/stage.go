@@ -3,6 +3,7 @@ package config
 type (
 	Stage struct {
 		Name        string
+		Disabled    string
 		BeforeStage string
 		AfterStage  string
 		RunMode     RunMode
@@ -13,6 +14,7 @@ type (
 
 	StageTask struct {
 		Name        string
+		Disabled    string
 		Environment []string
 	}
 

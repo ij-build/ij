@@ -12,6 +12,8 @@ definitions:
     properties:
       name:
         type: string
+      disabled:
+        type: string
       before_stage:
         type: string
       after_stage:
@@ -40,6 +42,8 @@ definitions:
         properties:
           name:
             type: string
+          disabled:
+            type: string
           environment:
             $ref: '#/definitions/stringOrList'
         additionalProperties: false
@@ -50,6 +54,8 @@ type: object
 properties:
   extend:
     type: boolean
+  disabled:
+    type: string
   stages:
     type: array
     items:

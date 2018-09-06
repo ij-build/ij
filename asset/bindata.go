@@ -223,6 +223,8 @@ definitions:
     properties:
       name:
         type: string
+      disabled:
+        type: string
       before_stage:
         type: string
       after_stage:
@@ -251,6 +253,8 @@ definitions:
         properties:
           name:
             type: string
+          disabled:
+            type: string
           environment:
             $ref: '#/definitions/stringOrList'
         additionalProperties: false
@@ -261,6 +265,8 @@ type: object
 properties:
   extend:
     type: boolean
+  disabled:
+    type: string
   stages:
     type: array
     items:
@@ -280,7 +286,7 @@ func schemaPlanYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/plan.yaml", size: 1120, mode: os.FileMode(420), modTime: time.Unix(1536107777, 0)}
+	info := bindataFileInfo{name: "schema/plan.yaml", size: 1231, mode: os.FileMode(420), modTime: time.Unix(1536197671, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

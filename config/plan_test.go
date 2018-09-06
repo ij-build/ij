@@ -9,6 +9,7 @@ type PlanSuite struct{}
 
 func (s *PlanSuite) TestMerge(t sweet.T) {
 	parent := &Plan{
+		Disabled: "${PARENT_DISABLED}",
 		Stages: []*Stage{
 			&Stage{Name: "a"},
 			&Stage{Name: "b"},
@@ -21,6 +22,7 @@ func (s *PlanSuite) TestMerge(t sweet.T) {
 	}
 
 	child := &Plan{
+		Disabled: "${CHILD_DISABLED}",
 		Stages: []*Stage{
 			&Stage{Name: "a"},
 			&Stage{Name: "d", BeforeStage: "a"},
@@ -33,6 +35,7 @@ func (s *PlanSuite) TestMerge(t sweet.T) {
 	}
 
 	Expect(parent.Merge(child)).To(BeNil())
+	Expect(parent.Disabled).To(Equal("${CHILD_DISABLED}"))
 	Expect(parent.Stages).To(HaveLen(5))
 	Expect(parent.Stages[0].Name).To(Equal("d"))
 	Expect(parent.Stages[1].Name).To(Equal("a"))

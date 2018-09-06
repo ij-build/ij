@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
 )
 
@@ -31,6 +32,27 @@ func NewPlanRunner(
 	}
 }
 
+func (r *PlanRunner) IsDisabled(context *RunContext, name string) (bool, error) {
+	if plan, ok := r.config.Plans[name]; ok {
+		env := environment.Merge(
+			environment.New(r.config.Environment),
+			context.Environment,
+			environment.New(plan.Environment),
+			environment.New(context.GetExportedEnv()),
+			environment.New(r.env),
+		)
+
+		val, err := env.ExpandString(plan.Disabled)
+		if err != nil {
+			return false, err
+		}
+
+		return val != "", nil
+	}
+
+	return false, nil
+}
+
 func (r *PlanRunner) ShouldRun(context *RunContext, name string) bool {
 	if plans, ok := r.config.Metaplans[name]; ok {
 		for _, plan := range plans {
@@ -55,6 +77,26 @@ func (r *PlanRunner) Run(
 	prefix *logging.Prefix,
 ) bool {
 	prefix = prefix.Append(name)
+
+	disabled, err := r.IsDisabled(context, name)
+	if err != nil {
+		r.logger.Info(
+			prefix,
+			"Failed to expand environment for disabled check: %s",
+			err.Error(),
+		)
+
+		return false
+	}
+
+	if disabled {
+		r.logger.Warn(
+			prefix,
+			"Plan is disabled",
+		)
+
+		return true
+	}
 
 	if !r.ShouldRun(context, name) {
 		r.logger.Info(

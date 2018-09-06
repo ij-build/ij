@@ -47,7 +47,45 @@ func NewStageRunner(
 	}
 }
 
+func (r *StageRunner) IsDisabled(context *RunContext) (bool, error) {
+	env := environment.Merge(
+		environment.New(r.config.Environment),
+		context.Environment,
+		environment.New(r.plan.Environment),
+		environment.New(r.stage.Environment),
+		environment.New(context.GetExportedEnv()),
+		environment.New(r.env),
+	)
+
+	val, err := env.ExpandString(r.stage.Disabled)
+	if err != nil {
+		return false, err
+	}
+
+	return val != "", nil
+}
+
 func (r *StageRunner) Run(context *RunContext) bool {
+	disabled, err := r.IsDisabled(context)
+	if err != nil {
+		r.logger.Info(
+			r.prefix,
+			"Failed to expand environment for disabled check: %s",
+			err.Error(),
+		)
+
+		return false
+	}
+
+	if disabled {
+		r.logger.Warn(
+			r.prefix,
+			"Stage is disabled",
+		)
+
+		return true
+	}
+
 	r.logger.Info(
 		r.prefix,
 		"Beginning stage",
@@ -116,6 +154,26 @@ func (r *StageRunner) buildTaskRunnerFunc(
 			environment.New(context.GetExportedEnv()),
 			environment.New(r.env),
 		)
+
+		val, err := env.ExpandString(stageTask.Disabled)
+		if err != nil {
+			r.logger.Error(
+				taskPrefix,
+				"Failed to expand environment for disabled check: %s",
+				err.Error(),
+			)
+
+			return false
+		}
+
+		if val != "" {
+			r.logger.Warn(
+				taskPrefix,
+				"Task is disabled",
+			)
+
+			return true
+		}
 
 		runner := r.taskRunnerFactory(
 			task,
