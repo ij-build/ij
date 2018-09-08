@@ -44,18 +44,16 @@ func GetConfigPath(path string) (string, error) {
 }
 
 func getOverridePaths() ([]string, error) {
-	current, err := user.Current()
-	if err != nil {
-		return nil, err
-	}
-
 	found := []string{}
-	for _, path := range globalOverridePaths {
-		path = filepath.Join(current.HomeDir, path)
 
-		if ok, err := paths.FileExists(path); err == nil && ok {
-			found = append(found, path)
-			break
+	if current, err := user.Current(); err == nil {
+		for _, path := range globalOverridePaths {
+			path = filepath.Join(current.HomeDir, path)
+
+			if ok, err := paths.FileExists(path); err == nil && ok {
+				found = append(found, path)
+				break
+			}
 		}
 	}
 
