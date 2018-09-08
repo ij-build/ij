@@ -582,9 +582,9 @@ func (s *runTaskCommandBuilderState) addScriptOptions(cb *command.Builder) error
 }
 
 func (s *runTaskCommandBuilderState) addUserOptions(cb *command.Builder) error {
-	user, err := user.Current()
-	if err != nil {
-		return err
+	if user, err := user.Current(); err == nil {
+		cb.AddFlagValue("-e", fmt.Sprintf("UID=%s", user.Uid))
+		cb.AddFlagValue("-e", fmt.Sprintf("GID=%s", user.Gid))
 	}
 
 	username, err := s.env.ExpandString(s.task.User)
@@ -593,8 +593,6 @@ func (s *runTaskCommandBuilderState) addUserOptions(cb *command.Builder) error {
 	}
 
 	cb.AddFlagValue("--user", username)
-	cb.AddFlagValue("-e", fmt.Sprintf("UID=%s", user.Uid))
-	cb.AddFlagValue("-e", fmt.Sprintf("GID=%s", user.Gid))
 	return nil
 }
 
