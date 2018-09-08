@@ -1,242 +1,99 @@
 package main
 
 import (
-	"bufio"
-	"context"
-	"fmt"
 	"os"
-	"path/filepath"
-	"sort"
-	"strings"
+
+	"github.com/alecthomas/kingpin"
 
 	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/environment"
+	"github.com/efritz/ij/loader"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/paths"
-	"github.com/efritz/ij/registry"
-	"github.com/efritz/ij/runner"
-	"github.com/efritz/ij/scratch"
-	"github.com/efritz/ij/ssh"
+	"github.com/efritz/ij/subcommand"
 )
 
 const Version = "0.1.0"
 
-var commandRunners = map[string]func(*config.Config) bool{
-	"clean":       runClean,
-	"login":       runLogin,
-	"logout":      runLogout,
-	"rotate-logs": runRotateLogs,
-	"run":         runRun,
+func newSharedOptions(app *kingpin.Application) *subcommand.AppOptions {
+	opts := &subcommand.AppOptions{}
+	app.Flag("color", "Enable colorized output.").Default("true").BoolVar(&opts.Colorize)
+	app.Flag("config", "The path to the config file.").Short('f').StringVar(&opts.ConfigPath)
+	app.Flag("env", "Environment variables.").Short('e').StringsVar(&opts.Env)
+	app.Flag("env-file", "Environment file.").StringsVar(&opts.EnvFiles)
+	app.Flag("verbose", "Output debug logs.").Short('v').Default("false").BoolVar(&opts.Verbose)
+	return opts
+}
+
+func newRunOptions(cmd *kingpin.CmdClause) *subcommand.RunOptions {
+	opts := &subcommand.RunOptions{}
+	cmd.Arg("plans", "The name of the plans to execute.").Default("default").StringsVar(&opts.Plans)
+	cmd.Flag("cpu-shares", "The amount of cpu shares to give to each container.").Short('c').StringVar(&opts.CPUShares)
+	cmd.Flag("force-sequential", "Disable parallel execution.").Default("false").BoolVar(&opts.ForceSequential)
+	cmd.Flag("healthcheck-interval", "The interval between service container healthchecks.").Default("5s").DurationVar(&opts.HealthcheckInterval)
+	cmd.Flag("keep-workspace", "Do not delete the workspace").Short('k').Default("false").BoolVar(&opts.KeepWorkspace)
+	cmd.Flag("login", "Login to docker registries before running.").Default("false").BoolVar(&opts.LoginForPlan)
+	cmd.Flag("memory", "The amount of memory to give each container.").Short('m').StringVar(&opts.Memory)
+	cmd.Flag("timeout", "Maximum amount of time a plan can run. 0 to disable.").Default("15m").DurationVar(&opts.PlanTimeout)
+	cmd.Flag("ssh-identity", "Enable ssh-agent for the given identities.").StringsVar(&opts.SSHIdentities)
+	return opts
+}
+
+func newCleanOptions(cmd *kingpin.CmdClause) *subcommand.CleanOptions {
+	opts := &subcommand.CleanOptions{}
+	cmd.Flag("force", "Do not require confirmation before removing matching files.").Default("false").BoolVar(&opts.ForceClean)
+	return opts
 }
 
 func main() {
-	if !runMain() {
+	if err := runMain(); err != nil {
+		if err != subcommand.ErrFailed {
+			logging.EmergencyLog("error: %s", err.Error())
+		}
+
 		os.Exit(1)
 	}
 }
 
-func runMain() bool {
-	command, err := parseArgs()
+func runMain() error {
+	app := kingpin.New("ij", "IJ is a build tool using Docker containers.").Version(Version)
+	clean := app.Command("clean", "Remove exported files.")
+	app.Command("login", "Login to docker registries.")
+	app.Command("logout", "Logout of docker registries.")
+	app.Command("rotate-logs", "Trim old run logs the .ij directory.")
+	run := app.Command("run", "Run a plan or metaplan.").Default()
+
+	appOptions := newSharedOptions(app)
+	cleanOptions := newCleanOptions(clean)
+	runOptions := newRunOptions(run)
+
+	command, err := app.Parse(os.Args[1:])
 	if err != nil {
-		logging.EmergencyLog("error: %s", err.Error())
-		return false
+		return err
 	}
 
-	config, ok := loadConfig()
-	if !ok {
-		return false
-	}
-
-	if !ensureDocker() {
-		logging.EmergencyLog("error: docker is not running")
-		return false
-	}
-
-	if f, ok := commandRunners[command]; ok {
-		return f(config)
-	}
-
-	panic("unexpected command type")
-}
-
-func runClean(config *config.Config) bool {
-	wd, err := os.Getwd()
+	path, err := loader.GetConfigPath(appOptions.ConfigPath)
 	if err != nil {
-		logging.EmergencyLog(
-			"error: failed to get working directory: %s",
-			err.Error(),
-		)
-
-		return false
+		return err
 	}
 
-	err = paths.NewRemover(wd).Remove(
-		config.Export.Files,
-		config.Export.CleanExcludes,
-		cleanPromptFactory(wd),
+	override := &config.Override{
+		Options: &config.Options{
+			SSHIdentities:       runOptions.SSHIdentities,
+			ForceSequential:     runOptions.ForceSequential,
+			HealthcheckInterval: runOptions.HealthcheckInterval,
+		},
+		EnvironmentFiles: appOptions.EnvFiles,
+	}
+
+	config, err := loader.LoadFile(path, override)
+	if err != nil {
+		return err
+	}
+
+	return subcommand.Run(
+		command,
+		config,
+		appOptions,
+		cleanOptions,
+		runOptions,
 	)
-
-	if err != nil {
-		logging.EmergencyLog(
-			"Failed to clean exported files: %s",
-			err.Error(),
-		)
-
-		return false
-	}
-
-	return true
-}
-
-func cleanPromptFactory(wd string) func(string) (bool, error) {
-	reader := bufio.NewReader(os.Stdin)
-
-	return func(path string) (bool, error) {
-		if *forceClean {
-			return true, nil
-		}
-
-		fmt.Printf("remove '%s'? ", path[len(wd):])
-
-		text, err := reader.ReadString('\n')
-		if err != nil {
-			return false, err
-		}
-
-		if strings.ToLower(strings.TrimSpace(text)) == "y" {
-			return true, nil
-		}
-
-		return false, nil
-	}
-}
-
-func runLogin(config *config.Config) bool {
-	return withRegistrySet(config, func(registrySet *registry.RegistrySet, logger logging.Logger) bool {
-		if err := registrySet.Login(); err != nil {
-			logger.Error(nil, "failed to log in to registries: %s", err.Error())
-			return false
-		}
-
-		return true
-	})
-}
-
-func runLogout(config *config.Config) bool {
-	return withRegistrySet(config, func(registrySet *registry.RegistrySet, logger logging.Logger) bool {
-		registrySet.Logout()
-		return true
-	})
-}
-
-func runRotateLogs(config *config.Config) bool {
-	wd, err := os.Getwd()
-	if err != nil {
-		logging.EmergencyLog(
-			"error: failed to get working directory: %s",
-			err.Error(),
-		)
-
-		return false
-	}
-
-	scratchPath := filepath.Join(wd, scratch.ScratchDir)
-
-	entries, err := paths.DirContents(scratchPath)
-	if err != nil {
-		logging.EmergencyLog(
-			"error: failed to read scratch directory: %s",
-			err.Error(),
-		)
-
-		return false
-	}
-
-	if len(entries) == 0 {
-		return true
-	}
-
-	sort.Slice(entries, func(i, j int) bool {
-		return entries[i].ModTime().After(entries[j].ModTime())
-	})
-
-	for _, info := range entries[1:] {
-		if err := os.RemoveAll(filepath.Join(scratchPath, info.Name())); err != nil {
-			logging.EmergencyLog(
-				"error: failed to delete run directory: %s",
-				err.Error(),
-			)
-
-		}
-	}
-
-	return true
-}
-
-func runRun(cfg *config.Config) bool {
-	enableSSHAgent, err := ssh.EnsureKeysAvailable(
-		cfg.Options.SSHIdentities,
-	)
-
-	if err != nil {
-		logging.EmergencyLog(
-			"error: failed to validate ssh keys: %s",
-			err.Error(),
-		)
-
-		return false
-	}
-
-	runner, err := runner.SetupRunner(
-		cfg,
-		*colorize,
-		*cpuShares,
-		enableSSHAgent,
-		*env,
-		*keepWorkspace,
-		*loginForPlan,
-		*memory,
-		*planTimeout,
-		*verbose,
-	)
-
-	if err != nil {
-		return false
-	}
-
-	return runner.Run(*plans)
-}
-
-//
-// Context Helpers
-
-func withRegistrySet(config *config.Config, f func(*registry.RegistrySet, logging.Logger) bool) bool {
-	logProcessor := logging.NewProcessor(*verbose, *colorize)
-	logProcessor.Start()
-	defer logProcessor.Shutdown()
-
-	logger := logProcessor.Logger(
-		logging.NilWriter,
-		logging.NilWriter,
-		true,
-	)
-
-	registryEnv := environment.Merge(
-		environment.New(config.Environment),
-		environment.New(*env),
-	)
-
-	registrySet, err := registry.NewRegistrySet(
-		context.Background(),
-		logger,
-		registryEnv,
-		config.Registries,
-	)
-
-	if err != nil {
-		logger.Error(nil, "failed to create registry set: %s", err.Error())
-		return false
-	}
-
-	return f(registrySet, logger)
 }

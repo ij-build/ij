@@ -16,14 +16,14 @@ import (
 func SetupRunner(
 	cfg *config.Config,
 	colorize bool,
-	cpuShares string,
-	enableSSHAgent bool,
 	overrideEnv []string,
+	verbose bool,
+	enableSSHAgent bool,
+	cpuShares string,
 	keepWorkspace bool,
 	login bool,
 	memory string,
 	planTimeout time.Duration,
-	verbose bool,
 ) (runner *Runner, err error) {
 	var (
 		cleanup           = NewCleanup()

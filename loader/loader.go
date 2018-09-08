@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/environment"
 	"github.com/ghodss/yaml"
 
 	"github.com/efritz/ij/loader/jsonconfig"
@@ -135,6 +136,91 @@ func (l *Loader) resolveParent(
 	}
 
 	return parent, nil
+}
+
+//
+// Command Line
+
+func LoadFile(path string, override *config.Override) (*config.Config, error) {
+	overridePaths, err := getOverridePaths()
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to determine override paths: %s",
+			err.Error(),
+		)
+	}
+
+	loader := NewLoader()
+
+	cfg, err := loader.Load(path)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to load config: %s",
+			err.Error(),
+		)
+	}
+
+	if err := loader.ApplyOverrides(cfg, overridePaths); err != nil {
+		return nil, fmt.Errorf(
+			"failed to apply overrides: %s",
+			err.Error(),
+		)
+	}
+
+	if override != nil {
+		cfg.ApplyOverride(override)
+	}
+
+	envFromFile, err := applyEnvironmentFiles(cfg.EnvironmentFiles)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to read environment file: %s",
+			err.Error(),
+		)
+	}
+
+	cfg.Environment = append(
+		environment.Default().Serialize(),
+		append(
+			cfg.Environment,
+			envFromFile...,
+		)...,
+	)
+
+	if err := cfg.Resolve(); err != nil {
+		return nil, fmt.Errorf(
+			"failed to resolve config: %s",
+			err.Error(),
+		)
+	}
+
+	if err := cfg.Validate(); err != nil {
+		return nil, fmt.Errorf(
+			"failed to validate config: %s",
+			err.Error(),
+		)
+	}
+
+	return cfg, nil
+}
+
+func applyEnvironmentFiles(environmentFiles []string) ([]string, error) {
+	lines := []string{}
+	for _, path := range environmentFiles {
+		content, err := ioutil.ReadFile(path)
+		if err != nil {
+			return nil, err
+		}
+
+		lines, err := environment.NormalizeEnvironmentFile(string(content))
+		if err != nil {
+			return nil, err
+		}
+
+		lines = append(lines, lines...)
+	}
+
+	return lines, nil
 }
 
 //
