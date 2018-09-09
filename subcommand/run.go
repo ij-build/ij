@@ -12,7 +12,7 @@ import (
 	"github.com/efritz/ij/ssh"
 )
 
-var ErrFailed = fmt.Errorf("subcommand failed")
+var ErrBuildFailed = fmt.Errorf("subcommand failed")
 
 func NewRunCommand(appOptions *options.AppOptions, runOptions *options.RunOptions) CommandRunner {
 	return func(config *config.Config) error {
@@ -52,7 +52,7 @@ func NewRunCommand(appOptions *options.AppOptions, runOptions *options.RunOption
 		}
 
 		if !runner.Run(runOptions.Plans) {
-			return ErrFailed
+			return ErrBuildFailed
 		}
 
 		return nil

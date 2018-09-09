@@ -47,7 +47,7 @@ func newCleanOptions(cmd *kingpin.CmdClause) *options.CleanOptions {
 
 func main() {
 	if err := runMain(); err != nil {
-		if err != subcommand.ErrFailed {
+		if err != subcommand.ErrBuildFailed {
 			logging.EmergencyLog("error: %s", err.Error())
 		}
 
