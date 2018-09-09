@@ -8,37 +8,39 @@ import (
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/loader"
 	"github.com/efritz/ij/logging"
+	"github.com/efritz/ij/options"
 	"github.com/efritz/ij/subcommand"
 )
 
 const Version = "0.1.0"
 
-func newSharedOptions(app *kingpin.Application) *subcommand.AppOptions {
-	opts := &subcommand.AppOptions{}
+func newSharedOptions(app *kingpin.Application) *options.AppOptions {
+	opts := &options.AppOptions{}
 	app.Flag("color", "Enable colorized output.").Default("true").BoolVar(&opts.Colorize)
 	app.Flag("config", "The path to the config file.").Short('f').StringVar(&opts.ConfigPath)
 	app.Flag("env", "Environment variables.").Short('e').StringsVar(&opts.Env)
 	app.Flag("env-file", "Environment file.").StringsVar(&opts.EnvFiles)
+	app.Flag("quiet", "Do not output to stdout or stderr.").Short('q').Default("false").BoolVar(&opts.Quiet)
 	app.Flag("verbose", "Output debug logs.").Short('v').Default("false").BoolVar(&opts.Verbose)
 	return opts
 }
 
-func newRunOptions(cmd *kingpin.CmdClause) *subcommand.RunOptions {
-	opts := &subcommand.RunOptions{}
+func newRunOptions(cmd *kingpin.CmdClause) *options.RunOptions {
+	opts := &options.RunOptions{}
 	cmd.Arg("plans", "The name of the plans to execute.").Default("default").StringsVar(&opts.Plans)
 	cmd.Flag("cpu-shares", "The amount of cpu shares to give to each container.").Short('c').StringVar(&opts.CPUShares)
 	cmd.Flag("force-sequential", "Disable parallel execution.").Default("false").BoolVar(&opts.ForceSequential)
 	cmd.Flag("healthcheck-interval", "The interval between service container healthchecks.").Default("5s").DurationVar(&opts.HealthcheckInterval)
 	cmd.Flag("keep-workspace", "Do not delete the workspace").Short('k').Default("false").BoolVar(&opts.KeepWorkspace)
-	cmd.Flag("login", "Login to docker registries before running.").Default("false").BoolVar(&opts.LoginForPlan)
+	cmd.Flag("login", "Login to docker registries before running.").Default("false").BoolVar(&opts.Login)
 	cmd.Flag("memory", "The amount of memory to give each container.").Short('m').StringVar(&opts.Memory)
 	cmd.Flag("timeout", "Maximum amount of time a plan can run. 0 to disable.").Default("15m").DurationVar(&opts.PlanTimeout)
 	cmd.Flag("ssh-identity", "Enable ssh-agent for the given identities.").StringsVar(&opts.SSHIdentities)
 	return opts
 }
 
-func newCleanOptions(cmd *kingpin.CmdClause) *subcommand.CleanOptions {
-	opts := &subcommand.CleanOptions{}
+func newCleanOptions(cmd *kingpin.CmdClause) *options.CleanOptions {
+	opts := &options.CleanOptions{}
 	cmd.Flag("force", "Do not require confirmation before removing matching files.").Default("false").BoolVar(&opts.ForceClean)
 	return opts
 }

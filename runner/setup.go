@@ -9,6 +9,7 @@ import (
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
 	"github.com/efritz/ij/network"
+	"github.com/efritz/ij/options"
 	"github.com/efritz/ij/registry"
 	"github.com/efritz/ij/scratch"
 	"github.com/efritz/ij/util"
@@ -16,20 +17,13 @@ import (
 
 func SetupRunner(
 	cfg *config.Config,
-	colorize bool,
-	overrideEnv []string,
-	verbose bool,
+	appOptions *options.AppOptions,
+	runOptions *options.RunOptions,
 	enableSSHAgent bool,
-	cpuShares string,
-	keepWorkspace bool,
-	login bool,
-	memory string,
-	planTimeout time.Duration,
-	fileFactory logging.FileFactory,
 ) (runner *Runner, err error) {
 	var (
 		cleanup           = NewCleanup()
-		ctx, cancel       = setupContext(planTimeout)
+		ctx, cancel       = setupContext(runOptions.PlanTimeout)
 		logger            logging.Logger
 		loggerFactory     *logging.LoggerFactory
 		runID             string
@@ -44,7 +38,7 @@ func SetupRunner(
 	scratch, err = setupScratch(
 		runID,
 		cleanup,
-		keepWorkspace,
+		runOptions.KeepWorkspace,
 	)
 
 	if err != nil {
@@ -67,9 +61,10 @@ func SetupRunner(
 	logger, loggerFactory, err = setupLogger(
 		cleanup,
 		scratch,
-		verbose,
-		colorize,
-		fileFactory,
+		appOptions.Quiet,
+		appOptions.Verbose,
+		appOptions.Colorize,
+		appOptions.FileFactory,
 	)
 
 	if err != nil {
@@ -98,8 +93,8 @@ func SetupRunner(
 		cfg,
 		cleanup,
 		logger,
-		overrideEnv,
-		login,
+		appOptions.Env,
+		runOptions.Login,
 	)
 
 	if err != nil {
@@ -146,8 +141,8 @@ func SetupRunner(
 		case *config.RunTask:
 			containerOptions := &containerOptions{
 				EnableSSHAgent: enableSSHAgent,
-				CPUShares:      cpuShares,
-				Memory:         memory,
+				CPUShares:      runOptions.CPUShares,
+				Memory:         runOptions.Memory,
 			}
 
 			return NewRunTaskRunnerFactory(
@@ -171,7 +166,7 @@ func SetupRunner(
 				cfg,
 				taskRunnerFactory,
 				logger,
-				overrideEnv,
+				appOptions.Env,
 			)
 
 			return NewPlanTaskRunnerFactory(
@@ -196,7 +191,7 @@ func SetupRunner(
 		cleanup,
 		runID,
 		cancel,
-		overrideEnv,
+		appOptions.Env,
 	)
 
 	return
@@ -258,11 +253,12 @@ func setupScratch(
 func setupLogger(
 	cleanup *Cleanup,
 	scratch *scratch.ScratchSpace,
+	quiet bool,
 	verbose bool,
 	colorize bool,
 	fileFactory logging.FileFactory,
 ) (logging.Logger, *logging.LoggerFactory, error) {
-	logProcessor := logging.NewProcessor(verbose, colorize)
+	logProcessor := logging.NewProcessor(quiet, verbose, colorize)
 	logProcessor.Start()
 	cleanup.Register(logProcessor.Shutdown)
 

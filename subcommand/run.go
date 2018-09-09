@@ -7,27 +7,14 @@ import (
 
 	"github.com/efritz/ij/command"
 	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/logging"
+	"github.com/efritz/ij/options"
 	"github.com/efritz/ij/runner"
 	"github.com/efritz/ij/ssh"
 )
 
-type RunOptions struct {
-	Plans               []string
-	CPUShares           string
-	ForceSequential     bool
-	HealthcheckInterval time.Duration
-	KeepWorkspace       bool
-	LoginForPlan        bool
-	Memory              string
-	PlanTimeout         time.Duration
-	SSHIdentities       []string
-	FileFactory         logging.FileFactory
-}
-
 var ErrFailed = fmt.Errorf("subcommand failed")
 
-func NewRunCommand(appOptions *AppOptions, runOptions *RunOptions) CommandRunner {
+func NewRunCommand(appOptions *options.AppOptions, runOptions *options.RunOptions) CommandRunner {
 	return func(config *config.Config) error {
 		if !ensureDocker() {
 			return fmt.Errorf("docker is not running")
@@ -55,16 +42,9 @@ func NewRunCommand(appOptions *AppOptions, runOptions *RunOptions) CommandRunner
 
 		runner, err := runner.SetupRunner(
 			config,
-			appOptions.Colorize,
-			appOptions.Env,
-			appOptions.Verbose,
+			appOptions,
+			runOptions,
 			enableSSHAgent,
-			runOptions.CPUShares,
-			runOptions.KeepWorkspace,
-			runOptions.LoginForPlan,
-			runOptions.Memory,
-			runOptions.PlanTimeout,
-			runOptions.FileFactory,
 		)
 
 		if err != nil {

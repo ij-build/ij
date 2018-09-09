@@ -7,14 +7,11 @@ import (
 	"strings"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/options"
 	"github.com/efritz/ij/paths"
 )
 
-type CleanOptions struct {
-	ForceClean bool
-}
-
-func NewCleanCommand(cleanOptions *CleanOptions) CommandRunner {
+func NewCleanCommand(cleanOptions *options.CleanOptions) CommandRunner {
 	return func(config *config.Config) error {
 		wd, err := os.Getwd()
 		if err != nil {

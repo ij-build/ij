@@ -2,26 +2,17 @@ package subcommand
 
 import (
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/options"
 )
 
-type (
-	AppOptions struct {
-		Colorize   bool
-		ConfigPath string
-		Env        []string
-		EnvFiles   []string
-		Verbose    bool
-	}
-
-	CommandRunner func(*config.Config) error
-)
+type CommandRunner func(*config.Config) error
 
 func Run(
 	command string,
 	config *config.Config,
-	appOptions *AppOptions,
-	cleanOptions *CleanOptions,
-	runOptions *RunOptions,
+	appOptions *options.AppOptions,
+	cleanOptions *options.CleanOptions,
+	runOptions *options.RunOptions,
 ) error {
 	runners := map[string]CommandRunner{
 		"clean":       NewCleanCommand(cleanOptions),

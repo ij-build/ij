@@ -37,13 +37,13 @@ const (
 	LongTimestampFormat  = "2006-01-02 15:04:05.000"
 )
 
-func NewProcessor(verbose, colorize bool) Processor {
+func NewProcessor(quiet, verbose, colorize bool) Processor {
 	return newProcessor(
 		verbose,
 		colorize,
 		glock.NewRealClock(),
-		os.Stdout,
-		os.Stderr,
+		getOutStream(quiet),
+		getErrStream(quiet),
 	)
 }
 
@@ -162,4 +162,23 @@ func (p *processor) buildPrefixForFile(prefix *Prefix, writePrefix bool) string 
 	}
 
 	return fmt.Sprintf("%s: ", prefix.Serialize(NilColorPicker))
+}
+
+//
+// Helpers
+
+func getOutStream(quiet bool) io.Writer {
+	if quiet {
+		return &nilWriter{}
+	}
+
+	return os.Stdout
+}
+
+func getErrStream(quiet bool) io.Writer {
+	if quiet {
+		return &nilWriter{}
+	}
+
+	return os.Stderr
 }

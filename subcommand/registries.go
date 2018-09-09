@@ -7,10 +7,11 @@ import (
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
+	"github.com/efritz/ij/options"
 	"github.com/efritz/ij/registry"
 )
 
-func NewLoginCommand(appOptions *AppOptions) CommandRunner {
+func NewLoginCommand(appOptions *options.AppOptions) CommandRunner {
 	return func(config *config.Config) error {
 		return withRegistrySet(config, appOptions, func(registrySet *registry.RegistrySet, logger logging.Logger) error {
 			if err := registrySet.Login(); err != nil {
@@ -25,7 +26,7 @@ func NewLoginCommand(appOptions *AppOptions) CommandRunner {
 	}
 }
 
-func NewLogoutCommand(appOptions *AppOptions) CommandRunner {
+func NewLogoutCommand(appOptions *options.AppOptions) CommandRunner {
 	return func(config *config.Config) error {
 		return withRegistrySet(config, appOptions, func(registrySet *registry.RegistrySet, logger logging.Logger) error {
 			registrySet.Logout()
@@ -36,10 +37,15 @@ func NewLogoutCommand(appOptions *AppOptions) CommandRunner {
 
 func withRegistrySet(
 	config *config.Config,
-	appOptions *AppOptions,
+	appOptions *options.AppOptions,
 	f func(*registry.RegistrySet, logging.Logger) error,
 ) error {
-	logProcessor := logging.NewProcessor(appOptions.Verbose, appOptions.Colorize)
+	logProcessor := logging.NewProcessor(
+		appOptions.Quiet,
+		appOptions.Verbose,
+		appOptions.Colorize,
+	)
+
 	logProcessor.Start()
 	defer logProcessor.Shutdown()
 
