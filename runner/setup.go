@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"io"
 	"time"
 
 	"github.com/efritz/ij/config"
@@ -24,12 +25,13 @@ func SetupRunner(
 	login bool,
 	memory string,
 	planTimeout time.Duration,
+	fileFactory logging.FileFactory,
 ) (runner *Runner, err error) {
 	var (
 		cleanup           = NewCleanup()
 		ctx, cancel       = setupContext(planTimeout)
 		logger            logging.Logger
-		logProcessor      logging.Processor
+		loggerFactory     *logging.LoggerFactory
 		runID             string
 		scratch           *scratch.ScratchSpace
 		taskRunnerFactory TaskRunnerFactory
@@ -62,11 +64,12 @@ func SetupRunner(
 		}
 	}()
 
-	logProcessor, logger, err = setupLogger(
+	logger, loggerFactory, err = setupLogger(
 		cleanup,
 		scratch,
 		verbose,
 		colorize,
+		fileFactory,
 	)
 
 	if err != nil {
@@ -154,8 +157,8 @@ func SetupRunner(
 				scratch,
 				containerLists,
 				containerOptions,
-				logProcessor,
 				logger,
+				loggerFactory,
 			)(
 				t,
 				env,
@@ -257,15 +260,27 @@ func setupLogger(
 	scratch *scratch.ScratchSpace,
 	verbose bool,
 	colorize bool,
-) (logging.Processor, logging.Logger, error) {
+	fileFactory logging.FileFactory,
+) (logging.Logger, *logging.LoggerFactory, error) {
 	logProcessor := logging.NewProcessor(verbose, colorize)
 	logProcessor.Start()
 	cleanup.Register(logProcessor.Shutdown)
 
 	//
+	// Create Logger Factory
+
+	if fileFactory == nil {
+		fileFactory = func(prefix string) (io.WriteCloser, io.WriteCloser, error) {
+			return scratch.MakeLogFiles(prefix)
+		}
+	}
+
+	loggerFactory := logging.NewLoggerFactory(logProcessor, fileFactory)
+
+	//
 	// Create Base Logger
 
-	outfile, errfile, err := scratch.MakeLogFiles("ij")
+	logger, err := loggerFactory.Logger("ij", true)
 	if err != nil {
 		logging.EmergencyLog(
 			"error: failed to create log files: %s",
@@ -275,13 +290,7 @@ func setupLogger(
 		return nil, nil, err
 	}
 
-	logger := logProcessor.Logger(
-		outfile,
-		errfile,
-		true,
-	)
-
-	return logProcessor, logger, nil
+	return logger, loggerFactory, nil
 }
 
 func setupContainerLists(

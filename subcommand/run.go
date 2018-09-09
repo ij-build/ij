@@ -7,6 +7,7 @@ import (
 
 	"github.com/efritz/ij/command"
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/logging"
 	"github.com/efritz/ij/runner"
 	"github.com/efritz/ij/ssh"
 )
@@ -21,6 +22,7 @@ type RunOptions struct {
 	Memory              string
 	PlanTimeout         time.Duration
 	SSHIdentities       []string
+	FileFactory         logging.FileFactory
 }
 
 var ErrFailed = fmt.Errorf("subcommand failed")
@@ -62,6 +64,7 @@ func NewRunCommand(appOptions *AppOptions, runOptions *RunOptions) CommandRunner
 			runOptions.LoginForPlan,
 			runOptions.Memory,
 			runOptions.PlanTimeout,
+			runOptions.FileFactory,
 		)
 
 		if err != nil {

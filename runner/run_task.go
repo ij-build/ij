@@ -34,8 +34,8 @@ type (
 		scratch          *scratch.ScratchSpace
 		containerLists   *ContainerLists
 		containerOptions *containerOptions
-		logProcessor     logging.Processor
 		logger           logging.Logger
+		loggerFactory    *logging.LoggerFactory
 		task             *config.RunTask
 		env              environment.Environment
 		prefix           *logging.Prefix
@@ -70,8 +70,8 @@ func NewRunTaskRunnerFactory(
 	scratch *scratch.ScratchSpace,
 	containerLists *ContainerLists,
 	containerOptions *containerOptions,
-	logProcessor logging.Processor,
 	logger logging.Logger,
+	loggerFactory *logging.LoggerFactory,
 ) RunTaskRunnerFactory {
 	return func(
 		task *config.RunTask,
@@ -85,8 +85,8 @@ func NewRunTaskRunnerFactory(
 			scratch:          scratch,
 			containerLists:   containerLists,
 			containerOptions: containerOptions,
-			logProcessor:     logProcessor,
 			logger:           logger,
+			loggerFactory:    loggerFactory,
 			task:             task,
 			env:              env,
 			prefix:           prefix,
@@ -175,8 +175,9 @@ func (r *runTaskRunner) runInForeground(
 	containerName string,
 	args []string,
 ) bool {
-	outfile, errfile, err := r.scratch.MakeLogFiles(
+	logger, err := r.loggerFactory.Logger(
 		r.prefix.Serialize(logging.NilColorPicker),
+		false,
 	)
 
 	if err != nil {
@@ -188,12 +189,6 @@ func (r *runTaskRunner) runInForeground(
 
 		return false
 	}
-
-	logger := r.logProcessor.Logger(
-		outfile,
-		errfile,
-		false,
-	)
 
 	r.containerLists.NetworkDisconnector.Add(containerName)
 	defer r.containerLists.NetworkDisconnector.Remove(containerName)
