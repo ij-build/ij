@@ -11,20 +11,12 @@ import (
 	"github.com/efritz/ij/paths"
 )
 
-func NewCleanCommand(cleanOptions *options.CleanOptions) CommandRunner {
+func NewCleanCommand(appOptions *options.AppOptions, cleanOptions *options.CleanOptions) CommandRunner {
 	return func(config *config.Config) error {
-		wd, err := os.Getwd()
-		if err != nil {
-			return fmt.Errorf(
-				"failed to get working directory: %s",
-				err.Error(),
-			)
-		}
-
-		err = paths.NewRemover(wd).Remove(
+		err := paths.NewRemover(appOptions.ProjectDir).Remove(
 			config.Export.Files,
 			config.Export.CleanExcludes,
-			cleanPromptFactory(wd, cleanOptions.ForceClean),
+			cleanPromptFactory(appOptions.ProjectDir, cleanOptions.ForceClean),
 		)
 
 		if err != nil {
@@ -38,7 +30,7 @@ func NewCleanCommand(cleanOptions *options.CleanOptions) CommandRunner {
 	}
 }
 
-func cleanPromptFactory(wd string, force bool) func(string) (bool, error) {
+func cleanPromptFactory(workingDir string, force bool) func(string) (bool, error) {
 	reader := bufio.NewReader(os.Stdin)
 
 	return func(path string) (bool, error) {
@@ -46,7 +38,7 @@ func cleanPromptFactory(wd string, force bool) func(string) (bool, error) {
 			return true, nil
 		}
 
-		fmt.Printf("remove '%s'? ", path[len(wd):])
+		fmt.Printf("remove '%s'? ", path[len(workingDir):])
 
 		text, err := reader.ReadString('\n')
 		if err != nil {

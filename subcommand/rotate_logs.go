@@ -7,21 +7,17 @@ import (
 	"sort"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/options"
 	"github.com/efritz/ij/paths"
 	"github.com/efritz/ij/scratch"
 )
 
-func NewRotateLogsCommand() CommandRunner {
+func NewRotateLogsCommand(appOptions *options.AppOptions) CommandRunner {
 	return func(config *config.Config) error {
-		wd, err := os.Getwd()
-		if err != nil {
-			return fmt.Errorf(
-				"failed to get working directory: %s",
-				err.Error(),
-			)
-		}
-
-		scratchPath := filepath.Join(wd, scratch.ScratchDir)
+		scratchPath := filepath.Join(
+			appOptions.ScratchRoot,
+			scratch.ScratchDir,
+		)
 
 		entries, err := paths.DirContents(scratchPath)
 		if err != nil {

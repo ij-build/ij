@@ -11,13 +11,11 @@ import (
 )
 
 type ScratchSpace struct {
-	runID          string
-	keepWorkspace  bool
-	project        string
-	rootDirFactory func() (string, error)
-	scratch        string
-	runpath        string
-	workspace      string
+	project       string
+	scratch       string
+	runpath       string
+	workspace     string
+	keepWorkspace bool
 }
 
 const (
@@ -29,37 +27,23 @@ const (
 	ErrLogSuffix = ".err.log"
 )
 
-func NewScratchSpace(runID string, keepWorkspace bool) *ScratchSpace {
-	return newScratchSpace(
-		runID,
-		keepWorkspace,
-		os.Getwd,
+func NewScratchSpace(runID, projectDir, scratchRoot string, keepWorkspace bool) *ScratchSpace {
+	var (
+		scratch   = filepath.Join(scratchRoot, ScratchDir)
+		runpath   = filepath.Join(scratch, runID)
+		workspace = filepath.Join(runpath, WorkspaceDir)
 	)
-}
 
-func newScratchSpace(
-	runID string,
-	keepWorkspace bool,
-	rootDirFactory func() (string, error),
-) *ScratchSpace {
 	return &ScratchSpace{
-		runID:          runID,
-		keepWorkspace:  keepWorkspace,
-		rootDirFactory: rootDirFactory,
+		project:       projectDir,
+		scratch:       scratch,
+		runpath:       runpath,
+		workspace:     workspace,
+		keepWorkspace: keepWorkspace,
 	}
 }
 
 func (s *ScratchSpace) Setup() error {
-	pwd, err := s.rootDirFactory()
-	if err != nil {
-		return err
-	}
-
-	s.project = pwd
-	s.scratch = filepath.Join(s.project, ScratchDir)
-	s.runpath = filepath.Join(s.scratch, s.runID)
-	s.workspace = filepath.Join(s.runpath, WorkspaceDir)
-
 	return paths.EnsureDirExists(s.workspace, os.ModePerm)
 }
 

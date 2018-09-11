@@ -15,10 +15,10 @@ func Run(
 	runOptions *options.RunOptions,
 ) error {
 	runners := map[string]CommandRunner{
-		"clean":       NewCleanCommand(cleanOptions),
+		"clean":       NewCleanCommand(appOptions, cleanOptions),
 		"login":       NewLoginCommand(appOptions),
 		"logout":      NewLogoutCommand(appOptions),
-		"rotate-logs": NewRotateLogsCommand(),
+		"rotate-logs": NewRotateLogsCommand(appOptions),
 		"run":         NewRunCommand(appOptions, runOptions),
 	}
 

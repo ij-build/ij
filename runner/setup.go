@@ -37,6 +37,8 @@ func SetupRunner(
 
 	scratch, err = setupScratch(
 		runID,
+		appOptions.ProjectDir,
+		appOptions.ScratchRoot,
 		cleanup,
 		runOptions.KeepWorkspace,
 	)
@@ -224,10 +226,17 @@ func setupRunID() (string, error) {
 
 func setupScratch(
 	runID string,
+	projectDir string,
+	scratchRoot string,
 	cleanup *Cleanup,
 	keepWorkspace bool,
 ) (*scratch.ScratchSpace, error) {
-	scratch := scratch.NewScratchSpace(runID, keepWorkspace)
+	scratch := scratch.NewScratchSpace(
+		runID,
+		projectDir,
+		scratchRoot,
+		keepWorkspace,
+	)
 
 	if err := scratch.Setup(); err != nil {
 		logging.EmergencyLog(

@@ -16,10 +16,7 @@ func (s *ScratchSuite) TestPaths(t sweet.T) {
 	name, _ := ioutil.TempDir("", "ij-test")
 	defer os.RemoveAll(name)
 
-	scratch := newScratchSpace("abcdef0", true, func() (string, error) {
-		return name, nil
-	})
-
+	scratch := NewScratchSpace("abcdef0", name, name, true)
 	Expect(scratch.Setup()).To(BeNil())
 	Expect(scratch.Project()).To(Equal(name))
 	Expect(scratch.Scratch()).To(Equal(filepath.Join(name, ".ij")))
@@ -35,10 +32,7 @@ func (s *ScratchSuite) TestWriteScript(t sweet.T) {
 	name, _ := ioutil.TempDir("", "ij-test")
 	defer os.RemoveAll(name)
 
-	scratch := newScratchSpace("abcdef0", true, func() (string, error) {
-		return name, nil
-	})
-
+	scratch := NewScratchSpace("abcdef0", name, name, true)
 	scratch.Setup()
 
 	scriptPath, err := scratch.WriteScript("foo\nbar\nbaz\n")
@@ -54,10 +48,7 @@ func (s *ScratchSuite) TestMakeLogFiles(t sweet.T) {
 	name, _ := ioutil.TempDir("", "ij-test")
 	defer os.RemoveAll(name)
 
-	scratch := newScratchSpace("abcdef0", true, func() (string, error) {
-		return name, nil
-	})
-
+	scratch := NewScratchSpace("abcdef0", name, name, true)
 	scratch.Setup()
 
 	outFile, errFile, err := scratch.MakeLogFiles("foo/bar/baz")
@@ -87,10 +78,7 @@ func (s *ScratchSuite) TestPrune(t sweet.T) {
 	name, _ := ioutil.TempDir("", "ij-test")
 	defer os.RemoveAll(name)
 
-	scratch := newScratchSpace("abcdef0", true, func() (string, error) {
-		return name, nil
-	})
-
+	scratch := NewScratchSpace("abcdef0", name, name, true)
 	scratch.Setup()
 
 	paths := []string{
@@ -139,10 +127,7 @@ func (s *ScratchSuite) TestPruneDiscardWorkspace(t sweet.T) {
 	name, _ := ioutil.TempDir("", "ij-test")
 	defer os.RemoveAll(name)
 
-	scratch := newScratchSpace("abcdef0", false, func() (string, error) {
-		return name, nil
-	})
-
+	scratch := NewScratchSpace("abcdef0", name, name, false)
 	scratch.Setup()
 
 	// Populate workspace and scripts
@@ -176,10 +161,7 @@ func (s *ScratchSuite) TestTeardown(t sweet.T) {
 	name, _ := ioutil.TempDir("", "ij-test")
 	defer os.RemoveAll(name)
 
-	scratch := newScratchSpace("abcdef0", true, func() (string, error) {
-		return name, nil
-	})
-
+	scratch := NewScratchSpace("abcdef0", name, name, true)
 	scratch.Setup()
 	Expect(scratch.Teardown()).To(BeNil())
 	_, err := os.Stat(scratch.Scratch())
@@ -190,9 +172,7 @@ func (s *ScratchSuite) TestTeardownMultipleProjects(t sweet.T) {
 	name, _ := ioutil.TempDir("", "ij-test")
 	defer os.RemoveAll(name)
 
-	scratch := newScratchSpace("abcdef0", true, func() (string, error) {
-		return name, nil
-	})
+	scratch := NewScratchSpace("abcdef0", name, name, true)
 
 	// Make another project first
 	paths.EnsureDirExists(filepath.Join(name, ".ij", "abcdef1", "workspace", name), os.ModePerm)

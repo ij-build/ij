@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/alecthomas/kingpin"
@@ -14,8 +15,13 @@ import (
 
 const Version = "0.1.0"
 
-func newSharedOptions(app *kingpin.Application) *options.AppOptions {
-	opts := &options.AppOptions{}
+func newSharedOptions(app *kingpin.Application, projectDir string) *options.AppOptions {
+	opts := &options.AppOptions{
+		ProjectDir:  projectDir,
+		ScratchRoot: projectDir,
+	}
+
+	app.Flag("scratch-root", "The directory where .ij/ files are written.").StringVar(&opts.ScratchRoot)
 	app.Flag("color", "Enable colorized output.").Default("true").BoolVar(&opts.Colorize)
 	app.Flag("config", "The path to the config file.").Short('f').StringVar(&opts.ConfigPath)
 	app.Flag("env", "Environment variables.").Short('e').StringsVar(&opts.Env)
@@ -63,7 +69,12 @@ func runMain() error {
 	app.Command("rotate-logs", "Trim old run logs the .ij directory.")
 	run := app.Command("run", "Run a plan or metaplan.").Default()
 
-	appOptions := newSharedOptions(app)
+	projectDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get working directory (%s)", err.Error())
+	}
+
+	appOptions := newSharedOptions(app, projectDir)
 	cleanOptions := newCleanOptions(clean)
 	runOptions := newRunOptions(run)
 
