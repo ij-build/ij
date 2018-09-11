@@ -66,20 +66,28 @@ func (s *PatternsSuite) TestRunOnPatternIllegal(t sweet.T) {
 }
 
 func (s *PatternsSuite) TestRunOnSplitPattern(t sweet.T) {
+	name := buildTempDir(buildEmptyFiles([]string{
+		"foo",
+	}))
+
 	var src, dest string
-	err := runOnSplitPattern("foo:bar", "root", func(fp FilePair) error {
+	err := runOnSplitPattern("foo:bar", name, logging.NilLogger, func(fp FilePair) error {
 		src = fp.Src
 		dest = fp.Dest
 		return nil
 	})
 
 	Expect(err).To(BeNil())
-	Expect(src).To(Equal("root/foo"))
-	Expect(dest).To(Equal("root/bar"))
+	Expect(src).To(Equal(filepath.Join(name, "foo")))
+	Expect(dest).To(Equal(filepath.Join(name, "bar")))
 }
 
 func (s *PatternsSuite) TestRunOnSplitPatternError(t sweet.T) {
-	err := runOnSplitPattern("foo:bar", "root", func(fp FilePair) error {
+	name := buildTempDir(buildEmptyFiles([]string{
+		"foo",
+	}))
+
+	err := runOnSplitPattern("foo:bar", name, logging.NilLogger, func(fp FilePair) error {
 		return fmt.Errorf("utoh")
 	})
 

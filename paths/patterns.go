@@ -44,7 +44,7 @@ func runOnPattern(
 			)
 		}
 
-		return runOnSplitPattern(pattern, root, target)
+		return runOnSplitPattern(pattern, root, logger, target)
 	}
 
 	return runOnGlobPattern(pattern, root, logger, target)
@@ -79,11 +79,13 @@ func constructBlacklist(root string, patterns []string) (map[string]struct{}, er
 		allPatterns = append(DefaultBlacklist, patterns...)
 	)
 
-	err := runOnPatterns(allPatterns, root, logging.NilLogger, func(pair FilePair) error {
-		if pair.Src != pair.Dest {
-			return fmt.Errorf("blacklist contains destination path: %s", pair.Dest)
+	for _, pattern := range allPatterns {
+		if strings.Contains(pattern, ":") {
+			return nil, fmt.Errorf("blacklist contains destination path: %s", pattern)
 		}
+	}
 
+	err := runOnPatterns(allPatterns, root, logging.NilLogger, func(pair FilePair) error {
 		blacklist[pair.Src] = struct{}{}
 		return nil
 	})
@@ -98,9 +100,20 @@ func constructBlacklist(root string, patterns []string) (map[string]struct{}, er
 func runOnSplitPattern(
 	pattern string,
 	root string,
+	logger logging.Logger,
 	target func(FilePair) error,
 ) error {
 	src, dest := splitPath(pattern)
+
+	if exists, err := PathExists(filepath.Join(root, src)); err != nil || !exists {
+		logger.Warn(
+			nil,
+			"no files matched the pattern '%s'",
+			src,
+		)
+
+		return err
+	}
 
 	return target(FilePair{
 		Src:  filepath.Join(root, src),
