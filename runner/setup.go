@@ -23,7 +23,7 @@ func SetupRunner(
 ) (runner *Runner, err error) {
 	var (
 		cleanup           = NewCleanup()
-		ctx, cancel       = setupContext(runOptions.PlanTimeout)
+		ctx, cancel       = setupContext(runOptions.Context, runOptions.PlanTimeout)
 		logger            logging.Logger
 		loggerFactory     *logging.LoggerFactory
 		runID             string
@@ -202,12 +202,12 @@ func SetupRunner(
 //
 // Setup Functions
 
-func setupContext(timeout time.Duration) (context.Context, func()) {
+func setupContext(ctx context.Context, timeout time.Duration) (context.Context, func()) {
 	if timeout == 0 {
-		return context.WithCancel(context.Background())
+		return context.WithCancel(ctx)
 	}
 
-	return context.WithTimeout(context.Background(), timeout)
+	return context.WithTimeout(ctx, timeout)
 }
 
 func setupRunID() (string, error) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -32,7 +33,10 @@ func newSharedOptions(app *kingpin.Application, projectDir string) *options.AppO
 }
 
 func newRunOptions(cmd *kingpin.CmdClause) *options.RunOptions {
-	opts := &options.RunOptions{}
+	opts := &options.RunOptions{
+		Context: context.Background(),
+	}
+
 	cmd.Arg("plans", "The name of the plans to execute.").Default("default").StringsVar(&opts.Plans)
 	cmd.Flag("cpu-shares", "The amount of cpu shares to give to each container.").Short('c').StringVar(&opts.CPUShares)
 	cmd.Flag("force-sequential", "Disable parallel execution.").Default("false").BoolVar(&opts.ForceSequential)

@@ -1,6 +1,7 @@
 package options
 
 import (
+	"context"
 	"time"
 )
 
@@ -14,4 +15,5 @@ type RunOptions struct {
 	Memory              string
 	PlanTimeout         time.Duration
 	SSHIdentities       []string
+	Context             context.Context
 }
