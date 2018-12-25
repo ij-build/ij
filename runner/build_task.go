@@ -70,6 +70,7 @@ func buildTaskCommandFactory(
 			[]command.BuildFunc{
 				s.addWorkspaceArg,
 				s.addDockerfileOptions,
+				s.addTargetOptions,
 				s.addTagOptions,
 				s.addLabelOptions,
 			},
@@ -89,6 +90,16 @@ func (s *buildTaskCommandBuilderState) addDockerfileOptions(cb *command.Builder)
 	}
 
 	cb.AddFlagValue("-f", dockerfile)
+	return nil
+}
+
+func (s *buildTaskCommandBuilderState) addTargetOptions(cb *command.Builder) error {
+	target, err := s.env.ExpandString(s.task.Target)
+	if err != nil {
+		return err
+	}
+
+	cb.AddFlagValue("--target", target)
 	return nil
 }
 

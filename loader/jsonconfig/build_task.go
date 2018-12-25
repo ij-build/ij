@@ -9,6 +9,7 @@ import (
 type BuildTask struct {
 	Extends    string          `json:"extends"`
 	Dockerfile string          `json:"dockerfile"`
+	Target     string          `json:"target"`
 	Tags       json.RawMessage `json:"tags"`
 	Labels     json.RawMessage `json:"labels"`
 }
@@ -36,6 +37,7 @@ func (t *BuildTask) Translate(name string) (config.Task, error) {
 	return &config.BuildTask{
 		TaskMeta:   meta,
 		Dockerfile: t.Dockerfile,
+		Target:     t.Target,
 		Tags:       tags,
 		Labels:     labels,
 	}, nil

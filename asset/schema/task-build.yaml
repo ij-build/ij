@@ -18,6 +18,8 @@ properties:
     type: string
   dockerfile:
     type: string
+  target:
+    type: string
   tags:
     $ref: '#/definitions/stringOrList'
   labels:

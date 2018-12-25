@@ -108,6 +108,7 @@ A build task builds a Docker image from a Dockerfile.
 | Name       | Required | Default    | Description |
 | ---------- | -------- | ---------- | ----------- |
 | dockerfile |          | Dockerfile | The path to the Dockerfile on the host. |
+| target     |          |            | The target stage to build in a multi-stage dockerfile. |
 | labels     |          | []         | Metadata for the resulting image. Value may be a string or a list. |
 | tags       |          | []         | A list of tags for the resulting image. Value may be a string or a list. |
 
