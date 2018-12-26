@@ -12,8 +12,9 @@ type PushTaskSuite struct{}
 
 func (s *PushTaskSuite) TestTranslate(t sweet.T) {
 	task := &PushTask{
-		Extends: "parent",
-		Images:  json.RawMessage(`["i1", "i2", "i3"]`),
+		Extends:     "parent",
+		Images:      json.RawMessage(`["i1", "i2", "i3"]`),
+		Environment: json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
 	}
 
 	translated, err := task.Translate("push")
@@ -23,14 +24,16 @@ func (s *PushTaskSuite) TestTranslate(t sweet.T) {
 			Name:    "push",
 			Extends: "parent",
 		},
-		Images: []string{"i1", "i2", "i3"},
+		Images:      []string{"i1", "i2", "i3"},
+		Environment: []string{"X=1", "Y=2", "Z=3"},
 	}))
 }
 
 func (s *PushTaskSuite) TestTranslateStringLists(t sweet.T) {
 	task := &PushTask{
-		Extends: "parent",
-		Images:  json.RawMessage(`"i1"`),
+		Extends:     "parent",
+		Images:      json.RawMessage(`"i1"`),
+		Environment: json.RawMessage(`"X=1"`),
 	}
 
 	translated, err := task.Translate("push")
@@ -40,6 +43,7 @@ func (s *PushTaskSuite) TestTranslateStringLists(t sweet.T) {
 			Name:    "push",
 			Extends: "parent",
 		},
-		Images: []string{"i1"},
+		Images:      []string{"i1"},
+		Environment: []string{"X=1"},
 	}))
 }

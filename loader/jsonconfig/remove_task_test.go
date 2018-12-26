@@ -12,8 +12,9 @@ type RemoveTaskSuite struct{}
 
 func (s *RemoveTaskSuite) TestTranslate(t sweet.T) {
 	task := &RemoveTask{
-		Extends: "parent",
-		Images:  json.RawMessage(`["i1", "i2", "i3"]`),
+		Extends:     "parent",
+		Images:      json.RawMessage(`["i1", "i2", "i3"]`),
+		Environment: json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
 	}
 
 	translated, err := task.Translate("remove")
@@ -23,14 +24,16 @@ func (s *RemoveTaskSuite) TestTranslate(t sweet.T) {
 			Name:    "remove",
 			Extends: "parent",
 		},
-		Images: []string{"i1", "i2", "i3"},
+		Images:      []string{"i1", "i2", "i3"},
+		Environment: []string{"X=1", "Y=2", "Z=3"},
 	}))
 }
 
 func (s *RemoveTaskSuite) TestTranslateStringLists(t sweet.T) {
 	task := &RemoveTask{
-		Extends: "parent",
-		Images:  json.RawMessage(`"i1"`),
+		Extends:     "parent",
+		Images:      json.RawMessage(`"i1"`),
+		Environment: json.RawMessage(`"X=1"`),
 	}
 
 	translated, err := task.Translate("remove")
@@ -40,6 +43,7 @@ func (s *RemoveTaskSuite) TestTranslateStringLists(t sweet.T) {
 			Name:    "remove",
 			Extends: "parent",
 		},
-		Images: []string{"i1"},
+		Images:      []string{"i1"},
+		Environment: []string{"X=1"},
 	}))
 }

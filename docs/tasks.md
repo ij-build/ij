@@ -105,12 +105,13 @@ tasks:
 
 A build task builds a Docker image from a Dockerfile.
 
-| Name       | Required | Default    | Description |
-| ---------- | -------- | ---------- | ----------- |
-| dockerfile |          | Dockerfile | The path to the Dockerfile on the host. |
-| target     |          |            | The target stage to build in a multi-stage dockerfile. |
-| labels     |          | []         | Metadata for the resulting image. Value may be a string or a list. |
-| tags       |          | []         | A list of tags for the resulting image. Value may be a string or a list. |
+| Name        | Required | Default    | Description |
+| ----------- | -------- | ---------- | ----------- |
+| dockerfile  |          | Dockerfile | The path to the Dockerfile on the host. |
+| environment |          | []         | A list of environment variable definitions. Value may be a string or a list. |
+| labels      |          | []         | Metadata for the resulting image. Value may be a string or a list. |
+| tags        |          | []         | A list of tags for the resulting image. Value may be a string or a list. |
+| target      |          |            | The target stage to build in a multi-stage dockerfile. |
 
 ### Example
 
@@ -136,9 +137,10 @@ tasks:
 
 A push task pushes image tags to a remote registry. For this task to succeed, the target registry must be writable by the current host and user. This may require previously running `ij login` or invoking this plan with the `--login` option.
 
-| Name   | Required | Default | Description |
-| ------ | -------- | ------- | ----------- |
-| images |          | []      | A list of image tags to push to a remote registry. Value may be a string or a list. |
+| Name        | Required | Default | Description |
+| ----------- | -------- | ------- | ----------- |
+| environment |          | []      | A list of environment variable definitions. Value may be a string or a list. |
+| images      |          | []      | A list of image tags to push to a remote registry. Value may be a string or a list. |
 
 ### Example
 
@@ -159,9 +161,10 @@ tasks:
 
 A remove task removes image from the host.
 
-| Name   | Required | Default | Description |
-| ------ | -------- | ------- | ----------- |
-| images |          | []      | A list of image tags to remove from the host. Value may be a string or a list. |
+| Name        | Required | Default | Description |
+| ----------- | -------- | ------- | ----------- |
+| environment |          | []      | A list of environment variable definitions. Value may be a string or a list. |
+| images      |          | []      | A list of image tags to remove from the host. Value may be a string or a list. |
 
 ### Example
 

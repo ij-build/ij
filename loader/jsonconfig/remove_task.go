@@ -7,12 +7,18 @@ import (
 )
 
 type RemoveTask struct {
-	Extends string          `json:"extends"`
-	Images  json.RawMessage `json:"images"`
+	Extends     string          `json:"extends"`
+	Images      json.RawMessage `json:"images"`
+	Environment json.RawMessage `json:"environment"`
 }
 
 func (t *RemoveTask) Translate(name string) (config.Task, error) {
 	images, err := unmarshalStringList(t.Images)
+	if err != nil {
+		return nil, err
+	}
+
+	environment, err := unmarshalStringList(t.Environment)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +29,8 @@ func (t *RemoveTask) Translate(name string) (config.Task, error) {
 	}
 
 	return &config.RemoveTask{
-		TaskMeta: meta,
-		Images:   images,
+		TaskMeta:    meta,
+		Images:      images,
+		Environment: environment,
 	}, nil
 }

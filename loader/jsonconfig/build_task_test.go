@@ -12,11 +12,12 @@ type BuildTaskSuite struct{}
 
 func (s *BuildTaskSuite) TestTranslate(t sweet.T) {
 	task := &BuildTask{
-		Extends:    "parent",
-		Dockerfile: "dockerfile",
-		Target:     "target",
-		Tags:       json.RawMessage(`["t1", "t2", "t3"]`),
-		Labels:     json.RawMessage(`["l1", "l2", "l3"]`),
+		Extends:     "parent",
+		Dockerfile:  "dockerfile",
+		Target:      "target",
+		Tags:        json.RawMessage(`["t1", "t2", "t3"]`),
+		Labels:      json.RawMessage(`["l1", "l2", "l3"]`),
+		Environment: json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
 	}
 
 	translated, err := task.Translate("build")
@@ -26,20 +27,22 @@ func (s *BuildTaskSuite) TestTranslate(t sweet.T) {
 			Name:    "build",
 			Extends: "parent",
 		},
-		Dockerfile: "dockerfile",
-		Target:     "target",
-		Tags:       []string{"t1", "t2", "t3"},
-		Labels:     []string{"l1", "l2", "l3"},
+		Dockerfile:  "dockerfile",
+		Target:      "target",
+		Tags:        []string{"t1", "t2", "t3"},
+		Labels:      []string{"l1", "l2", "l3"},
+		Environment: []string{"X=1", "Y=2", "Z=3"},
 	}))
 }
 
 func (s *BuildTaskSuite) TestTranslateStringLists(t sweet.T) {
 	task := &BuildTask{
-		Extends:    "parent",
-		Dockerfile: "dockerfile",
-		Target:     "target",
-		Tags:       json.RawMessage(`"t1"`),
-		Labels:     json.RawMessage(`"l1"`),
+		Extends:     "parent",
+		Dockerfile:  "dockerfile",
+		Target:      "target",
+		Tags:        json.RawMessage(`"t1"`),
+		Labels:      json.RawMessage(`"l1"`),
+		Environment: json.RawMessage(`"X=1"`),
 	}
 
 	translated, err := task.Translate("build")
@@ -49,9 +52,10 @@ func (s *BuildTaskSuite) TestTranslateStringLists(t sweet.T) {
 			Name:    "build",
 			Extends: "parent",
 		},
-		Dockerfile: "dockerfile",
-		Target:     "target",
-		Tags:       []string{"t1"},
-		Labels:     []string{"l1"},
+		Dockerfile:  "dockerfile",
+		Target:      "target",
+		Tags:        []string{"t1"},
+		Labels:      []string{"l1"},
+		Environment: []string{"X=1"},
 	}))
 }

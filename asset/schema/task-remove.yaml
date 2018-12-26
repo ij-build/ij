@@ -18,4 +18,6 @@ properties:
     type: string
   images:
     $ref: '#/definitions/stringOrList'
+  environment:
+    $ref: '#/definitions/stringOrList'
 additionalProperties: false

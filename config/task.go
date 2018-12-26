@@ -15,6 +15,5 @@ type (
 	}
 )
 
-func (t *TaskMeta) GetName() string          { return t.Name }
-func (t *TaskMeta) GetExtends() string       { return t.Extends }
-func (t *TaskMeta) GetEnvironment() []string { return nil }
+func (t *TaskMeta) GetName() string    { return t.Name }
+func (t *TaskMeta) GetExtends() string { return t.Extends }

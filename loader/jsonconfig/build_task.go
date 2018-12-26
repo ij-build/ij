@@ -7,11 +7,12 @@ import (
 )
 
 type BuildTask struct {
-	Extends    string          `json:"extends"`
-	Dockerfile string          `json:"dockerfile"`
-	Target     string          `json:"target"`
-	Tags       json.RawMessage `json:"tags"`
-	Labels     json.RawMessage `json:"labels"`
+	Extends     string          `json:"extends"`
+	Dockerfile  string          `json:"dockerfile"`
+	Target      string          `json:"target"`
+	Tags        json.RawMessage `json:"tags"`
+	Labels      json.RawMessage `json:"labels"`
+	Environment json.RawMessage `json:"environment"`
 }
 
 func (t *BuildTask) Translate(name string) (config.Task, error) {
@@ -21,6 +22,11 @@ func (t *BuildTask) Translate(name string) (config.Task, error) {
 	}
 
 	labels, err := unmarshalStringList(t.Labels)
+	if err != nil {
+		return nil, err
+	}
+
+	environment, err := unmarshalStringList(t.Environment)
 	if err != nil {
 		return nil, err
 	}
@@ -35,10 +41,11 @@ func (t *BuildTask) Translate(name string) (config.Task, error) {
 	}
 
 	return &config.BuildTask{
-		TaskMeta:   meta,
-		Dockerfile: t.Dockerfile,
-		Target:     t.Target,
-		Tags:       tags,
-		Labels:     labels,
+		TaskMeta:    meta,
+		Dockerfile:  t.Dockerfile,
+		Target:      t.Target,
+		Tags:        tags,
+		Labels:      labels,
+		Environment: environment,
 	}, nil
 }

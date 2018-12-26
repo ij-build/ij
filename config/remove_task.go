@@ -4,11 +4,16 @@ import "fmt"
 
 type RemoveTask struct {
 	TaskMeta
-	Images []string
+	Images      []string
+	Environment []string
 }
 
 func (t *RemoveTask) GetType() string {
 	return "remove"
+}
+
+func (t *RemoveTask) GetEnvironment() []string {
+	return t.Environment
 }
 
 func (t *RemoveTask) Extend(task Task) error {
@@ -22,5 +27,6 @@ func (t *RemoveTask) Extend(task Task) error {
 	}
 
 	t.Images = append(parent.Images, t.Images...)
+	t.Environment = append(parent.Environment, t.Environment...)
 	return nil
 }

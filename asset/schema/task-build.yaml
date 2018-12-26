@@ -24,4 +24,6 @@ properties:
     $ref: '#/definitions/stringOrList'
   labels:
     $ref: '#/definitions/stringOrList'
+  environment:
+    $ref: '#/definitions/stringOrList'
 additionalProperties: false

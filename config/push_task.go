@@ -4,11 +4,16 @@ import "fmt"
 
 type PushTask struct {
 	TaskMeta
-	Images []string
+	Images      []string
+	Environment []string
 }
 
 func (t *PushTask) GetType() string {
 	return "push"
+}
+
+func (t *PushTask) GetEnvironment() []string {
+	return t.Environment
 }
 
 func (t *PushTask) Extend(task Task) error {
@@ -22,5 +27,6 @@ func (t *PushTask) Extend(task Task) error {
 	}
 
 	t.Images = append(parent.Images, t.Images...)
+	t.Environment = append(parent.Environment, t.Environment...)
 	return nil
 }
