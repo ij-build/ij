@@ -1,6 +1,7 @@
 env:
   global:
     - CC_TEST_REPORTER_ID=13e1e79876bbc72c624366a8c8967c6e3170bd0804989d77033034f59c9e938b
+dist: xenial
 language: go
 go:
   - tip
