@@ -18,8 +18,6 @@ type (
 		Hostname               string
 		Detach                 bool
 		Healthcheck            *Healthcheck
-		Environment            []string
-		RequiredEnvironment    []string
 		ExportEnvironmentFiles []string
 	}
 
@@ -36,10 +34,6 @@ func (t *RunTask) GetType() string {
 	return "run"
 }
 
-func (t *RunTask) GetEnvironment() []string {
-	return t.Environment
-}
-
 func (t *RunTask) Extend(task Task) error {
 	parent, ok := task.(*RunTask)
 	if !ok {
@@ -50,6 +44,7 @@ func (t *RunTask) Extend(task Task) error {
 		)
 	}
 
+	t.extendMeta(parent.TaskMeta)
 	t.Image = extendString(t.Image, parent.Image)
 	t.Command = extendString(t.Command, parent.Command)
 	t.Shell = extendString(t.Shell, parent.Shell)
@@ -60,8 +55,6 @@ func (t *RunTask) Extend(task Task) error {
 	t.Hostname = extendString(t.Hostname, parent.Hostname)
 	t.Detach = extendBool(t.Detach, parent.Detach)
 	t.Healthcheck.Extend(parent.Healthcheck)
-	t.Environment = append(parent.Environment, t.Environment...)
-	t.RequiredEnvironment = append(parent.RequiredEnvironment, t.RequiredEnvironment...)
 	t.ExportEnvironmentFiles = append(parent.ExportEnvironmentFiles, t.ExportEnvironmentFiles...)
 	return nil
 }

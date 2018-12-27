@@ -64,7 +64,7 @@ func (s *PlanSuite) TestAddStageOverwrite(t sweet.T) {
 	Expect(plan.Stages[0].Name).To(Equal("a"))
 	Expect(plan.Stages[1].Name).To(Equal("b"))
 	Expect(plan.Stages[2].Name).To(Equal("c"))
-	Expect(plan.Stages[1].Environment).To(ConsistOf("overwritten"))
+	Expect(plan.Stages[1].Environment).To(Equal([]string{"overwritten"}))
 }
 
 func (s *PlanSuite) TestAddStageBefore(t sweet.T) {

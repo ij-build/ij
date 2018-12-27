@@ -13,19 +13,20 @@ type RunTaskSuite struct{}
 
 func (s *RunTaskSuite) TestTranslate(t sweet.T) {
 	task := &RunTask{
-		Extends:                "parent",
-		Image:                  "image",
-		Command:                "command",
-		Shell:                  "shell",
-		Script:                 "script",
-		Entrypoint:             "entrypoint",
-		User:                   "user",
-		Workspace:              "workspace",
-		Hostname:               "hostname",
-		Detach:                 true,
-		Healthcheck:            nil,
-		Environment:            json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
-		RequiredEnvironment:    []string{"X"},
+		Extends:             "parent",
+		Environment:         json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
+		RequiredEnvironment: []string{"X"},
+		Image:               "image",
+		Command:             "command",
+		Shell:               "shell",
+		Script:              "script",
+		Entrypoint:          "entrypoint",
+		User:                "user",
+		Workspace:           "workspace",
+		Hostname:            "hostname",
+		Detach:              true,
+		Healthcheck:         nil,
+
 		ExportEnvironmentFiles: json.RawMessage(`["e1","e2"]`),
 	}
 
@@ -33,8 +34,10 @@ func (s *RunTaskSuite) TestTranslate(t sweet.T) {
 	Expect(err).To(BeNil())
 	Expect(translated).To(Equal(&config.RunTask{
 		TaskMeta: config.TaskMeta{
-			Name:    "run",
-			Extends: "parent",
+			Name:                "run",
+			Extends:             "parent",
+			Environment:         []string{"X=1", "Y=2", "Z=3"},
+			RequiredEnvironment: []string{"X"},
 		},
 		Image:                  "image",
 		Command:                "command",
@@ -46,8 +49,6 @@ func (s *RunTaskSuite) TestTranslate(t sweet.T) {
 		Hostname:               "hostname",
 		Detach:                 true,
 		Healthcheck:            &config.Healthcheck{},
-		Environment:            []string{"X=1", "Y=2", "Z=3"},
-		RequiredEnvironment:    []string{"X"},
 		ExportEnvironmentFiles: []string{"e1", "e2"},
 	}))
 }
@@ -63,11 +64,11 @@ func (s *RunTaskSuite) TestTranslateStringLists(t sweet.T) {
 	Expect(err).To(BeNil())
 	Expect(translated).To(Equal(&config.RunTask{
 		TaskMeta: config.TaskMeta{
-			Name:    "run",
-			Extends: "parent",
+			Name:        "run",
+			Extends:     "parent",
+			Environment: []string{"X=1"},
 		},
 		Healthcheck:            &config.Healthcheck{},
-		Environment:            []string{"X=1"},
 		ExportEnvironmentFiles: []string{"env"},
 	}))
 }

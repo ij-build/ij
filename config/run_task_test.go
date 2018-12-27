@@ -27,7 +27,11 @@ func (s *RunTaskSuite) TestExtend(t sweet.T) {
 	}
 
 	parent := &RunTask{
-		TaskMeta:               TaskMeta{Name: "parent", Extends: ""},
+		TaskMeta: TaskMeta{
+			Name:                "parent",
+			Environment:         []string{"parent-env1"},
+			RequiredEnvironment: []string{"parent-env2"},
+		},
 		Image:                  "parent-image",
 		Command:                "parent-command",
 		Shell:                  "parent-shell",
@@ -38,13 +42,16 @@ func (s *RunTaskSuite) TestExtend(t sweet.T) {
 		Hostname:               "parent-hostname",
 		Detach:                 false,
 		Healthcheck:            parentHealthcheck,
-		Environment:            []string{"parent-env1"},
-		RequiredEnvironment:    []string{"parent-req1"},
 		ExportEnvironmentFiles: []string{"parent-exp1"},
 	}
 
 	child := &RunTask{
-		TaskMeta:               TaskMeta{Name: "child", Extends: "parent"},
+		TaskMeta: TaskMeta{
+			Name:                "child",
+			Extends:             "parent",
+			Environment:         []string{"child-env1"},
+			RequiredEnvironment: []string{"child-env2"},
+		},
 		Image:                  "child-image",
 		Command:                "child-command",
 		Shell:                  "child-shell",
@@ -55,12 +62,12 @@ func (s *RunTaskSuite) TestExtend(t sweet.T) {
 		Hostname:               "child-hostname",
 		Detach:                 true,
 		Healthcheck:            childHealthcheck,
-		Environment:            []string{"child-env1"},
-		RequiredEnvironment:    []string{"child-req1"},
 		ExportEnvironmentFiles: []string{"child-exp1"},
 	}
 
 	Expect(child.Extend(parent)).To(BeNil())
+	Expect(child.Environment).To(Equal([]string{"parent-env1", "child-env1"}))
+	Expect(child.RequiredEnvironment).To(Equal([]string{"parent-env2", "child-env2"}))
 	Expect(child.Image).To(Equal("child-image"))
 	Expect(child.Command).To(Equal("child-command"))
 	Expect(child.Shell).To(Equal("child-shell"))
@@ -75,8 +82,6 @@ func (s *RunTaskSuite) TestExtend(t sweet.T) {
 	Expect(child.Healthcheck.Retries).To(Equal(10))
 	Expect(child.Healthcheck.StartPeriod).To(Equal(time.Second))
 	Expect(child.Healthcheck.Timeout).To(Equal(time.Second))
-	Expect(child.Environment).To(ConsistOf("parent-env1", "child-env1"))
-	Expect(child.RequiredEnvironment).To(ConsistOf("parent-req1", "child-req1"))
 	Expect(child.ExportEnvironmentFiles).To(ConsistOf("parent-exp1", "child-exp1"))
 }
 
@@ -90,7 +95,7 @@ func (s *RunTaskSuite) TestExtendNoOverride(t sweet.T) {
 	}
 
 	parent := &RunTask{
-		TaskMeta:    TaskMeta{Name: "parent", Extends: ""},
+		TaskMeta:    TaskMeta{Name: "parent"},
 		Image:       "parent-image",
 		Command:     "parent-command",
 		Shell:       "parent-shell",
@@ -124,18 +129,10 @@ func (s *RunTaskSuite) TestExtendNoOverride(t sweet.T) {
 	Expect(child.Healthcheck.StartPeriod).To(Equal(time.Minute))
 	Expect(child.Healthcheck.Timeout).To(Equal(time.Minute))
 }
+
 func (s *RunTaskSuite) TestExtendWrongType(t sweet.T) {
-	parent := &BuildTask{TaskMeta: TaskMeta{Name: "parent", Extends: ""}}
+	parent := &BuildTask{TaskMeta: TaskMeta{Name: "parent"}}
 	child := &RunTask{TaskMeta: TaskMeta{Name: "child", Extends: "parent"}}
 
 	Expect(child.Extend(parent)).NotTo(BeNil())
-}
-
-func (s *RunTaskSuite) TestGetEnvironment(t sweet.T) {
-	task := &RunTask{
-		TaskMeta:    TaskMeta{Name: "task", Extends: ""},
-		Environment: []string{"env1", "env2", "env3"},
-	}
-
-	Expect(task.GetEnvironment()).To(Equal([]string{"env1", "env2", "env3"}))
 }

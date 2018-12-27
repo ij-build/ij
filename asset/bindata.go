@@ -430,6 +430,12 @@ properties:
       - build
   extends:
     type: string
+  environment:
+    $ref: '#/definitions/stringOrList'
+  required_environment:
+    type: array
+    items:
+      type: string
   dockerfile:
     type: string
   target:
@@ -437,8 +443,6 @@ properties:
   tags:
     $ref: '#/definitions/stringOrList'
   labels:
-    $ref: '#/definitions/stringOrList'
-  environment:
     $ref: '#/definitions/stringOrList'
 additionalProperties: false
 `)
@@ -453,7 +457,7 @@ func schemaTaskBuildYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-build.yaml", size: 463, mode: os.FileMode(420), modTime: time.Unix(1545788720, 0)}
+	info := bindataFileInfo{name: "schema/task-build.yaml", size: 533, mode: os.FileMode(420), modTime: time.Unix(1545936377, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -476,10 +480,14 @@ properties:
       - plan
   extends:
     type: string
-  name:
-    type: string
   environment:
     $ref: '#/definitions/stringOrList'
+  required_environment:
+    type: array
+    items:
+      type: string
+  name:
+    type: string
 additionalProperties: false
 `)
 
@@ -493,7 +501,7 @@ func schemaTaskPlanYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-plan.yaml", size: 333, mode: os.FileMode(420), modTime: time.Unix(1538014972, 0)}
+	info := bindataFileInfo{name: "schema/task-plan.yaml", size: 403, mode: os.FileMode(420), modTime: time.Unix(1545936389, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -516,9 +524,13 @@ properties:
       - push
   extends:
     type: string
-  images:
-    $ref: '#/definitions/stringOrList'
   environment:
+    $ref: '#/definitions/stringOrList'
+  required_environment:
+    type: array
+    items:
+      type: string
+  images:
     $ref: '#/definitions/stringOrList'
 additionalProperties: false
 `)
@@ -533,7 +545,7 @@ func schemaTaskPushYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-push.yaml", size: 357, mode: os.FileMode(420), modTime: time.Unix(1545788724, 0)}
+	info := bindataFileInfo{name: "schema/task-push.yaml", size: 427, mode: os.FileMode(420), modTime: time.Unix(1545936387, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -556,9 +568,13 @@ properties:
       - remove
   extends:
     type: string
-  images:
-    $ref: '#/definitions/stringOrList'
   environment:
+    $ref: '#/definitions/stringOrList'
+  required_environment:
+    type: array
+    items:
+      type: string
+  images:
     $ref: '#/definitions/stringOrList'
 additionalProperties: false
 `)
@@ -573,7 +589,7 @@ func schemaTaskRemoveYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-remove.yaml", size: 359, mode: os.FileMode(420), modTime: time.Unix(1545788726, 0)}
+	info := bindataFileInfo{name: "schema/task-remove.yaml", size: 429, mode: os.FileMode(420), modTime: time.Unix(1545936385, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -610,6 +626,12 @@ properties:
       - run
   extends:
     type: string
+  environment:
+    $ref: '#/definitions/stringOrList'
+  required_environment:
+    type: array
+    items:
+      type: string
   image:
     type: string
   command:
@@ -630,12 +652,6 @@ properties:
     type: boolean
   healthcheck:
     $ref: '#/definitions/healthcheck'
-  environment:
-    $ref: '#/definitions/stringOrList'
-  required_environment:
-    type: array
-    items:
-      type: string
   export_environment_file:
     $ref: '#/definitions/stringOrList'
 additionalProperties: false
@@ -651,7 +667,7 @@ func schemaTaskRunYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-run.yaml", size: 1013, mode: os.FileMode(420), modTime: time.Unix(1538014972, 0)}
+	info := bindataFileInfo{name: "schema/task-run.yaml", size: 1013, mode: os.FileMode(420), modTime: time.Unix(1545936363, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

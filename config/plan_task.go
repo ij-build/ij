@@ -4,16 +4,11 @@ import "fmt"
 
 type PlanTask struct {
 	TaskMeta
-	Name        string
-	Environment []string
+	Name string
 }
 
 func (t *PlanTask) GetType() string {
 	return "plan"
-}
-
-func (t *PlanTask) GetEnvironment() []string {
-	return t.Environment
 }
 
 func (t *PlanTask) Extend(task Task) error {
@@ -26,7 +21,7 @@ func (t *PlanTask) Extend(task Task) error {
 		)
 	}
 
+	t.extendMeta(parent.TaskMeta)
 	t.Name = extendString(t.Name, parent.Name)
-	t.Environment = append(parent.Environment, t.Environment...)
 	return nil
 }

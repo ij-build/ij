@@ -10,7 +10,7 @@ type ResolverSuite struct{}
 func (s *ResolverSuite) TestExtend(t sweet.T) {
 	config := &Config{
 		Tasks: map[string]Task{
-			"foo": &BuildTask{TaskMeta: TaskMeta{Name: "foo", Extends: ""}, Dockerfile: "foo"},
+			"foo": &BuildTask{TaskMeta: TaskMeta{Name: "foo"}, Dockerfile: "foo"},
 			"bar": &BuildTask{TaskMeta: TaskMeta{Name: "bar", Extends: "foo"}, Dockerfile: "bar"},
 			"baz": &BuildTask{TaskMeta: TaskMeta{Name: "baz", Extends: "foo"}, Dockerfile: ""},
 			"bnk": &BuildTask{TaskMeta: TaskMeta{Name: "bnk", Extends: "bar"}, Dockerfile: ""},

@@ -7,9 +7,10 @@ import (
 )
 
 type PlanTask struct {
-	Extends     string          `json:"extends"`
-	Name        string          `json:"name"`
-	Environment json.RawMessage `json:"environment"`
+	Extends             string          `json:"extends"`
+	Environment         json.RawMessage `json:"environment"`
+	RequiredEnvironment []string        `json:"required_environment"`
+	Name                string          `json:"name"`
 }
 
 func (t *PlanTask) Translate(name string) (config.Task, error) {
@@ -19,13 +20,14 @@ func (t *PlanTask) Translate(name string) (config.Task, error) {
 	}
 
 	meta := config.TaskMeta{
-		Name:    name,
-		Extends: t.Extends,
+		Name:                name,
+		Extends:             t.Extends,
+		Environment:         environment,
+		RequiredEnvironment: t.RequiredEnvironment,
 	}
 
 	return &config.PlanTask{
-		TaskMeta:    meta,
-		Name:        t.Name,
-		Environment: environment,
+		TaskMeta: meta,
+		Name:     t.Name,
 	}, nil
 }

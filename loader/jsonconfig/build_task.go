@@ -7,12 +7,13 @@ import (
 )
 
 type BuildTask struct {
-	Extends     string          `json:"extends"`
-	Dockerfile  string          `json:"dockerfile"`
-	Target      string          `json:"target"`
-	Tags        json.RawMessage `json:"tags"`
-	Labels      json.RawMessage `json:"labels"`
-	Environment json.RawMessage `json:"environment"`
+	Extends             string          `json:"extends"`
+	Environment         json.RawMessage `json:"environment"`
+	RequiredEnvironment []string        `json:"required_environment"`
+	Dockerfile          string          `json:"dockerfile"`
+	Target              string          `json:"target"`
+	Tags                json.RawMessage `json:"tags"`
+	Labels              json.RawMessage `json:"labels"`
 }
 
 func (t *BuildTask) Translate(name string) (config.Task, error) {
@@ -32,8 +33,10 @@ func (t *BuildTask) Translate(name string) (config.Task, error) {
 	}
 
 	meta := config.TaskMeta{
-		Name:    name,
-		Extends: t.Extends,
+		Name:                name,
+		Extends:             t.Extends,
+		Environment:         environment,
+		RequiredEnvironment: t.RequiredEnvironment,
 	}
 
 	if t.Dockerfile == "" {
@@ -41,11 +44,10 @@ func (t *BuildTask) Translate(name string) (config.Task, error) {
 	}
 
 	return &config.BuildTask{
-		TaskMeta:    meta,
-		Dockerfile:  t.Dockerfile,
-		Target:      t.Target,
-		Tags:        tags,
-		Labels:      labels,
-		Environment: environment,
+		TaskMeta:   meta,
+		Dockerfile: t.Dockerfile,
+		Target:     t.Target,
+		Tags:       tags,
+		Labels:     labels,
 	}, nil
 }

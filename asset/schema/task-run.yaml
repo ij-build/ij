@@ -30,6 +30,12 @@ properties:
       - run
   extends:
     type: string
+  environment:
+    $ref: '#/definitions/stringOrList'
+  required_environment:
+    type: array
+    items:
+      type: string
   image:
     type: string
   command:
@@ -50,12 +56,6 @@ properties:
     type: boolean
   healthcheck:
     $ref: '#/definitions/healthcheck'
-  environment:
-    $ref: '#/definitions/stringOrList'
-  required_environment:
-    type: array
-    items:
-      type: string
   export_environment_file:
     $ref: '#/definitions/stringOrList'
 additionalProperties: false

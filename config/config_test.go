@@ -27,8 +27,8 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 			CleanExcludes: []string{"parent-clean-exc1"},
 		},
 		Tasks: map[string]Task{
-			"t1": &BuildTask{TaskMeta: TaskMeta{Name: "t1", Extends: ""}, Dockerfile: "a"},
-			"t2": &BuildTask{TaskMeta: TaskMeta{Name: "t2", Extends: ""}, Dockerfile: "b"},
+			"t1": &BuildTask{TaskMeta: TaskMeta{Name: "t1"}, Dockerfile: "a"},
+			"t2": &BuildTask{TaskMeta: TaskMeta{Name: "t2"}, Dockerfile: "b"},
 		},
 		Plans: map[string]*Plan{
 			"p1": &Plan{Name: "p1", Environment: []string{"X=1"}},
@@ -58,8 +58,8 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 			Files: []string{"child-exp2", "child-exp3"},
 		},
 		Tasks: map[string]Task{
-			"t2": &BuildTask{TaskMeta: TaskMeta{Name: "t2", Extends: ""}, Dockerfile: "c"},
-			"t3": &BuildTask{TaskMeta: TaskMeta{Name: "t3", Extends: ""}, Dockerfile: "d"},
+			"t2": &BuildTask{TaskMeta: TaskMeta{Name: "t2"}, Dockerfile: "c"},
+			"t3": &BuildTask{TaskMeta: TaskMeta{Name: "t3"}, Dockerfile: "d"},
 		},
 		Plans: map[string]*Plan{
 			"p1": &Plan{Name: "p1", Extend: true, Environment: []string{"X=3"}},
@@ -81,7 +81,7 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 		&ServerRegistry{Server: "child.io"},
 	))
 	Expect(parent.Workspace).To(Equal("child-workspace"))
-	Expect(parent.Environment).To(ConsistOf("parent-env1", "child-env2", "child-env3"))
+	Expect(parent.Environment).To(Equal([]string{"parent-env1", "child-env2", "child-env3"}))
 	Expect(parent.EnvironmentFiles).To(ConsistOf("parent-envfile1", "child-envfile2", "child-envfile3"))
 	Expect(parent.Import.Files).To(ConsistOf("parent-imp1", "child-imp2", "child-imp3"))
 	Expect(parent.Import.Excludes).To(ConsistOf("parent-exc1", "child-exc2", "child-exc3"))
@@ -94,9 +94,9 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 	Expect(parent.Tasks["t3"].(*BuildTask).Dockerfile).To(Equal("d"))
 
 	Expect(parent.Plans).To(HaveLen(3))
-	Expect(parent.Plans["p1"].Environment).To(ConsistOf("X=1", "X=3"))
-	Expect(parent.Plans["p2"].Environment).To(ConsistOf("X=4"))
-	Expect(parent.Plans["p3"].Environment).To(ConsistOf("X=5"))
+	Expect(parent.Plans["p1"].Environment).To(Equal([]string{"X=1", "X=3"}))
+	Expect(parent.Plans["p2"].Environment).To(Equal([]string{"X=4"}))
+	Expect(parent.Plans["p3"].Environment).To(Equal([]string{"X=5"}))
 
 	Expect(parent.Metaplans).To(HaveLen(3))
 	Expect(parent.Metaplans["mp1"]).To(Equal([]string{"p1"}))
@@ -166,8 +166,8 @@ func (s *ConfigSuite) TestApplyOverride(t sweet.T) {
 func (s *ConfigSuite) TestValidate(t sweet.T) {
 	config := &Config{
 		Tasks: map[string]Task{
-			"t1": &RunTask{TaskMeta: TaskMeta{Name: "t1", Extends: ""}},
-			"t2": &RunTask{TaskMeta: TaskMeta{Name: "t2", Extends: ""}},
+			"t1": &RunTask{TaskMeta: TaskMeta{Name: "t1"}},
+			"t2": &RunTask{TaskMeta: TaskMeta{Name: "t2"}},
 		},
 
 		Plans: map[string]*Plan{

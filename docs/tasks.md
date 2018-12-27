@@ -2,10 +2,12 @@
 
 A task is an object representing a unit of work in the run of a build plan. These objects use the type property to determine the other available properties. Each of the following task types are discussed in the sections below. Every task defines the following properties.
 
-| Name    | Required | Default | Description |
-| ------- | -------- | ------- | ----------- |
-| extends |          | ''      | The name of the task this task extends (if any). |
-| type    |          | run     | The type of task. May also be one of `build`, `push`, `remove`, or `plan`. |
+| Name                 | Required | Default | Description |
+| -------------------- | -------- | ------- | ----------- |
+| extends              |          | ''      | The name of the task this task extends (if any). |
+| type                 |          | run     | The type of task. May also be one of `build`, `push`, `remove`, or `plan`. |
+| environment          |          | []      | A list of environment variable definitions. Value may be a string or a list. |
+| required_environment |          | []      | A list of environment variable names which MUST be defined as non-empty for this task to run. |
 
 See the section on [extending a task](https://github.com/efritz/ij/blob/master/docs/extend.md#user-content-extending-a-task) about the semantics of the `extends` property. It may be of note that the `extends` property does **not** support environment expansion.
 
@@ -20,12 +22,10 @@ A run task runs a Docker container.
 | command                 |          | ''         | The command to run. If this value contains shell-specific tokens (e.g. chaining, pipes, or redirection), then `script` property should be used instead. |
 | detach                  |          | false      | If true, this container is run in the background until container exit or the end of the build plan. |
 | entrypoint              |          | ''         | The entrypoint of the container. |
-| environment             |          | []         | A list of environment variable definitions. Value may be a string or a list. |
 | export_environment_file |          | ''         | The path (relative to the working directory) to the file where exported environment variables are written. |
 | healthcheck             |          | {}         | A [healthcheck configuration object](https://github.com/efritz/ij/blob/master/docs/tasks.md#user-content-healthcheck-configuration). |
 | hostname                |          | ''         | The container's network alias. |
 | image                   | yes      |            | The name of the image to run. |
-| required_environment    |          | []         | A list of environment variable names which MUST be defined as non-empty for this task to run. |
 | script                  |          | ''         | Lke the `command` property, but supports multi-line strings and shell features. |
 | shell                   |          | /bin/sh    | The shell used to invoke the supplied script. |
 | user                    |          | ''         | The username to invoke the command or script under. |
@@ -105,13 +105,12 @@ tasks:
 
 A build task builds a Docker image from a Dockerfile.
 
-| Name        | Required | Default    | Description |
-| ----------- | -------- | ---------- | ----------- |
-| dockerfile  |          | Dockerfile | The path to the Dockerfile on the host. |
-| environment |          | []         | A list of environment variable definitions. Value may be a string or a list. |
-| labels      |          | []         | Metadata for the resulting image. Value may be a string or a list. |
-| tags        |          | []         | A list of tags for the resulting image. Value may be a string or a list. |
-| target      |          |            | The target stage to build in a multi-stage dockerfile. |
+| Name       | Required | Default    | Description |
+| ---------- | -------- | ---------- | ----------- |
+| dockerfile |          | Dockerfile | The path to the Dockerfile on the host. |
+| labels     |          | []         | Metadata for the resulting image. Value may be a string or a list. |
+| tags       |          | []         | A list of tags for the resulting image. Value may be a string or a list. |
+| target     |          |            | The target stage to build in a multi-stage dockerfile. |
 
 ### Example
 
@@ -137,10 +136,9 @@ tasks:
 
 A push task pushes image tags to a remote registry. For this task to succeed, the target registry must be writable by the current host and user. This may require previously running `ij login` or invoking this plan with the `--login` option.
 
-| Name        | Required | Default | Description |
-| ----------- | -------- | ------- | ----------- |
-| environment |          | []      | A list of environment variable definitions. Value may be a string or a list. |
-| images      |          | []      | A list of image tags to push to a remote registry. Value may be a string or a list. |
+| Name   | Required | Default | Description |
+| ------ | -------- | ------- | ----------- |
+| images |          | []      | A list of image tags to push to a remote registry. Value may be a string or a list. |
 
 ### Example
 
@@ -161,10 +159,9 @@ tasks:
 
 A remove task removes image from the host.
 
-| Name        | Required | Default | Description |
-| ----------- | -------- | ------- | ----------- |
-| environment |          | []      | A list of environment variable definitions. Value may be a string or a list. |
-| images      |          | []      | A list of image tags to remove from the host. Value may be a string or a list. |
+| Name   | Required | Default | Description |
+| ------ | -------- | ------- | ----------- |
+| images |          | []      | A list of image tags to remove from the host. Value may be a string or a list. |
 
 ### Example
 
@@ -185,10 +182,9 @@ tasks:
 
 A plan task (recursively) invokes a plan or a metaplan defined in the same configuration.
 
-| Name        | Required | Default | Description |
-| ----------- | -------- | ------- | ----------- |
-| environment |          | []      | A list additional environment variable definitions. Value may be a string or a list. |
-| name        | yes      |         | The name of the plan or metaplan to invoke. |
+| Name | Required | Default | Description |
+| ---- | -------- | ------- | ----------- |
+| name | yes      |         | The name of the plan or metaplan to invoke. |
 
 It may be of note that the `name` property does **not** support environment expansion.
 

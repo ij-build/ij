@@ -16,6 +16,12 @@ properties:
       - build
   extends:
     type: string
+  environment:
+    $ref: '#/definitions/stringOrList'
+  required_environment:
+    type: array
+    items:
+      type: string
   dockerfile:
     type: string
   target:
@@ -23,7 +29,5 @@ properties:
   tags:
     $ref: '#/definitions/stringOrList'
   labels:
-    $ref: '#/definitions/stringOrList'
-  environment:
     $ref: '#/definitions/stringOrList'
 additionalProperties: false

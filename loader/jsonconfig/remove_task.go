@@ -7,9 +7,10 @@ import (
 )
 
 type RemoveTask struct {
-	Extends     string          `json:"extends"`
-	Images      json.RawMessage `json:"images"`
-	Environment json.RawMessage `json:"environment"`
+	Extends             string          `json:"extends"`
+	Environment         json.RawMessage `json:"environment"`
+	RequiredEnvironment []string        `json:"required_environment"`
+	Images              json.RawMessage `json:"images"`
 }
 
 func (t *RemoveTask) Translate(name string) (config.Task, error) {
@@ -24,13 +25,14 @@ func (t *RemoveTask) Translate(name string) (config.Task, error) {
 	}
 
 	meta := config.TaskMeta{
-		Name:    name,
-		Extends: t.Extends,
+		Name:                name,
+		Extends:             t.Extends,
+		Environment:         environment,
+		RequiredEnvironment: t.RequiredEnvironment,
 	}
 
 	return &config.RemoveTask{
-		TaskMeta:    meta,
-		Images:      images,
-		Environment: environment,
+		TaskMeta: meta,
+		Images:   images,
 	}, nil
 }

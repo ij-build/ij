@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
@@ -173,6 +174,21 @@ func (r *StageRunner) buildTaskRunnerFunc(
 			)
 
 			return true
+		}
+
+		ok, missing := util.ContainsAll(
+			env.Keys(),
+			task.GetRequiredEnvironment(),
+		)
+
+		if !ok {
+			r.logger.Error(
+				r.prefix,
+				"Missing environment values: %s",
+				strings.Join(missing, ", "),
+			)
+
+			return false
 		}
 
 		runner := r.taskRunnerFactory(

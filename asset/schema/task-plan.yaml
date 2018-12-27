@@ -16,8 +16,12 @@ properties:
       - plan
   extends:
     type: string
-  name:
-    type: string
   environment:
     $ref: '#/definitions/stringOrList'
+  required_environment:
+    type: array
+    items:
+      type: string
+  name:
+    type: string
 additionalProperties: false

@@ -9,6 +9,8 @@ import (
 type (
 	RunTask struct {
 		Extends                string          `json:"extends"`
+		Environment            json.RawMessage `json:"environment"`
+		RequiredEnvironment    []string        `json:"required_environment"`
 		Image                  string          `json:"image"`
 		Command                string          `json:"command"`
 		Shell                  string          `json:"shell"`
@@ -19,8 +21,6 @@ type (
 		Hostname               string          `json:"hostname"`
 		Detach                 bool            `json:"detach"`
 		Healthcheck            *Healthcheck    `json:"healthcheck"`
-		Environment            json.RawMessage `json:"environment"`
-		RequiredEnvironment    []string        `json:"required_environment"`
 		ExportEnvironmentFiles json.RawMessage `json:"export_environment_file"`
 	}
 
@@ -50,8 +50,10 @@ func (t *RunTask) Translate(name string) (config.Task, error) {
 	}
 
 	meta := config.TaskMeta{
-		Name:    name,
-		Extends: t.Extends,
+		Name:                name,
+		Extends:             t.Extends,
+		Environment:         environment,
+		RequiredEnvironment: t.RequiredEnvironment,
 	}
 
 	return &config.RunTask{
@@ -66,8 +68,6 @@ func (t *RunTask) Translate(name string) (config.Task, error) {
 		Hostname:               t.Hostname,
 		Detach:                 t.Detach,
 		Healthcheck:            healthcheck,
-		Environment:            environment,
-		RequiredEnvironment:    t.RequiredEnvironment,
 		ExportEnvironmentFiles: exportedEnvironmentFiles,
 	}, nil
 }

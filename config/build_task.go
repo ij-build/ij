@@ -4,19 +4,14 @@ import "fmt"
 
 type BuildTask struct {
 	TaskMeta
-	Dockerfile  string
-	Target      string
-	Tags        []string
-	Labels      []string
-	Environment []string
+	Dockerfile string
+	Target     string
+	Tags       []string
+	Labels     []string
 }
 
 func (t *BuildTask) GetType() string {
 	return "build"
-}
-
-func (t *BuildTask) GetEnvironment() []string {
-	return t.Environment
 }
 
 func (t *BuildTask) Extend(task Task) error {
@@ -29,10 +24,10 @@ func (t *BuildTask) Extend(task Task) error {
 		)
 	}
 
+	t.extendMeta(parent.TaskMeta)
 	t.Dockerfile = extendString(t.Dockerfile, parent.Dockerfile)
 	t.Target = extendString(t.Target, parent.Target)
 	t.Tags = append(parent.Tags, t.Tags...)
 	t.Labels = append(parent.Labels, t.Labels...)
-	t.Environment = append(parent.Environment, t.Environment...)
 	return nil
 }

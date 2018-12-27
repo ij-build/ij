@@ -100,21 +100,6 @@ func (r *runTaskRunner) Run(context *RunContext) bool {
 		"Beginning task",
 	)
 
-	ok, missing := util.ContainsAll(
-		r.env.Keys(),
-		r.task.RequiredEnvironment,
-	)
-
-	if !ok {
-		r.logger.Error(
-			r.prefix,
-			"Missing environment values: %s",
-			strings.Join(missing, ", "),
-		)
-
-		return false
-	}
-
 	containerName, err := util.MakeID()
 	if err != nil {
 		r.logger.Error(
