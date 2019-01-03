@@ -22,7 +22,7 @@ type (
 		Hostname               string          `json:"hostname"`
 		Detach                 bool            `json:"detach"`
 		Healthcheck            *Healthcheck    `json:"healthcheck"`
-		ExportEnvironmentFiles json.RawMessage `json:"export_environment_file"`
+		ExportEnvironmentFiles json.RawMessage `json:"export-environment-file"`
 	}
 
 	Healthcheck struct {
