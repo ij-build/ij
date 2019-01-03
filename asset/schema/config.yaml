@@ -29,7 +29,7 @@ definitions:
 type: object
 properties:
   extends:
-    type: string
+    $ref: '#/definitions/stringOrList'
   options:
     type: object
     properties:
