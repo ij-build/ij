@@ -14,9 +14,9 @@ definitions:
         type: string
       disabled:
         type: string
-      before_stage:
+      before-stage:
         type: string
-      after_stage:
+      after-stage:
         type: string
       tasks:
         type: array

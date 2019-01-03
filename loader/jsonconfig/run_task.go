@@ -10,7 +10,7 @@ type (
 	RunTask struct {
 		Extends                string          `json:"extends"`
 		Environment            json.RawMessage `json:"environment"`
-		RequiredEnvironment    []string        `json:"required_environment"`
+		RequiredEnvironment    []string        `json:"required-environment"`
 		Image                  string          `json:"image"`
 		Command                string          `json:"command"`
 		Shell                  string          `json:"shell"`

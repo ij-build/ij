@@ -13,7 +13,7 @@ type RegistrySuite struct{}
 func (s *RegistrySuite) TestTranslateRegistry(t sweet.T) {
 	registry, err := translateRegistry(json.RawMessage(`{
 		"type": "gcr",
-		"key_file": "/etc/build-agent-key.json"
+		"key-file": "/etc/build-agent-key.json"
 	}`))
 
 	Expect(err).To(BeNil())
@@ -47,8 +47,8 @@ func (s *RegistrySuite) TestTranslateRegistryUnknownType(t sweet.T) {
 func (s *RegistrySuite) TestTranslateRegistryMalformedSchema(t sweet.T) {
 	_, err := translateRegistry(json.RawMessage(`{
 		"type": "ecr",
-		"key_file": "/etc/build-agent-key.json"
+		"key-file": "/etc/build-agent-key.json"
 	}`))
 
-	Expect(err).To(MatchError("failed to validate registry: Additional property key_file is not allowed"))
+	Expect(err).To(MatchError("failed to validate registry: Additional property key-file is not allowed"))
 }

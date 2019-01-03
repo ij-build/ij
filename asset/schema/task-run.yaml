@@ -16,7 +16,7 @@ definitions:
         type: string
       retries:
         type: integer
-      start_period:
+      start-period:
         type: string
       timeout:
         type: string
@@ -32,7 +32,7 @@ properties:
     type: string
   environment:
     $ref: '#/definitions/stringOrList'
-  required_environment:
+  required-environment:
     type: array
     items:
       type: string
@@ -56,6 +56,6 @@ properties:
     type: boolean
   healthcheck:
     $ref: '#/definitions/healthcheck'
-  export_environment_file:
+  export-environment-file:
     $ref: '#/definitions/stringOrList'
 additionalProperties: false

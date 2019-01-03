@@ -13,7 +13,7 @@ type (
 		Registries       []json.RawMessage          `json:"registries"`
 		Workspace        string                     `json:"workspace"`
 		Environment      json.RawMessage            `json:"environment"`
-		EnvironmentFiles json.RawMessage            `json:"env_file"`
+		EnvironmentFiles json.RawMessage            `json:"env-file"`
 		Import           *ImportFileList            `json:"import"`
 		Export           *ExportFileList            `json:"export"`
 		Tasks            map[string]json.RawMessage `json:"tasks"`
@@ -24,7 +24,7 @@ type (
 	Options struct {
 		SSHIdentities       json.RawMessage `json:"ssh-identities"`
 		ForceSequential     bool            `json:"force-sequential"`
-		HealthcheckInterval Duration        `json:"healthcheck-interval"`
+		HealthcheckInterval util.Duration   `json:"healthcheck-interval"`
 	}
 
 	ImportFileList struct {
@@ -35,7 +35,7 @@ type (
 	ExportFileList struct {
 		Files         json.RawMessage `json:"files"`
 		Excludes      json.RawMessage `json:"excludes"`
-		CleanExcludes json.RawMessage `json:"clean_excludes"`
+		CleanExcludes json.RawMessage `json:"clean-excludes"`
 	}
 )
 

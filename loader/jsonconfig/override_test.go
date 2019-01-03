@@ -19,7 +19,7 @@ func (s *OverrideSuite) TestTranslate(t sweet.T) {
 		},
 		Registries: []json.RawMessage{
 			json.RawMessage(`{"server": "docker.io"}`),
-			json.RawMessage(`{"type": "gcr", "key_file": "secret.key"}`),
+			json.RawMessage(`{"type": "gcr", "key-file": "secret.key"}`),
 		},
 		Environment: json.RawMessage(`["X=1", "Y=2", "Z=3"]`),
 		Import:      &ImportFileList{Excludes: json.RawMessage(`"**/__pycache__"`)},

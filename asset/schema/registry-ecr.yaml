@@ -6,11 +6,11 @@ properties:
     type: string
     enum:
       - ecr
-  access_key_id:
+  access-key-id:
     type: string
-  secret_access_key:
+  secret-access-key:
     type: string
-  account_id:
+  account-id:
     type: string
   region:
     type: string

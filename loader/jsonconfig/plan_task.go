@@ -9,7 +9,7 @@ import (
 type PlanTask struct {
 	Extends             string          `json:"extends"`
 	Environment         json.RawMessage `json:"environment"`
-	RequiredEnvironment []string        `json:"required_environment"`
+	RequiredEnvironment []string        `json:"required-environment"`
 	Name                string          `json:"name"`
 }
 

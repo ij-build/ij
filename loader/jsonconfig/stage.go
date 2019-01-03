@@ -11,8 +11,8 @@ type (
 	Stage struct {
 		Name        string            `json:"name"`
 		Disabled    string            `json:"disabled"`
-		BeforeStage string            `json:"before_stage"`
-		AfterStage  string            `json:"after_stage"`
+		BeforeStage string            `json:"before-stage"`
+		AfterStage  string            `json:"after-stage"`
 		Tasks       []json.RawMessage `json:"tasks"`
 		RunMode     string            `json:"run-mode"`
 		Parallel    bool              `json:"parallel"`

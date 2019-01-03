@@ -10,7 +10,7 @@ type Override struct {
 	Options          *Options          `json:"options"`
 	Registries       []json.RawMessage `json:"registries"`
 	Environment      json.RawMessage   `json:"environment"`
-	EnvironmentFiles json.RawMessage   `json:"env_file"`
+	EnvironmentFiles json.RawMessage   `json:"env-file"`
 	Import           *ImportFileList   `json:"import"`
 	Export           *ExportFileList   `json:"export"`
 }

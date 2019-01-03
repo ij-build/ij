@@ -9,7 +9,7 @@ import (
 type PushTask struct {
 	Extends             string          `json:"extends"`
 	Environment         json.RawMessage `json:"environment"`
-	RequiredEnvironment []string        `json:"required_environment"`
+	RequiredEnvironment []string        `json:"required-environment"`
 	Images              json.RawMessage `json:"images"`
 }
 

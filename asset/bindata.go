@@ -77,7 +77,7 @@ definitions:
         $ref: '#/definitions/stringOrList'
       excludes:
         $ref: '#/definitions/stringOrList'
-      clean_excludes:
+      clean-excludes:
         $ref: '#/definitions/stringOrList'
     additionalProperties: false
 
@@ -107,7 +107,7 @@ properties:
     type: string
   environment:
     $ref: '#/definitions/stringOrList'
-  env_file:
+  env-file:
     $ref: '#/definitions/stringOrList'
   import:
     $ref: '#/definitions/importFileList'
@@ -179,7 +179,7 @@ definitions:
     properties:
       excludes:
         $ref: '#/definitions/stringOrList'
-      clean_excludes:
+      clean-excludes:
         $ref: '#/definitions/stringOrList'
     additionalProperties: false
 
@@ -201,7 +201,7 @@ properties:
       type: object
   environment:
     $ref: '#/definitions/stringOrList'
-  env_file:
+  env-file:
     $ref: '#/definitions/stringOrList'
   import:
     $ref: '#/definitions/importFileList'
@@ -241,9 +241,9 @@ definitions:
         type: string
       disabled:
         type: string
-      before_stage:
+      before-stage:
         type: string
-      after_stage:
+      after-stage:
         type: string
       tasks:
         type: array
@@ -315,11 +315,11 @@ properties:
     type: string
     enum:
       - ecr
-  access_key_id:
+  access-key-id:
     type: string
-  secret_access_key:
+  secret-access-key:
     type: string
-  account_id:
+  account-id:
     type: string
   region:
     type: string
@@ -358,7 +358,7 @@ properties:
       - us.gcr.io
       - eu.gcr.io
       - asia.gcr.io
-  key_file:
+  key-file:
     type: string
 additionalProperties: false
 `)
@@ -392,7 +392,7 @@ properties:
     type: string
   password:
     type: string
-  password_file:
+  password-file:
     type: string
 additionalProperties: false
 `)
@@ -432,7 +432,7 @@ properties:
     type: string
   environment:
     $ref: '#/definitions/stringOrList'
-  required_environment:
+  required-environment:
     type: array
     items:
       type: string
@@ -482,7 +482,7 @@ properties:
     type: string
   environment:
     $ref: '#/definitions/stringOrList'
-  required_environment:
+  required-environment:
     type: array
     items:
       type: string
@@ -526,7 +526,7 @@ properties:
     type: string
   environment:
     $ref: '#/definitions/stringOrList'
-  required_environment:
+  required-environment:
     type: array
     items:
       type: string
@@ -570,7 +570,7 @@ properties:
     type: string
   environment:
     $ref: '#/definitions/stringOrList'
-  required_environment:
+  required-environment:
     type: array
     items:
       type: string
@@ -612,7 +612,7 @@ definitions:
         type: string
       retries:
         type: integer
-      start_period:
+      start-period:
         type: string
       timeout:
         type: string
@@ -628,7 +628,7 @@ properties:
     type: string
   environment:
     $ref: '#/definitions/stringOrList'
-  required_environment:
+  required-environment:
     type: array
     items:
       type: string
@@ -652,7 +652,7 @@ properties:
     type: boolean
   healthcheck:
     $ref: '#/definitions/healthcheck'
-  export_environment_file:
+  export-environment-file:
     $ref: '#/definitions/stringOrList'
 additionalProperties: false
 `)

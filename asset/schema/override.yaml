@@ -18,7 +18,7 @@ definitions:
     properties:
       excludes:
         $ref: '#/definitions/stringOrList'
-      clean_excludes:
+      clean-excludes:
         $ref: '#/definitions/stringOrList'
     additionalProperties: false
 
@@ -40,7 +40,7 @@ properties:
       type: object
   environment:
     $ref: '#/definitions/stringOrList'
-  env_file:
+  env-file:
     $ref: '#/definitions/stringOrList'
   import:
     $ref: '#/definitions/importFileList'

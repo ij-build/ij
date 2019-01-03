@@ -22,18 +22,18 @@ type (
 		Server       string `json:"server"`
 		Username     string `json:"username"`
 		Password     string `json:"password"`
-		PasswordFile string `json:"password_file"`
+		PasswordFile string `json:"password-file"`
 	}
 
 	GCRRegistry struct {
 		Hostname string `json:"hostname"`
-		KeyFile  string `json:"key_file"`
+		KeyFile  string `json:"key-file"`
 	}
 
 	ECRRegistry struct {
-		AccessKeyID     string `json:"access_key_id"`
-		SecretAccessKey string `json:"secret_access_key"`
-		AccountID       string `json:"account_id"`
+		AccessKeyID     string `json:"access-key-id"`
+		SecretAccessKey string `json:"secret-access-key"`
+		AccountID       string `json:"account-id"`
 		Region          string `json:"region"`
 		Role            string `json:"role"`
 	}

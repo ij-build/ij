@@ -9,7 +9,7 @@ import (
 type BuildTask struct {
 	Extends             string          `json:"extends"`
 	Environment         json.RawMessage `json:"environment"`
-	RequiredEnvironment []string        `json:"required_environment"`
+	RequiredEnvironment []string        `json:"required-environment"`
 	Dockerfile          string          `json:"dockerfile"`
 	Target              string          `json:"target"`
 	Tags                json.RawMessage `json:"tags"`

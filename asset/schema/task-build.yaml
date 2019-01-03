@@ -18,7 +18,7 @@ properties:
     type: string
   environment:
     $ref: '#/definitions/stringOrList'
-  required_environment:
+  required-environment:
     type: array
     items:
       type: string

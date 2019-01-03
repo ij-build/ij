@@ -12,6 +12,6 @@ properties:
     type: string
   password:
     type: string
-  password_file:
+  password-file:
     type: string
 additionalProperties: false

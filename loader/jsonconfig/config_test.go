@@ -15,7 +15,7 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 		Extends: "parent",
 		Registries: []json.RawMessage{
 			json.RawMessage(`{"server": "docker.io"}`),
-			json.RawMessage(`{"type": "gcr", "hostname": "eu.gcr.io", "key_file": "secret.key"}`),
+			json.RawMessage(`{"type": "gcr", "hostname": "eu.gcr.io", "key-file": "secret.key"}`),
 		},
 		Options: &Options{
 			SSHIdentities: json.RawMessage(`"*"`),
