@@ -180,7 +180,7 @@ func (r *PlanRunner) runPlan(
 			r.env,
 		)
 
-		if !stage.ShouldRun(context.Failure) || len(stage.Tasks) == 0 {
+		if !stage.ShouldRun(failure) || len(stage.Tasks) == 0 {
 			r.logger.Info(
 				stagePrefix,
 				"No tasks to perform",
