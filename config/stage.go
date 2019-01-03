@@ -1,21 +1,23 @@
 package config
 
+import "fmt"
+
 type (
 	Stage struct {
-		Name        string
-		Disabled    string
-		BeforeStage string
-		AfterStage  string
-		RunMode     RunMode
-		Parallel    bool
-		Environment []string
-		Tasks       []*StageTask
+		Name        string       `json:"name,omitempty"`
+		Disabled    string       `json:"disabled,omitempty"`
+		BeforeStage string       `json:"before-stage,omitempty"`
+		AfterStage  string       `json:"after-stage,omitempty"`
+		RunMode     RunMode      `json:"run-mode,omitempty"`
+		Parallel    bool         `json:"parallel,omitempty"`
+		Environment []string     `json:"environment,omitempty"`
+		Tasks       []*StageTask `json:"tasks,omitempty"`
 	}
 
 	StageTask struct {
-		Name        string
-		Disabled    string
-		Environment []string
+		Name        string   `json:"name,omitempty"`
+		Disabled    string   `json:"disabled,omitempty"`
+		Environment []string `json:"environment,omitempty"`
 	}
 
 	RunMode int
@@ -39,4 +41,17 @@ func (s *Stage) ShouldRun(failure bool) bool {
 	}
 
 	return false
+}
+
+func (m RunMode) MarshalJSON() ([]byte, error) {
+	switch m {
+	case RunModeOnSuccess:
+		return []byte(`"on-success"`), nil
+	case RunModeOnFailure:
+		return []byte(`"on-failure"`), nil
+	case RunModeAlways:
+		return []byte(`"always"`), nil
+	}
+
+	return nil, fmt.Errorf("unknown run-mode")
 }

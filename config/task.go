@@ -11,10 +11,10 @@ type (
 	}
 
 	TaskMeta struct {
-		Name                string
-		Extends             string
-		Environment         []string
-		RequiredEnvironment []string
+		Name                string   `json:"-"`
+		Extends             string   `json:"extends,omitempty"`
+		Environment         []string `json:"environment,omitempty"`
+		RequiredEnvironment []string `json:"required-environment,omitempty"`
 	}
 )
 

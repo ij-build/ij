@@ -68,10 +68,11 @@ func main() {
 func runMain() error {
 	app := kingpin.New("ij", "IJ is a build tool using Docker containers.").Version(Version)
 	clean := app.Command("clean", "Remove exported files.")
-	app.Command("login", "Login to docker registries.")
-	app.Command("logout", "Logout of docker registries.")
-	app.Command("rotate-logs", "Trim old run logs the .ij directory.")
+	_ = app.Command("login", "Login to docker registries.")
+	_ = app.Command("logout", "Logout of docker registries.")
+	_ = app.Command("rotate-logs", "Trim old run logs the .ij directory.")
 	run := app.Command("run", "Run a plan or metaplan.").Default()
+	_ = app.Command("show-config", "Show the effective config after resolving parents.")
 
 	projectDir, err := os.Getwd()
 	if err != nil {

@@ -29,3 +29,11 @@ func extendDuration(child, parent time.Duration) time.Duration {
 
 	return parent
 }
+
+func durationString(d time.Duration) string {
+	if d == 0 {
+		return ""
+	}
+
+	return d.String()
+}

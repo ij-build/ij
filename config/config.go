@@ -1,24 +1,27 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 )
 
 type (
 	Config struct {
-		Extends          []string
-		Options          *Options
-		Registries       []Registry
-		Workspace        string
-		Environment      []string
-		EnvironmentFiles []string
-		Import           *ImportFileList
-		Export           *ExportFileList
-		Tasks            map[string]Task
-		Plans            map[string]*Plan
-		Metaplans        map[string][]string
+		Extends          []string            `json:"extends,omitempty"`
+		Options          *Options            `json:"options,omitempty"`
+		Registries       []Registry          `json:"registries,omitempty"`
+		Workspace        string              `json:"workspace,omitempty"`
+		Environment      []string            `json:"environment,omitempty"`
+		EnvironmentFiles []string            `json:"env-file,omitempty"`
+		Import           *ImportFileList     `json:"import,omitempty"`
+		Export           *ExportFileList     `json:"export,omitempty"`
+		Tasks            map[string]Task     `json:"tasks,omitempty"`
+		Plans            map[string]*Plan    `json:"plans,omitempty"`
+		Metaplans        map[string][]string `json:"metaplans,omitempty"`
 	}
+
+	// Note: Options must serialize itself manually due to the time.Duration field.
 
 	Options struct {
 		SSHIdentities       []string
@@ -27,14 +30,14 @@ type (
 	}
 
 	ImportFileList struct {
-		Files    []string
-		Excludes []string
+		Files    []string `json:"files,omitempty"`
+		Excludes []string `json:"excludes,omitempty"`
 	}
 
 	ExportFileList struct {
-		Files         []string
-		Excludes      []string
-		CleanExcludes []string
+		Files         []string `json:"files,omitempty"`
+		Excludes      []string `json:"excludes,omitempty"`
+		CleanExcludes []string `json:"clean-excludes,omitempty"`
 	}
 
 	Override struct {
@@ -222,4 +225,16 @@ func (c *Config) validatePlanNames() error {
 	}
 
 	return nil
+}
+
+func (o *Options) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		SSHIdentities       []string `json:"ssh-identities,omitempty"`
+		ForceSequential     bool     `json:"force-sequential,omitempty"`
+		HealthcheckInterval string   `json:"healthcheck-interval,omitempty"`
+	}{
+		SSHIdentities:       o.SSHIdentities,
+		ForceSequential:     o.ForceSequential,
+		HealthcheckInterval: durationString(o.HealthcheckInterval),
+	})
 }

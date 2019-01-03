@@ -66,6 +66,10 @@ This command can be invoked as `ij clean`. Remove files exported from the worksp
 | -------------------- | ---------- | ----------- |
 | --force              |            | Do not prompt before removing files or directories. |
 
+### Show Config Command
+
+This command cna be invoked as `ij show-config`. This will print the effective config after resolving inheritance and extension. This output of this command, if successful, should also be another valid config file.
+
 ## License
 
 Copyright (c) 2018 Eric Fritz

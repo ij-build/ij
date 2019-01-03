@@ -1,13 +1,16 @@
 package config
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type BuildTask struct {
 	TaskMeta
-	Dockerfile string
-	Target     string
-	Tags       []string
-	Labels     []string
+	Dockerfile string   `json:"dockerfile,omitempty"`
+	Target     string   `json:"target,omitempty"`
+	Tags       []string `json:"tags,omitempty"`
+	Labels     []string `json:"labels,omitempty"`
 }
 
 func (t *BuildTask) GetType() string {
@@ -30,4 +33,16 @@ func (t *BuildTask) Extend(task Task) error {
 	t.Tags = append(parent.Tags, t.Tags...)
 	t.Labels = append(parent.Labels, t.Labels...)
 	return nil
+}
+
+func (t *BuildTask) MarshalJSON() ([]byte, error) {
+	type Alias BuildTask
+
+	return json.Marshal(&struct {
+		*Alias
+		Type string `json:"type"`
+	}{
+		Alias: (*Alias)(t),
+		Type:  t.GetType(),
+	})
 }

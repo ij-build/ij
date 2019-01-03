@@ -20,6 +20,7 @@ func Run(
 		"logout":      NewLogoutCommand(appOptions),
 		"rotate-logs": NewRotateLogsCommand(appOptions),
 		"run":         NewRunCommand(appOptions, runOptions),
+		"show-config": NewShowConfigCommand(appOptions),
 	}
 
 	runner, ok := runners[command]

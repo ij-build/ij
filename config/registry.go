@@ -6,23 +6,23 @@ type (
 	}
 
 	GCRRegistry struct {
-		Hostname string
-		KeyFile  string
+		Hostname string `json:"hostname,omitempty"`
+		KeyFile  string `json:"key-file,omitempty"`
 	}
 
 	ECRRegistry struct {
-		AccessKeyID     string
-		SecretAccessKey string
-		AccountID       string
-		Region          string
-		Role            string
+		AccessKeyID     string `json:"access-key-id,omitempty"`
+		SecretAccessKey string `json:"secret-access-key,omitempty"`
+		AccountID       string `json:"account-id,omitempty"`
+		Region          string `json:"region,omitempty"`
+		Role            string `json:"role,omitempty"`
 	}
 
 	ServerRegistry struct {
-		Server       string
-		Username     string
-		Password     string
-		PasswordFile string
+		Server       string `json:"server,omitempty"`
+		Username     string `json:"username,omitempty"`
+		Password     string `json:"password,omitempty"`
+		PasswordFile string `json:"password-file,omitempty"`
 	}
 )
 

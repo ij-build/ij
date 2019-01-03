@@ -3,11 +3,11 @@ package config
 import "fmt"
 
 type Plan struct {
-	Name        string
-	Disabled    string
-	Extend      bool
-	Stages      []*Stage
-	Environment []string
+	Name        string   `json:"-"`
+	Disabled    string   `json:"disabled,omitempty"`
+	Extends     string   `json:"extends,omitempty"`
+	Stages      []*Stage `json:"stages,omitempty"`
+	Environment []string `json:"environment,omitempty"`
 }
 
 func (p *Plan) Merge(child *Plan) error {

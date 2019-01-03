@@ -1,10 +1,13 @@
 package config
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type RemoveTask struct {
 	TaskMeta
-	Images []string
+	Images []string `json:"images,omitempty"`
 }
 
 func (t *RemoveTask) GetType() string {
@@ -24,4 +27,16 @@ func (t *RemoveTask) Extend(task Task) error {
 	t.extendMeta(parent.TaskMeta)
 	t.Images = append(parent.Images, t.Images...)
 	return nil
+}
+
+func (t *RemoveTask) MarshalJSON() ([]byte, error) {
+	type Alias RemoveTask
+
+	return json.Marshal(&struct {
+		*Alias
+		Type string `json:"type"`
+	}{
+		Alias: (*Alias)(t),
+		Type:  t.GetType(),
+	})
 }
