@@ -290,6 +290,10 @@ func readRemoteFile(path string) ([]byte, error) {
 
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code %d from remote server", resp.StatusCode)
+	}
+
 	return ioutil.ReadAll(resp.Body)
 }
 
