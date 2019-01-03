@@ -57,16 +57,16 @@ tasks:
 
 # Extending a Plan
 
-This section applies when a child and parent config both define a plan with the same name. If the plan defined in the child config does not have its `extend` property set to true, then the plan defined in the child config overwrites the plan defined in the parent config. In this section we describe the other case.
+A plan defined in a child config overwrites the a plan defined in a parent config with the same name. Such a plan can rather *extend* the parent plan with additional or overridden functionality. The `extends` property of a plan can be set to the name of another previously defined plan (either in the current config or a parent config, but not a child config).
 
 First, the environment of the child plan is appended onto the environment of the parent plan. Then, each stage defined in the child plan is added to the parent plan in the following manner:
 
 1. If the parent plan defines a stage with the same name, it is overwritten by the child stage;
-2. Otherwise, if `before_stage` is set in the child stage, the child stage is inserted directly before the named stage;
-3. Otherwise, if `after_stage` is set, in the child stage, the child stage is inserted directly after the named stage;
+2. Otherwise, if `before-stage` is set in the child stage, the child stage is inserted directly before the named stage;
+3. Otherwise, if `after-stage` is set, in the child stage, the child stage is inserted directly after the named stage;
 4. Otherwise, there is an ambiguity error and the stage cannot be inserted into the parent plan.
 
-In the first case, `before_stage` and `after_stage` must not be set in the child stage. In all cases, `before_stage` and `after_stage` must not **both** be set.
+In the first case, `before-stage` and `after-stage` must not be set in the child stage. In all cases, `before-stage` and `after-stage` must not **both** be set.
 
 ## Example
 
@@ -93,7 +93,7 @@ extends: parent.yaml
 
 plans:
   test-integration:
-    extend: true
+    extends: test-integration
     stages:
       - name: migrations
         tasks:
@@ -101,7 +101,7 @@ plans:
           - api-migrate-cassandra
         parallel: true
       - name: fixtures
-        after_stage: migrations
+        after-stage: migrations
         tasks:
           - fixtures
       - name: test

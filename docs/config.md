@@ -4,7 +4,7 @@ A configuration file defines tasks (units of work) and plans (configurations of 
 
 | Name        | Default    | Description |
 | ----------- | ---------- | ----------- |
-| env_file    | []         | A list paths to [environment file](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment-files) on the host. Value may be a string or a list. |
+| env-file    | []         | A list paths to [environment file](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment-files) on the host. Value may be a string or a list. |
 | environment | []         | A list of environment variable definitions. Value may be a string or a list. |
 | export      | {}         | An [export file list object](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-export-file-lists) describing the export phase. |
 | extends     | ''         | The path (relative/absolute on-disk, or an HTTP(S) URL) to the parent configuration. |
@@ -18,7 +18,7 @@ A configuration file defines tasks (units of work) and plans (configurations of 
 
 See the section on [extending a config](https://github.com/efritz/ij/blob/master/docs/extend.md#user-content-extending-a-config) about the semantics of the `extends` property.
 
-See the documentation on [environments](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment) for details on the `env_file` and `environment` properties.
+See the documentation on [environments](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment) for details on the `env-file` and `environment` properties.
 
 ## Options
 
@@ -75,11 +75,11 @@ import:
 
 An import list object controls the files which move back into the project directory on export.
 
-| Name          | Default | Description |
-| ------------- | ------- | ----------- |
-| clean_exclude | []      | Glob patterns for files to be ignored during the clean command. Value may be a string or a list. |
-| exclude       | []      | Glob patterns for files to be ignored during import. Value may be a string or a list. |
-| files         | []      | Glob patterns for files targeted for transfer during import. Value may be a string or a list. |
+| Name           | Default | Description |
+| -------------- | ------- | ----------- |
+| clean-excludes | []      | Glob patterns for files to be ignored during the clean command. Value may be a string or a list. |
+| exclude        | []      | Glob patterns for files to be ignored during import. Value may be a string or a list. |
+| files          | []      | Glob patterns for files targeted for transfer during import. Value may be a string or a list. |
 
 Files matching a pattern in the `files` property will be *recursively* transferred from the workspace. If that file also matches a pattern in the `exclude` property, it will be skipped. Glob patterns are also supported, as described above.
 
@@ -87,6 +87,6 @@ Files matching a pattern in the `files` property will be *recursively* transferr
 export:
   files:
     - '**/junit*.xml'
-  clean_excludes:
+  clean-excludes:
     - vendor
 ```

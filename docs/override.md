@@ -6,9 +6,9 @@ An override file is basically a [config](https://github.com/efritz/ij/blob/maste
 
 | Name        | Notes |
 | ----------- | ----- |
-| env_file    | |
+| env-file    | |
 | environment | |
-| export      | Only exclude and clean_exclude patterns can be supplied. |
+| export      | Only exclude and clean-excludes patterns can be supplied. |
 | import      | Only exclude patterns can be supplied. |
 | options     | |
 | registries  | |

@@ -7,7 +7,7 @@ A task is an object representing a unit of work in the run of a build plan. Thes
 | extends              |          | ''      | The name of the task this task extends (if any). |
 | type                 |          | run     | The type of task. May also be one of `build`, `push`, `remove`, or `plan`. |
 | environment          |          | []      | A list of environment variable definitions. Value may be a string or a list. |
-| required_environment |          | []      | A list of environment variable names which MUST be defined as non-empty for this task to run. |
+| required-environment |          | []      | A list of environment variable names which MUST be defined as non-empty for this task to run. |
 
 See the section on [extending a task](https://github.com/efritz/ij/blob/master/docs/extend.md#user-content-extending-a-task) about the semantics of the `extends` property. It may be of note that the `extends` property does **not** support environment expansion.
 
@@ -22,7 +22,7 @@ A run task runs a Docker container.
 | command                 |          | ''         | The command to run. If this value contains shell-specific tokens (e.g. chaining, pipes, or redirection), then `script` property should be used instead. |
 | detach                  |          | false      | If true, this container is run in the background until container exit or the end of the build plan. |
 | entrypoint              |          | ''         | The entrypoint of the container. |
-| export_environment_file |          | ''         | The path (relative to the working directory) to the file where exported environment variables are written. |
+| export-environment-file |          | ''         | The path (relative to the working directory) to the file where exported environment variables are written. |
 | healthcheck             |          | {}         | A [healthcheck configuration object](https://github.com/efritz/ij/blob/master/docs/tasks.md#user-content-healthcheck-configuration). |
 | hostname                |          | ''         | The container's network alias. |
 | image                   | yes      |            | The name of the image to run. |
@@ -36,11 +36,11 @@ Some of these properties work only in tandem (or mutually exclusively) with othe
 - `shell` is useful only when `script` is supplied
 - `entrypoint` is useful only when `script` is absent
 - `healthcheck` parameters are only useful *in convey* when `detach` is true (but will still affect external `docker inspect` commands)
-- `export_environment_file` is useful only when `detach` is false
+- `export-environment-file` is useful only when `detach` is false
 
 This task will run containers in the foreground (blocking until the container exits) unless `detach` is set to true. The task succeeds if the container exits with a zero status. When `detach` is set to true, the container will be run in the background. If the container defines a healthcheck (either via Dockerfile or the task healthcheck configuration defined below), the task will block until the container becomes healthy. The task succeeds if the container becomes healthy.
 
-The file referenced by `export_environment_file` should be formatted like an env file as discussed in the documentation on [environments](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment). Each relevant line of the file will be added to the working environment set made available to tasks in future stages in the same run.
+The file referenced by `export-environment-file` should be formatted like an env file as discussed in the documentation on [environments](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment). Each relevant line of the file will be added to the working environment set made available to tasks in future stages in the same run.
 
 ### Healthcheck Configuration
 
@@ -51,7 +51,7 @@ Supplying any of the following parameters will overwrite any healthcheck defined
 | command      |          |         | The command to exec in the container. |
 | interval     |          |         | The duration between health checks. |
 | retries      |          | 0       | The number of times to check an unhealthy container before failing. |
-| start_period |          |         | The duration after container startup in which failed health checks are not counted against the retry count. |
+| start-period |          |         | The duration after container startup in which failed health checks are not counted against the retry count. |
 | timeout      |          |         | The maximum runtime of a single health check. |
 
 ### Example
