@@ -7,7 +7,7 @@ import (
 
 type (
 	Config struct {
-		Extends          string
+		Extends          []string
 		Options          *Options
 		Registries       []Registry
 		Workspace        string
@@ -63,16 +63,17 @@ func (c *Config) Merge(child *Config) error {
 	}
 
 	for name, plan := range child.Plans {
-		if !plan.Extend {
+		if plan.Extends == "" {
 			c.Plans[name] = plan
 			continue
 		}
 
-		parentPlan, ok := c.Plans[name]
+		parentPlan, ok := c.Plans[plan.Extends]
 		if !ok {
 			return fmt.Errorf(
-				"plan %s extends unknown plan in parent",
+				"plan %s extends unknown plan %s in parent",
 				name,
+				plan.Extends,
 			)
 		}
 

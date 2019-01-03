@@ -12,7 +12,7 @@ type PlanSuite struct{}
 
 func (s *PlanSuite) TestTranslate(t sweet.T) {
 	plan := &Plan{
-		Extend:   true,
+		Extends:  "foo",
 		Disabled: "${DISABLED}",
 		Stages: []*Stage{
 			&Stage{
@@ -43,7 +43,7 @@ func (s *PlanSuite) TestTranslate(t sweet.T) {
 	Expect(err).To(BeNil())
 	Expect(translated).To(Equal(&config.Plan{
 		Name:     "foo",
-		Extend:   true,
+		Extends:  "foo",
 		Disabled: "${DISABLED}",
 		Stages: []*config.Stage{
 			&config.Stage{

@@ -8,7 +8,7 @@ import (
 )
 
 type Plan struct {
-	Extend      bool            `json:"extend"`
+	Extends     string          `json:"extends"`
 	Disabled    string          `json:"disabled"`
 	Stages      []*Stage        `json:"stages"`
 	Environment json.RawMessage `json:"environment"`
@@ -32,7 +32,7 @@ func (p *Plan) Translate(name string) (*config.Plan, error) {
 
 	return &config.Plan{
 		Name:        name,
-		Extend:      p.Extend,
+		Extends:     p.Extends,
 		Disabled:    p.Disabled,
 		Stages:      stages,
 		Environment: environment,

@@ -62,7 +62,7 @@ func (s *ConfigSuite) TestMerge(t sweet.T) {
 			"t3": &BuildTask{TaskMeta: TaskMeta{Name: "t3"}, Dockerfile: "d"},
 		},
 		Plans: map[string]*Plan{
-			"p1": &Plan{Name: "p1", Extend: true, Environment: []string{"X=3"}},
+			"p1": &Plan{Name: "p1", Extends: "p1", Environment: []string{"X=3"}},
 			"p2": &Plan{Name: "p2", Environment: []string{"X=4"}},
 			"p3": &Plan{Name: "p3", Environment: []string{"X=5"}},
 		},
