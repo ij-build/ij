@@ -47,7 +47,7 @@ func removeTaskComandFactory(
 		for _, image := range images {
 			builder := command.NewBuilder([]string{
 				"docker",
-				"remove",
+				"rmi",
 				image,
 			}, nil)
 
