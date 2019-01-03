@@ -246,12 +246,12 @@ func applyEnvironmentFiles(environmentFiles []string) ([]string, error) {
 			return nil, err
 		}
 
-		lines, err := environment.NormalizeEnvironmentFile(string(content))
+		fileLines, err := environment.NormalizeEnvironmentFile(string(content))
 		if err != nil {
 			return nil, err
 		}
 
-		lines = append(lines, lines...)
+		lines = append(lines, fileLines...)
 	}
 
 	return lines, nil
