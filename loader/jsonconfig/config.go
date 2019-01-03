@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/util"
 )
 
 type (
@@ -55,12 +56,12 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 		registries = append(registries, translated)
 	}
 
-	environment, err := unmarshalStringList(c.Environment)
+	environment, err := util.UnmarshalStringList(c.Environment)
 	if err != nil {
 		return nil, err
 	}
 
-	environmentFiles, err := unmarshalStringList(c.EnvironmentFiles)
+	environmentFiles, err := util.UnmarshalStringList(c.EnvironmentFiles)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +112,7 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 }
 
 func (c *Options) Translate() (*config.Options, error) {
-	sshIdentities, err := unmarshalStringList(c.SSHIdentities)
+	sshIdentities, err := util.UnmarshalStringList(c.SSHIdentities)
 	if err != nil {
 		return nil, err
 	}
@@ -124,12 +125,12 @@ func (c *Options) Translate() (*config.Options, error) {
 }
 
 func (l *ImportFileList) Translate() (*config.ImportFileList, error) {
-	files, err := unmarshalStringList(l.Files)
+	files, err := util.UnmarshalStringList(l.Files)
 	if err != nil {
 		return nil, err
 	}
 
-	excludes, err := unmarshalStringList(l.Excludes)
+	excludes, err := util.UnmarshalStringList(l.Excludes)
 	if err != nil {
 		return nil, err
 	}
@@ -141,17 +142,17 @@ func (l *ImportFileList) Translate() (*config.ImportFileList, error) {
 }
 
 func (l *ExportFileList) Translate() (*config.ExportFileList, error) {
-	files, err := unmarshalStringList(l.Files)
+	files, err := util.UnmarshalStringList(l.Files)
 	if err != nil {
 		return nil, err
 	}
 
-	excludes, err := unmarshalStringList(l.Excludes)
+	excludes, err := util.UnmarshalStringList(l.Excludes)
 	if err != nil {
 		return nil, err
 	}
 
-	cleanExcludes, err := unmarshalStringList(l.CleanExcludes)
+	cleanExcludes, err := util.UnmarshalStringList(l.CleanExcludes)
 	if err != nil {
 		return nil, err
 	}

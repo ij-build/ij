@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/util"
 )
 
 type (
@@ -42,7 +43,7 @@ func (s *Stage) Translate() (*config.Stage, error) {
 		return nil, err
 	}
 
-	environment, err := unmarshalStringList(s.Environment)
+	environment, err := util.UnmarshalStringList(s.Environment)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +86,7 @@ func unmarshalStageTask(raw json.RawMessage) (*config.StageTask, error) {
 		return nil, err
 	}
 
-	environment, err := unmarshalStringList(stageTask.Environment)
+	environment, err := util.UnmarshalStringList(stageTask.Environment)
 	if err != nil {
 		return nil, err
 	}

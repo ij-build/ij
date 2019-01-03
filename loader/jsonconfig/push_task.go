@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/util"
 )
 
 type PushTask struct {
@@ -14,12 +15,12 @@ type PushTask struct {
 }
 
 func (t *PushTask) Translate(name string) (config.Task, error) {
-	images, err := unmarshalStringList(t.Images)
+	images, err := util.UnmarshalStringList(t.Images)
 	if err != nil {
 		return nil, err
 	}
 
-	environment, err := unmarshalStringList(t.Environment)
+	environment, err := util.UnmarshalStringList(t.Environment)
 	if err != nil {
 		return nil, err
 	}

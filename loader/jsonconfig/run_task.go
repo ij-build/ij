@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/util"
 )
 
 type (
@@ -25,11 +26,11 @@ type (
 	}
 
 	Healthcheck struct {
-		Command     string   `json:"command"`
-		Interval    Duration `json:"interval"`
-		Retries     int      `json:"retries"`
-		StartPeriod Duration `json:"start_period"`
-		Timeout     Duration `json:"timeout"`
+		Command     string        `json:"command"`
+		Interval    util.Duration `json:"interval"`
+		Retries     int           `json:"retries"`
+		StartPeriod util.Duration `json:"start-period"`
+		Timeout     util.Duration `json:"timeout"`
 	}
 )
 
@@ -39,12 +40,12 @@ func (t *RunTask) Translate(name string) (config.Task, error) {
 		return nil, err
 	}
 
-	environment, err := unmarshalStringList(t.Environment)
+	environment, err := util.UnmarshalStringList(t.Environment)
 	if err != nil {
 		return nil, err
 	}
 
-	exportedEnvironmentFiles, err := unmarshalStringList(t.ExportEnvironmentFiles)
+	exportedEnvironmentFiles, err := util.UnmarshalStringList(t.ExportEnvironmentFiles)
 	if err != nil {
 		return nil, err
 	}

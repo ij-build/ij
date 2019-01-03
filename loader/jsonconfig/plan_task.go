@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/util"
 )
 
 type PlanTask struct {
@@ -14,7 +15,7 @@ type PlanTask struct {
 }
 
 func (t *PlanTask) Translate(name string) (config.Task, error) {
-	environment, err := unmarshalStringList(t.Environment)
+	environment, err := util.UnmarshalStringList(t.Environment)
 	if err != nil {
 		return nil, err
 	}

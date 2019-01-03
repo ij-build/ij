@@ -6,6 +6,7 @@ import (
 
 	"github.com/aphistic/sweet"
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/util"
 	. "github.com/onsi/gomega"
 )
 
@@ -15,7 +16,7 @@ func (s *OverrideSuite) TestTranslate(t sweet.T) {
 	jsonOverride := &Override{
 		Options: &Options{
 			SSHIdentities:       json.RawMessage(`"*"`),
-			HealthcheckInterval: Duration{time.Second * 10},
+			HealthcheckInterval: util.Duration{time.Second * 10},
 		},
 		Registries: []json.RawMessage{
 			json.RawMessage(`{"server": "docker.io"}`),

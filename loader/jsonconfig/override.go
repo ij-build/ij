@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/util"
 )
 
 type Override struct {
@@ -31,12 +32,12 @@ func (o *Override) Translate() (*config.Override, error) {
 		registries = append(registries, translated)
 	}
 
-	environment, err := unmarshalStringList(o.Environment)
+	environment, err := util.UnmarshalStringList(o.Environment)
 	if err != nil {
 		return nil, err
 	}
 
-	environmentFiles, err := unmarshalStringList(o.EnvironmentFiles)
+	environmentFiles, err := util.UnmarshalStringList(o.EnvironmentFiles)
 	if err != nil {
 		return nil, err
 	}

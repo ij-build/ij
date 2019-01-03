@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/util"
 )
 
 type Plan struct {
@@ -24,7 +25,7 @@ func (p *Plan) Translate(name string) (*config.Plan, error) {
 		stages = append(stages, translated)
 	}
 
-	environment, err := unmarshalStringList(p.Environment)
+	environment, err := util.UnmarshalStringList(p.Environment)
 	if err != nil {
 		return nil, err
 	}

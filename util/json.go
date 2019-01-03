@@ -1,4 +1,4 @@
-package jsonconfig
+package util
 
 import (
 	"encoding/json"
@@ -44,7 +44,7 @@ func (d *Duration) UnmarshalJSON(data []byte) error {
 	)
 }
 
-func unmarshalStringList(raw json.RawMessage) ([]string, error) {
+func UnmarshalStringList(raw json.RawMessage) ([]string, error) {
 	if len(raw) == 0 {
 		return nil, nil
 	}

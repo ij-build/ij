@@ -6,6 +6,7 @@ import (
 
 	"github.com/aphistic/sweet"
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/util"
 	. "github.com/onsi/gomega"
 )
 
@@ -78,10 +79,10 @@ func (s *RunTaskSuite) TestTranslateHealthcheck(t sweet.T) {
 		Extends: "parent",
 		Healthcheck: &Healthcheck{
 			Command:     "command",
-			Interval:    Duration{time.Second},
+			Interval:    util.Duration{time.Second},
 			Retries:     10,
-			StartPeriod: Duration{time.Second},
-			Timeout:     Duration{time.Second},
+			StartPeriod: util.Duration{time.Second},
+			Timeout:     util.Duration{time.Second},
 		},
 	}
 

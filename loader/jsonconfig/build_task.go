@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/util"
 )
 
 type BuildTask struct {
@@ -17,17 +18,17 @@ type BuildTask struct {
 }
 
 func (t *BuildTask) Translate(name string) (config.Task, error) {
-	tags, err := unmarshalStringList(t.Tags)
+	tags, err := util.UnmarshalStringList(t.Tags)
 	if err != nil {
 		return nil, err
 	}
 
-	labels, err := unmarshalStringList(t.Labels)
+	labels, err := util.UnmarshalStringList(t.Labels)
 	if err != nil {
 		return nil, err
 	}
 
-	environment, err := unmarshalStringList(t.Environment)
+	environment, err := util.UnmarshalStringList(t.Environment)
 	if err != nil {
 		return nil, err
 	}
