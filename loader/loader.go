@@ -119,10 +119,14 @@ func (l *Loader) readConfigs(path string) error {
 func (l *Loader) readConfig(path string) (*jsonconfig.Config, error) {
 	data, err := readPath(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(
+			"failed to load config %s: %s",
+			path,
+			err.Error(),
+		)
 	}
 
-	if err := validateConfig(data); err != nil {
+	if err := validateConfig(path, data); err != nil {
 		return nil, err
 	}
 
@@ -187,10 +191,7 @@ func LoadFile(path string, override *config.Override) (*config.Config, error) {
 
 	cfg, err := loader.Load(path)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to load config: %s",
-			err.Error(),
-		)
+		return nil, err
 	}
 
 	if err := loader.ApplyOverrides(cfg, overridePaths); err != nil {
@@ -304,9 +305,9 @@ func isURL(path string) bool {
 	return strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://")
 }
 
-func validateConfig(data []byte) error {
+func validateConfig(config string, data []byte) error {
 	if err := schema.Validate("schema/config.yaml", data); err != nil {
-		return fmt.Errorf("failed to validate config: %s", err.Error())
+		return fmt.Errorf("failed to validate config %s: %s", config, err.Error())
 	}
 
 	payload := &jsonEnvelope{
