@@ -25,7 +25,7 @@ func (f outputProcessorFunc) Process(line string) {
 }
 
 func newLogProcessor(prefix *logging.Prefix, logFunc logging.LogFunc) outputProcessor {
-	return outputProcessorFunc(func(line string) { logFunc(prefix, line) })
+	return outputProcessorFunc(func(line string) { logFunc(prefix, "%s", line) })
 }
 
 func newStringProcessor() *stringProcessor {

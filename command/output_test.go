@@ -10,15 +10,15 @@ type OutputSuite struct{}
 
 func (s *OutputSuite) TestLogProcessor(t sweet.T) {
 	var (
-		formats = make(chan string, 3)
-		prefix  = logging.NewPrefix("a", "b", "c")
+		lines  = make(chan interface{}, 3)
+		prefix = logging.NewPrefix("a", "b", "c")
 	)
 
-	defer close(formats)
+	defer close(lines)
 
-	logFunc := func(p *logging.Prefix, format string, _ ...interface{}) {
+	logFunc := func(p *logging.Prefix, format string, args ...interface{}) {
 		Expect(p).To(Equal(prefix))
-		formats <- format
+		lines <- args[0]
 	}
 
 	processor := newLogProcessor(prefix, logFunc)
@@ -26,9 +26,9 @@ func (s *OutputSuite) TestLogProcessor(t sweet.T) {
 	processor.Process("bar")
 	processor.Process("baz")
 
-	Expect(formats).To(Receive(Equal("foo")))
-	Expect(formats).To(Receive(Equal("bar")))
-	Expect(formats).To(Receive(Equal("baz")))
+	Expect(lines).To(Receive(Equal("foo")))
+	Expect(lines).To(Receive(Equal("bar")))
+	Expect(lines).To(Receive(Equal("baz")))
 }
 
 func (s *OutputSuite) TestStringProcessor(t sweet.T) {
