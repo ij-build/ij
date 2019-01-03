@@ -12,7 +12,7 @@ type ConfigSuite struct{}
 
 func (s *ConfigSuite) TestTranslate(t sweet.T) {
 	jsonConfig := &Config{
-		Extends: "parent",
+		Extends: json.RawMessage(`"parent"`),
 		Registries: []json.RawMessage{
 			json.RawMessage(`{"server": "docker.io"}`),
 			json.RawMessage(`{"type": "gcr", "hostname": "eu.gcr.io", "key-file": "secret.key"}`),
@@ -46,7 +46,7 @@ func (s *ConfigSuite) TestTranslate(t sweet.T) {
 	translated, err := jsonConfig.Translate(nil)
 	Expect(err).To(BeNil())
 	Expect(translated).To(Equal(&config.Config{
-		Extends: "parent",
+		Extends: []string{"parent"},
 		Registries: []config.Registry{
 			&config.ServerRegistry{Server: "docker.io"},
 			&config.GCRRegistry{

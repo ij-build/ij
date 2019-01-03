@@ -10,7 +10,9 @@ import (
 
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
+	"github.com/efritz/ij/util"
 	"github.com/ghodss/yaml"
+	"github.com/stevenle/topsort"
 
 	"github.com/efritz/ij/loader/jsonconfig"
 	"github.com/efritz/ij/loader/schema"
@@ -18,7 +20,8 @@ import (
 
 type (
 	Loader struct {
-		loaded map[string]struct{}
+		loaded          map[string]*jsonconfig.Config
+		dependencyGraph *topsort.Graph
 	}
 
 	jsonEnvelope struct {
@@ -30,11 +33,90 @@ type (
 
 func NewLoader() *Loader {
 	return &Loader{
-		loaded: map[string]struct{}{},
+		loaded:          map[string]*jsonconfig.Config{},
+		dependencyGraph: topsort.NewGraph(),
 	}
 }
 
 func (l *Loader) Load(path string) (*config.Config, error) {
+	if err := l.readConfigs(path); err != nil {
+		return nil, err
+	}
+
+	order, err := l.dependencyGraph.TopSort(path)
+	if err != nil {
+		// Error messages starts with "Cycle error: "
+		return nil, fmt.Errorf("failed to extend cyclic config (%s)", err.Error()[13:])
+	}
+
+	var config *config.Config
+	for _, path := range order {
+		child, err := l.loaded[path].Translate(config)
+		if err != nil {
+			return nil, err
+		}
+
+		if config == nil {
+			config = child
+		} else {
+			if err := config.Merge(child); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return config, nil
+}
+
+func (l *Loader) ApplyOverrides(config *config.Config, paths []string) error {
+	for _, path := range paths {
+		if err := l.applyOverride(config, path); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (l *Loader) readConfigs(path string) error {
+	if _, ok := l.loaded[path]; ok {
+		return nil
+	}
+
+	config, err := l.readConfig(path)
+	if err != nil {
+		return err
+	}
+
+	l.loaded[path] = config
+	l.dependencyGraph.AddNode(path)
+
+	extends, err := util.UnmarshalStringList(config.Extends)
+	if err != nil {
+		return err
+	}
+
+	for _, parent := range extends {
+		parentPath := buildPath(parent, path)
+
+		if err := l.readConfigs(parentPath); err != nil {
+			return err
+		}
+
+		l.dependencyGraph.AddEdge(path, parentPath)
+	}
+
+	for i := 1; i < len(extends); i++ {
+		path1 := buildPath(extends[i], path)
+		path2 := buildPath(extends[i-1], path)
+
+		l.dependencyGraph.AddEdge(path1, path2)
+	}
+
+	return nil
+}
+
+func (l *Loader) readConfig(path string) (*jsonconfig.Config, error) {
 	data, err := readPath(path)
 	if err != nil {
 		return nil, err
@@ -57,17 +139,7 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 		return nil, err
 	}
 
-	return l.resolveParent(payload, path)
-}
-
-func (l *Loader) ApplyOverrides(config *config.Config, paths []string) error {
-	for _, path := range paths {
-		if err := l.applyOverride(config, path); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return payload, nil
 }
 
 func (l *Loader) applyOverride(config *config.Config, path string) error {
@@ -97,45 +169,6 @@ func (l *Loader) applyOverride(config *config.Config, path string) error {
 
 	config.ApplyOverride(override)
 	return nil
-}
-
-func (l *Loader) resolveParent(
-	config *jsonconfig.Config,
-	childPath string,
-) (*config.Config, error) {
-	if config.Extends == "" {
-		child, err := config.Translate(nil)
-		if err != nil {
-			return nil, err
-		}
-
-		return child, nil
-	}
-
-	if _, ok := l.loaded[config.Extends]; ok {
-		return nil, fmt.Errorf(
-			"failed to extend from %s (extension is cyclic)",
-			config.Extends,
-		)
-	}
-
-	l.loaded[config.Extends] = struct{}{}
-
-	parent, err := l.Load(buildPath(config.Extends, childPath))
-	if err != nil {
-		return nil, err
-	}
-
-	child, err := config.Translate(parent)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := parent.Merge(child); err != nil {
-		return nil, err
-	}
-
-	return parent, nil
 }
 
 //

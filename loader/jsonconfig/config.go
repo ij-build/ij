@@ -9,7 +9,7 @@ import (
 
 type (
 	Config struct {
-		Extends          string                     `json:"extends"`
+		Extends          json.RawMessage            `json:"extends"`
 		Options          *Options                   `json:"options"`
 		Registries       []json.RawMessage          `json:"registries"`
 		Workspace        string                     `json:"workspace"`
@@ -41,6 +41,11 @@ type (
 )
 
 func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
+	extends, err := util.UnmarshalStringList(c.Extends)
+	if err != nil {
+		return nil, err
+	}
+
 	options, err := c.Options.Translate()
 	if err != nil {
 		return nil, err
@@ -97,7 +102,7 @@ func (c *Config) Translate(parent *config.Config) (*config.Config, error) {
 	}
 
 	return &config.Config{
-		Extends:          c.Extends,
+		Extends:          extends,
 		Options:          options,
 		Registries:       registries,
 		Workspace:        c.Workspace,

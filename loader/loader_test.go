@@ -137,7 +137,7 @@ func (s *LoaderSuite) TestLoadInvalidSchemaMetaplan(t sweet.T) {
 
 func (s *LoaderSuite) TestLoadExtendsCycle(t sweet.T) {
 	_, err := NewLoader().Load("./test-configs/a.yaml")
-	Expect(err).To(MatchError("failed to extend from b.yaml (extension is cyclic)"))
+	Expect(err).To(MatchError("failed to extend cyclic config (test-configs/b.yaml -> test-configs/a.yaml -> test-configs/b.yaml)"))
 }
 
 func (s *LoaderSuite) TestOverrideInvalidSchema(t sweet.T) {
