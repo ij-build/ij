@@ -33,6 +33,10 @@ properties:
         type: boolean
       healthcheck-interval:
         type: string
+      path-substitutions:
+        type: object
+        additionalProperties:
+          type: string
     additionalProperties: false
   registries:
     type: array

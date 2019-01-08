@@ -29,6 +29,15 @@ The following options can be amended/overridden by [override files](https://gith
 | force-sequential     | false   | If true, running tasks in parallel will be disabled. |
 | healthcheck-interval | 5s      | The duration to wait between health checks of a service container. |
 | ssh-identities       | []      | A set of SSH key fingerprints (SHA256 or MD5). Value may be a string or a list. |
+| path-substitutions   | {}      | A map of replacements applied to paths of extended configuration files. |
+
+Path substitutions may **only** be supplied in an [override file](https://github.com/efritz/ij/blob/master/docs/override.md#user-content-override-files). This option is provided in order to easily change the target of remote configs. The following example replaces all external references to `ij-repo.com` with a local filepath.
+
+```yaml
+options:
+    path-substitutions:
+        'http://ij-repo.com': /etc/ij-repo
+```
 
 If any ssh-identities are supplied in the configuration file or on the command line, then at least one matching fingerprint must exist in the host's SSH agent. On success, the SSH auth socket will be mounted in all containers launched by a *run* task.
 

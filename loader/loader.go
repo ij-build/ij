@@ -20,8 +20,10 @@ import (
 
 type (
 	Loader struct {
-		loaded          map[string]*jsonconfig.Config
-		dependencyGraph *topsort.Graph
+		loadedConfigs     map[string]*jsonconfig.Config
+		loadedOverrides   map[string]*config.Override
+		dependencyGraph   *topsort.Graph
+		pathSubstitutions map[string]string
 	}
 
 	jsonEnvelope struct {
@@ -33,12 +35,31 @@ type (
 
 func NewLoader() *Loader {
 	return &Loader{
-		loaded:          map[string]*jsonconfig.Config{},
-		dependencyGraph: topsort.NewGraph(),
+		loadedConfigs:     map[string]*jsonconfig.Config{},
+		loadedOverrides:   map[string]*config.Override{},
+		dependencyGraph:   topsort.NewGraph(),
+		pathSubstitutions: map[string]string{},
 	}
 }
 
+func (l *Loader) LoadPathSubstitutions(overridePaths []string) error {
+	for _, path := range overridePaths {
+		override, err := l.readOverride(path)
+		if err != nil {
+			return err
+		}
+
+		for k, v := range override.Options.PathSubstitutions {
+			l.pathSubstitutions[k] = v
+		}
+	}
+
+	return nil
+}
+
 func (l *Loader) Load(path string) (*config.Config, error) {
+	path = l.normalizePath(path, "")
+
 	if err := l.readConfigs(path); err != nil {
 		return nil, err
 	}
@@ -51,7 +72,7 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 
 	var config *config.Config
 	for _, path := range order {
-		child, err := l.loaded[path].Translate(config)
+		child, err := l.loadedConfigs[path].Translate(config)
 		if err != nil {
 			return nil, err
 		}
@@ -68,8 +89,8 @@ func (l *Loader) Load(path string) (*config.Config, error) {
 	return config, nil
 }
 
-func (l *Loader) ApplyOverrides(config *config.Config, paths []string) error {
-	for _, path := range paths {
+func (l *Loader) ApplyOverrides(config *config.Config, overridePaths []string) error {
+	for _, path := range overridePaths {
 		if err := l.applyOverride(config, path); err != nil {
 			return err
 		}
@@ -79,7 +100,7 @@ func (l *Loader) ApplyOverrides(config *config.Config, paths []string) error {
 }
 
 func (l *Loader) readConfigs(path string) error {
-	if _, ok := l.loaded[path]; ok {
+	if _, ok := l.loadedConfigs[path]; ok {
 		return nil
 	}
 
@@ -88,7 +109,7 @@ func (l *Loader) readConfigs(path string) error {
 		return err
 	}
 
-	l.loaded[path] = config
+	l.loadedConfigs[path] = config
 	l.dependencyGraph.AddNode(path)
 
 	extends, err := util.UnmarshalStringList(config.Extends)
@@ -97,7 +118,7 @@ func (l *Loader) readConfigs(path string) error {
 	}
 
 	for _, parent := range extends {
-		parentPath := buildPath(parent, path)
+		parentPath := l.normalizePath(parent, path)
 
 		if err := l.readConfigs(parentPath); err != nil {
 			return err
@@ -107,8 +128,8 @@ func (l *Loader) readConfigs(path string) error {
 	}
 
 	for i := 1; i < len(extends); i++ {
-		path1 := buildPath(extends[i], path)
-		path2 := buildPath(extends[i-1], path)
+		path1 := l.normalizePath(extends[i], path)
+		path2 := l.normalizePath(extends[i-1], path)
 
 		l.dependencyGraph.AddEdge(path1, path2)
 	}
@@ -147,13 +168,27 @@ func (l *Loader) readConfig(path string) (*jsonconfig.Config, error) {
 }
 
 func (l *Loader) applyOverride(config *config.Config, path string) error {
-	data, err := readPath(path)
+	override, err := l.readOverride(path)
 	if err != nil {
 		return err
 	}
 
-	if err := schema.Validate("schema/override.yaml", data); err != nil {
-		return fmt.Errorf("failed to validate override file: %s", err.Error())
+	config.ApplyOverride(override)
+	return nil
+}
+
+func (l *Loader) readOverride(path string) (*config.Override, error) {
+	if override, ok := l.loadedOverrides[path]; ok {
+		return override, nil
+	}
+
+	data, err := readPath(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := validateOverride(path, data); err != nil {
+		return nil, err
 	}
 
 	payload := &jsonconfig.Override{
@@ -163,16 +198,32 @@ func (l *Loader) applyOverride(config *config.Config, path string) error {
 	}
 
 	if err := json.Unmarshal(data, payload); err != nil {
-		return err
+		return nil, err
 	}
 
 	override, err := payload.Translate()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	config.ApplyOverride(override)
-	return nil
+	l.loadedOverrides[path] = override
+	return override, nil
+}
+
+func (l *Loader) normalizePath(path, source string) string {
+	rawPath := buildPath(path, source)
+
+	realPath := rawPath
+	for k, v := range l.pathSubstitutions {
+		realPath = strings.Replace(realPath, k, v, -1)
+	}
+
+	// Transformed to a differing relative path
+	if rawPath != realPath && !isURL(realPath) && !filepath.IsAbs(realPath) {
+		realPath = buildPath(realPath, source)
+	}
+
+	return realPath
 }
 
 //
@@ -188,6 +239,13 @@ func LoadFile(path string, override *config.Override) (*config.Config, error) {
 	}
 
 	loader := NewLoader()
+
+	if err := loader.LoadPathSubstitutions(overridePaths); err != nil {
+		return nil, fmt.Errorf(
+			"failed to load path substitutions from overrride file: %s",
+			err.Error(),
+		)
+	}
 
 	cfg, err := loader.Load(path)
 	if err != nil {
@@ -257,6 +315,18 @@ func applyEnvironmentFiles(environmentFiles []string) ([]string, error) {
 	return lines, nil
 }
 
+func buildPath(path, source string) string {
+	if isURL(path) || isURL(source) {
+		return path
+	}
+
+	if source == "" {
+		return path
+	}
+
+	return filepath.Join(filepath.Dir(source), path)
+}
+
 //
 // Helpers
 
@@ -297,21 +367,13 @@ func readRemoteFile(path string) ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
-func buildPath(path, source string) string {
-	if isURL(path) || isURL(source) {
-		return path
-	}
-
-	return filepath.Join(filepath.Dir(source), path)
-}
-
 func isURL(path string) bool {
 	return strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://")
 }
 
-func validateConfig(config string, data []byte) error {
+func validateConfig(path string, data []byte) error {
 	if err := schema.Validate("schema/config.yaml", data); err != nil {
-		return fmt.Errorf("failed to validate config %s: %s", config, err.Error())
+		return fmt.Errorf("failed to validate config %s: %s", path, err.Error())
 	}
 
 	payload := &jsonEnvelope{
@@ -334,6 +396,14 @@ func validateConfig(config string, data []byte) error {
 		if err := schema.Validate("schema/metaplan.yaml", metaplan); err != nil {
 			return fmt.Errorf("failed to validate metaplan %s: %s", name, err.Error())
 		}
+	}
+
+	return nil
+}
+
+func validateOverride(path string, data []byte) error {
+	if err := schema.Validate("schema/override.yaml", data); err != nil {
+		return fmt.Errorf("failed to validate override %s: %s", path, err.Error())
 	}
 
 	return nil

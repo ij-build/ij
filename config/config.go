@@ -27,6 +27,7 @@ type (
 		SSHIdentities       []string
 		ForceSequential     bool
 		HealthcheckInterval time.Duration
+		PathSubstitutions   map[string]string
 	}
 
 	ImportFileList struct {

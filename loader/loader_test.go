@@ -142,5 +142,5 @@ func (s *LoaderSuite) TestLoadExtendsCycle(t sweet.T) {
 
 func (s *LoaderSuite) TestOverrideInvalidSchema(t sweet.T) {
 	err := NewLoader().ApplyOverrides(&config.Config{}, []string{"./test-configs/invalid-override.yaml"})
-	Expect(err).To(MatchError("failed to validate override file: Invalid type. Expected: object, given: string"))
+	Expect(err).To(MatchError("failed to validate override ./test-configs/invalid-override.yaml: Invalid type. Expected: object, given: string"))
 }

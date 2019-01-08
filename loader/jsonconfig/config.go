@@ -23,9 +23,10 @@ type (
 	}
 
 	Options struct {
-		SSHIdentities       json.RawMessage `json:"ssh-identities"`
-		ForceSequential     bool            `json:"force-sequential"`
-		HealthcheckInterval util.Duration   `json:"healthcheck-interval"`
+		SSHIdentities       json.RawMessage   `json:"ssh-identities"`
+		ForceSequential     bool              `json:"force-sequential"`
+		HealthcheckInterval util.Duration     `json:"healthcheck-interval"`
+		PathSubstitutions   map[string]string `json:"path-substitutions"`
 	}
 
 	ImportFileList struct {
@@ -126,6 +127,7 @@ func (c *Options) Translate() (*config.Options, error) {
 		SSHIdentities:       sshIdentities,
 		ForceSequential:     c.ForceSequential,
 		HealthcheckInterval: c.HealthcheckInterval.Duration,
+		PathSubstitutions:   c.PathSubstitutions,
 	}, nil
 }
 
