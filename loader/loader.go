@@ -271,13 +271,15 @@ func LoadFile(path string, override *config.Override) (*config.Config, error) {
 		)
 	}
 
-	cfg.Environment = append(
-		environment.Default().Serialize(),
-		append(
-			cfg.Environment,
-			envFromFile...,
-		)...,
-	)
+	defaultEnv, err := environment.Default()
+	if err != nil {
+		return nil, err
+	}
+
+	cfg.Environment = append(defaultEnv.Serialize(), append(
+		cfg.Environment,
+		envFromFile...,
+	)...)
 
 	if err := cfg.Resolve(); err != nil {
 		return nil, fmt.Errorf(

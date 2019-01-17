@@ -3,6 +3,7 @@ package environment
 import (
 	"fmt"
 	"os"
+	"os/user"
 	"regexp"
 	"strings"
 	"time"
@@ -13,11 +14,16 @@ import (
 
 const BuildTimeFormat = "2006-01-02T15:04:05-0700"
 
-func Default() Environment {
-	buildTime := time.Now().UTC().Format(BuildTimeFormat)
+func Default() (Environment, error) {
+	user, err := user.Current()
+	if err != nil {
+		return nil, err
+	}
 
 	lines := []string{
-		fmt.Sprintf("BUILD_TIME=%s", buildTime),
+		fmt.Sprintf("UID=%s", user.Uid),
+		fmt.Sprintf("GID=%s", user.Gid),
+		fmt.Sprintf("BUILD_TIME=%s", formatNow()),
 	}
 
 	if repo, err := getVCS(); err == nil {
@@ -30,7 +36,11 @@ func Default() Environment {
 		lines = append(lines, fmt.Sprintf("%s_REMOTE=%s", name, repo.Remote("")))
 	}
 
-	return New(lines)
+	return New(lines), nil
+}
+
+func formatNow() string {
+	return time.Now().UTC().Format(BuildTimeFormat)
 }
 
 func getVCS() (vcs.VCS, error) {

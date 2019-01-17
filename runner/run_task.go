@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
@@ -562,9 +561,14 @@ func (s *runTaskCommandBuilderState) addScriptOptions(cb *command.Builder) error
 }
 
 func (s *runTaskCommandBuilderState) addUserOptions(cb *command.Builder) error {
-	if user, err := user.Current(); err == nil {
-		cb.AddFlagValue("-e", fmt.Sprintf("UID=%s", user.Uid))
-		cb.AddFlagValue("-e", fmt.Sprintf("GID=%s", user.Gid))
+	uid, err := s.env.ExpandString("${UID}")
+	if err != nil {
+		return err
+	}
+
+	gid, err := s.env.ExpandString("${GID}")
+	if err != nil {
+		return err
 	}
 
 	username, err := s.env.ExpandString(s.task.User)
@@ -573,6 +577,8 @@ func (s *runTaskCommandBuilderState) addUserOptions(cb *command.Builder) error {
 	}
 
 	cb.AddFlagValue("--user", username)
+	cb.AddFlagValue("-e", fmt.Sprintf("UID=%s", uid))
+	cb.AddFlagValue("-e", fmt.Sprintf("GID=%s", gid))
 	return nil
 }
 
