@@ -15,7 +15,81 @@ import (
 
 type GCRSuite struct{}
 
-func (s *GCRSuite) TestLogin(t sweet.T) {
+func (s *GCRSuite) TestLoginKey(t sweet.T) {
+	runner := mocks.NewMockRunner()
+	registry := &config.GCRRegistry{
+		Hostname: "gcr.io",
+		Key:      `{"some": "json", "blob": "here"}`,
+	}
+
+	login := newGCRLogin(
+		context.Background(),
+		logging.NilLogger,
+		environment.New(nil),
+		registry,
+		runner,
+	)
+
+	server, err := login.GetServer()
+	Expect(err).To(BeNil())
+	Expect(server).To(Equal("https://gcr.io"))
+	Expect(login.Login()).To(BeNil())
+
+	Expect(runner.RunFuncCallCount()).To(Equal(1))
+	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{
+		"docker",
+		"login",
+		"-u",
+		"_json_key",
+		"--password-stdin",
+		"https://gcr.io",
+	}))
+
+	stdin := runner.RunFuncCallParams()[0].Arg2
+	content, _ := ioutil.ReadAll(stdin)
+	Expect(strings.TrimSpace(string(content))).To(Equal(`{"some": "json", "blob": "here"}`))
+}
+
+func (s *GCRSuite) TestLoginKeyMappedEnvironment(t sweet.T) {
+	runner := mocks.NewMockRunner()
+	registry := &config.GCRRegistry{
+		Hostname: "eu.gcr.io",
+		Key:      `${KEY}`,
+	}
+
+	env := []string{
+		`KEY={"some": "json", "blob": "here"}`,
+	}
+
+	login := newGCRLogin(
+		context.Background(),
+		logging.NilLogger,
+		environment.New(env),
+		registry,
+		runner,
+	)
+
+	server, err := login.GetServer()
+	Expect(err).To(BeNil())
+	Expect(server).To(Equal("https://eu.gcr.io"))
+	Expect(login.Login()).To(BeNil())
+
+	Expect(runner.RunFuncCallCount()).To(Equal(1))
+	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{
+		"docker",
+		"login",
+		"-u",
+		"_json_key",
+		"--password-stdin",
+		"https://eu.gcr.io",
+	}))
+
+	stdin := runner.RunFuncCallParams()[0].Arg2
+	content, _ := ioutil.ReadAll(stdin)
+	Expect(strings.TrimSpace(string(content))).To(Equal(`{"some": "json", "blob": "here"}`))
+}
+
+func (s *GCRSuite) TestLoginKeyFile(t sweet.T) {
 	runner := mocks.NewMockRunner()
 	registry := &config.GCRRegistry{
 		Hostname: "gcr.io",
@@ -50,7 +124,7 @@ func (s *GCRSuite) TestLogin(t sweet.T) {
 	Expect(strings.TrimSpace(string(content))).To(Equal(`{"some": "json", "blob": "here"}`))
 }
 
-func (s *GCRSuite) TestLoginMappedEnvironment(t sweet.T) {
+func (s *GCRSuite) TestLoginKeyFileMappedEnvironment(t sweet.T) {
 	runner := mocks.NewMockRunner()
 	registry := &config.GCRRegistry{
 		Hostname: "eu.gcr.io",

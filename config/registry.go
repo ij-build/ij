@@ -7,6 +7,7 @@ type (
 
 	GCRRegistry struct {
 		Hostname string `json:"hostname,omitempty"`
+		Key      string `json:"key,omitempty"`
 		KeyFile  string `json:"key-file,omitempty"`
 	}
 

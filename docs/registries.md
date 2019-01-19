@@ -40,7 +40,10 @@ A Google Container Registry which can be logged in via the [JSON Key File](https
 | Name     | Required | Default | Description |
 | -------- | -------- | ------- | ----------- |
 | hostname |          | gcr.io  | The GCR hostname. May also be one of `us.gcr.io`, `eu.gcr.io`, or `asia.gcr.io`. |
-| key-file | yes      |         | The path to a [service account JSON key file](https://support.google.com/cloud/answer/6158849#serviceaccounts) on the host. |
+| key      |          |         | A [service account JSON key](https://support.google.com/cloud/answer/6158849#serviceaccounts). |
+| key-file |          |         | The path to a JSON key file on the host. |
+
+One of `key` or `key-file` must be supplied.
 
 # Example
 

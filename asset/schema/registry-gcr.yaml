@@ -13,6 +13,8 @@ properties:
       - us.gcr.io
       - eu.gcr.io
       - asia.gcr.io
+  key:
+    type: string
   key-file:
     type: string
 additionalProperties: false

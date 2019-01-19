@@ -362,6 +362,8 @@ properties:
       - us.gcr.io
       - eu.gcr.io
       - asia.gcr.io
+  key:
+    type: string
   key-file:
     type: string
 additionalProperties: false
@@ -377,7 +379,7 @@ func schemaRegistryGcrYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/registry-gcr.yaml", size: 244, mode: os.FileMode(420), modTime: time.Unix(1546566188, 0)}
+	info := bindataFileInfo{name: "schema/registry-gcr.yaml", size: 268, mode: os.FileMode(420), modTime: time.Unix(1547916565, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

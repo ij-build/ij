@@ -78,6 +78,15 @@ func getGCRPassword(
 	env environment.Environment,
 	registry *config.GCRRegistry,
 ) (string, error) {
+	key, err := env.ExpandString(registry.Key)
+	if err != nil {
+		return "", err
+	}
+
+	if key != "" {
+		return key, nil
+	}
+
 	keyFile, err := env.ExpandString(registry.KeyFile)
 	if err != nil {
 		return "", err

@@ -27,6 +27,7 @@ type (
 
 	GCRRegistry struct {
 		Hostname string `json:"hostname"`
+		Key      string `json:"key"`
 		KeyFile  string `json:"key-file"`
 	}
 
@@ -94,6 +95,7 @@ func (r *GCRRegistry) Translate() config.Registry {
 
 	return &config.GCRRegistry{
 		Hostname: r.Hostname,
+		Key:      r.Key,
 		KeyFile:  r.KeyFile,
 	}
 }
