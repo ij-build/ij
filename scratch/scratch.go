@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/efritz/ij/logging"
 	"github.com/efritz/ij/paths"
 	"github.com/efritz/ij/util"
 )
@@ -123,16 +124,31 @@ func (s *ScratchSpace) MakeLogFiles(prefix string) (*os.File, *os.File, error) {
 	return outfile, errfile, nil
 }
 
-func (s *ScratchSpace) Prune() error {
+func (s *ScratchSpace) Prune(logger logging.Logger) error {
 	if !s.keepWorkspace {
+		logger.Debug(
+			nil,
+			"Removing workspace",
+		)
+
 		if err := os.RemoveAll(s.workspace); err != nil {
 			return err
 		}
+
+		logger.Debug(
+			nil,
+			"Removing scripts directory",
+		)
 
 		if err := os.RemoveAll(filepath.Join(s.runpath, ScriptsDir)); err != nil {
 			return err
 		}
 	}
+
+	logger.Debug(
+		nil,
+		"Pruning empty logfiles",
+	)
 
 	return filepath.Walk(filepath.Join(s.runpath, LogsDir), func(path string, _ os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ErrLogSuffix) {

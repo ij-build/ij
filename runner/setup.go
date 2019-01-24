@@ -73,6 +73,10 @@ func SetupRunner(
 		return
 	}
 
+	cleanup.Register(func() {
+		scratch.Prune(logger)
+	})
+
 	_, err = setupNetwork(
 		ctx,
 		runID,
@@ -246,15 +250,6 @@ func setupScratch(
 
 		return nil, err
 	}
-
-	cleanup.Register(func() {
-		if err := scratch.Prune(); err != nil {
-			logging.EmergencyLog(
-				"error: failed to clean up scratch directory: %s",
-				err.Error(),
-			)
-		}
-	})
 
 	return scratch, nil
 }

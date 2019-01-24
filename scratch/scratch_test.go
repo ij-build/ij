@@ -8,6 +8,8 @@ import (
 	"github.com/aphistic/sweet"
 	"github.com/efritz/ij/paths"
 	. "github.com/onsi/gomega"
+
+	"github.com/efritz/ij/logging"
 )
 
 type ScratchSuite struct{}
@@ -105,7 +107,7 @@ func (s *ScratchSuite) TestPrune(t sweet.T) {
 		errFile.Close()
 	}
 
-	Expect(scratch.Prune()).To(BeNil())
+	Expect(scratch.Prune(logging.NilLogger)).To(BeNil())
 
 	for _, path := range paths {
 		_, outErr := os.Stat(filepath.Join(name, ".ij", "abcdef0", "logs", path+".out.log"))
@@ -142,7 +144,7 @@ func (s *ScratchSuite) TestPruneDiscardWorkspace(t sweet.T) {
 	outFile.Close()
 	errFile.Close()
 
-	Expect(scratch.Prune()).To(BeNil())
+	Expect(scratch.Prune(logging.NilLogger)).To(BeNil())
 
 	// Output logs are not removed
 	_, err = os.Stat(filepath.Join(name, ".ij", "abcdef0", "logs", "build.out.log"))
