@@ -134,7 +134,7 @@ func (s *ScratchSpace) Prune() error {
 		}
 	}
 
-	return filepath.Walk(s.runpath, func(path string, _ os.FileInfo, err error) error {
+	return filepath.Walk(filepath.Join(s.runpath, LogsDir), func(path string, _ os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ErrLogSuffix) {
 			info, err := os.Stat(path)
 			if err != nil {
