@@ -192,6 +192,7 @@ func (r *StageRunner) buildTaskRunnerFunc(
 		}
 
 		runner := r.taskRunnerFactory(
+			context,
 			task,
 			taskPrefix,
 			env,

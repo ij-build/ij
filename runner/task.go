@@ -15,6 +15,7 @@ type (
 	}
 
 	TaskRunnerFactory func(
+		*RunContext,
 		config.Task,
 		*logging.Prefix,
 		environment.Environment,

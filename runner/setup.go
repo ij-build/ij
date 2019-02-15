@@ -108,6 +108,7 @@ func SetupRunner(
 	}
 
 	taskRunnerFactory = func(
+		context *RunContext,
 		task config.Task,
 		prefix *logging.Prefix,
 		env environment.Environment,
