@@ -7,7 +7,8 @@ import (
 
 type PushTask struct {
 	TaskMeta
-	Images []string `json:"images,omitempty"`
+	Images       []string `json:"images,omitempty"`
+	IncludeBuilt bool     `json:"include-built,omitempty"`
 }
 
 func (t *PushTask) GetType() string {
@@ -26,6 +27,7 @@ func (t *PushTask) Extend(task Task) error {
 
 	t.extendMeta(parent.TaskMeta)
 	t.Images = append(parent.Images, t.Images...)
+	t.IncludeBuilt = extendBool(t.IncludeBuilt, parent.IncludeBuilt)
 	return nil
 }
 

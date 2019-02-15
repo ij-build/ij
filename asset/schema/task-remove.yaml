@@ -24,4 +24,6 @@ properties:
       type: string
   images:
     $ref: '#/definitions/stringOrList'
+  include-built:
+    type: boolean
 additionalProperties: false

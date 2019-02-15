@@ -14,7 +14,8 @@ func (s *PushTaskSuite) TestExtend(t sweet.T) {
 			Environment:         []string{"parent-env1"},
 			RequiredEnvironment: []string{"parent-env2"},
 		},
-		Images: []string{"parent-i1"},
+		Images:       []string{"parent-i1"},
+		IncludeBuilt: false,
 	}
 
 	child := &PushTask{
@@ -24,19 +25,22 @@ func (s *PushTaskSuite) TestExtend(t sweet.T) {
 			Environment:         []string{"child-env1"},
 			RequiredEnvironment: []string{"child-env2"},
 		},
-		Images: []string{"child-i2", "child-i3"},
+		Images:       []string{"child-i2", "child-i3"},
+		IncludeBuilt: true,
 	}
 
 	Expect(child.Extend(parent)).To(BeNil())
 	Expect(child.Environment).To(Equal([]string{"parent-env1", "child-env1"}))
 	Expect(child.RequiredEnvironment).To(Equal([]string{"parent-env2", "child-env2"}))
 	Expect(child.Images).To(ConsistOf("parent-i1", "child-i2", "child-i3"))
+	Expect(child.IncludeBuilt).To(BeTrue())
 }
 
 func (s *PushTaskSuite) TestExtendNoOverride(t sweet.T) {
 	parent := &PushTask{
-		TaskMeta: TaskMeta{Name: "parent"},
-		Images:   []string{"i1", "i2"},
+		TaskMeta:     TaskMeta{Name: "parent"},
+		Images:       []string{"i1", "i2"},
+		IncludeBuilt: true,
 	}
 
 	child := &PushTask{
@@ -45,6 +49,7 @@ func (s *PushTaskSuite) TestExtendNoOverride(t sweet.T) {
 
 	Expect(child.Extend(parent)).To(BeNil())
 	Expect(child.Images).To(ConsistOf("i1", "i2"))
+	Expect(child.IncludeBuilt).To(BeTrue())
 }
 
 func (s *PushTaskSuite) TestExtendWrongType(t sweet.T) {

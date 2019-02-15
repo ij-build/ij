@@ -538,6 +538,8 @@ properties:
       type: string
   images:
     $ref: '#/definitions/stringOrList'
+  include-built:
+    type: boolean
 additionalProperties: false
 `)
 
@@ -551,7 +553,7 @@ func schemaTaskPushYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-push.yaml", size: 427, mode: os.FileMode(420), modTime: time.Unix(1546566188, 0)}
+	info := bindataFileInfo{name: "schema/task-push.yaml", size: 462, mode: os.FileMode(420), modTime: time.Unix(1550198041, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -582,6 +584,8 @@ properties:
       type: string
   images:
     $ref: '#/definitions/stringOrList'
+  include-built:
+    type: boolean
 additionalProperties: false
 `)
 
@@ -595,7 +599,7 @@ func schemaTaskRemoveYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schema/task-remove.yaml", size: 429, mode: os.FileMode(420), modTime: time.Unix(1546566188, 0)}
+	info := bindataFileInfo{name: "schema/task-remove.yaml", size: 464, mode: os.FileMode(420), modTime: time.Unix(1550198039, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

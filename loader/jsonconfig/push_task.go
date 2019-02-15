@@ -12,6 +12,7 @@ type PushTask struct {
 	Environment         json.RawMessage `json:"environment"`
 	RequiredEnvironment []string        `json:"required-environment"`
 	Images              json.RawMessage `json:"images"`
+	IncludeBuilt        bool            `json:"include-built"`
 }
 
 func (t *PushTask) Translate(name string) (config.Task, error) {
@@ -33,7 +34,8 @@ func (t *PushTask) Translate(name string) (config.Task, error) {
 	}
 
 	return &config.PushTask{
-		TaskMeta: meta,
-		Images:   images,
+		TaskMeta:     meta,
+		Images:       images,
+		IncludeBuilt: t.IncludeBuilt,
 	}, nil
 }
