@@ -130,6 +130,7 @@ func SetupRunner(
 				ctx,
 				logger,
 			)(
+				context,
 				t,
 				env,
 				prefix,
@@ -140,6 +141,7 @@ func SetupRunner(
 				ctx,
 				logger,
 			)(
+				context,
 				t,
 				env,
 				prefix,

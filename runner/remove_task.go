@@ -10,6 +10,7 @@ import (
 )
 
 type RemoveTaskRunnerFactory func(
+	*RunContext,
 	*config.RemoveTask,
 	environment.Environment,
 	*logging.Prefix,
@@ -20,13 +21,14 @@ func NewRemoveTaskRunnerFactory(
 	logger logging.Logger,
 ) RemoveTaskRunnerFactory {
 	return func(
+		context *RunContext,
 		task *config.RemoveTask,
 		env environment.Environment,
 		prefix *logging.Prefix,
 	) TaskRunner {
 		return NewBaseRunner(
 			ctx,
-			removeTaskComandFactory(task, env),
+			removeTaskComandFactory(context, task, env),
 			logger,
 			prefix,
 		)
@@ -34,6 +36,7 @@ func NewRemoveTaskRunnerFactory(
 }
 
 func removeTaskComandFactory(
+	context *RunContext,
 	task *config.RemoveTask,
 	env environment.Environment,
 ) BuilderSetFactory {
@@ -41,6 +44,10 @@ func removeTaskComandFactory(
 		images, err := env.ExpandSlice(task.Images)
 		if err != nil {
 			return nil, err
+		}
+
+		if task.IncludeBuilt {
+			images = append(images, context.GetTags()...)
 		}
 
 		builders := []*command.Builder{}

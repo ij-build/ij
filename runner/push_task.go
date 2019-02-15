@@ -10,6 +10,7 @@ import (
 )
 
 type PushTaskRunnerFactory func(
+	*RunContext,
 	*config.PushTask,
 	environment.Environment,
 	*logging.Prefix,
@@ -20,13 +21,14 @@ func NewPushTaskRunnerFactory(
 	logger logging.Logger,
 ) PushTaskRunnerFactory {
 	return func(
+		context *RunContext,
 		task *config.PushTask,
 		env environment.Environment,
 		prefix *logging.Prefix,
 	) TaskRunner {
 		return NewBaseRunner(
 			ctx,
-			makePushTaskCommandFactory(task, env),
+			makePushTaskCommandFactory(context, task, env),
 			logger,
 			prefix,
 		)
@@ -34,6 +36,7 @@ func NewPushTaskRunnerFactory(
 }
 
 func makePushTaskCommandFactory(
+	context *RunContext,
 	task *config.PushTask,
 	env environment.Environment,
 ) BuilderSetFactory {
@@ -41,6 +44,10 @@ func makePushTaskCommandFactory(
 		images, err := env.ExpandSlice(task.Images)
 		if err != nil {
 			return nil, err
+		}
+
+		if task.IncludeBuilt {
+			images = append(images, context.GetTags()...)
 		}
 
 		builders := []*command.Builder{}
