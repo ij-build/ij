@@ -14,6 +14,12 @@ type (
 		Run(*RunContext) bool
 	}
 
+	BaseRunner interface {
+		TaskRunner
+		RegisterOnSuccess(HookFunc)
+		RegisterOnFailure(HookFunc)
+	}
+
 	TaskRunnerFactory func(
 		*RunContext,
 		config.Task,
@@ -22,12 +28,15 @@ type (
 	) TaskRunner
 
 	baseRunner struct {
-		ctx     context.Context
-		factory BuilderSetFactory
-		logger  logging.Logger
-		prefix  *logging.Prefix
+		ctx       context.Context
+		factory   BuilderSetFactory
+		logger    logging.Logger
+		prefix    *logging.Prefix
+		onSuccess HookFunc
+		onFailure HookFunc
 	}
 
+	HookFunc          func(context *RunContext) error
 	BuilderFactory    func() (*command.Builder, error)
 	BuilderSetFactory func() ([]*command.Builder, error)
 )
@@ -37,12 +46,14 @@ func NewBaseRunner(
 	factory BuilderSetFactory,
 	logger logging.Logger,
 	prefix *logging.Prefix,
-) TaskRunner {
+) BaseRunner {
 	return &baseRunner{
-		ctx:     ctx,
-		logger:  logger,
-		prefix:  prefix,
-		factory: factory,
+		ctx:       ctx,
+		logger:    logger,
+		prefix:    prefix,
+		factory:   factory,
+		onSuccess: func(context *RunContext) error { return nil },
+		onFailure: func(context *RunContext) error { return nil },
 	}
 }
 
@@ -60,7 +71,7 @@ func (r *baseRunner) Run(context *RunContext) bool {
 			err.Error(),
 		)
 
-		return false
+		return r.runFailureHook(context)
 	}
 
 	for _, builder := range builders {
@@ -72,7 +83,7 @@ func (r *baseRunner) Run(context *RunContext) bool {
 				err.Error(),
 			)
 
-			return false
+			return r.runFailureHook(context)
 		}
 
 		err = command.NewRunner(r.logger).Run(
@@ -91,11 +102,49 @@ func (r *baseRunner) Run(context *RunContext) bool {
 				err.Error(),
 			)
 
-			return false
+			return r.runFailureHook(context)
 		}
 	}
 
+	return r.runSuccessHook(context)
+}
+
+func (r *baseRunner) RegisterOnSuccess(hookFunc HookFunc) {
+	r.onSuccess = hookFunc
+}
+
+func (r *baseRunner) RegisterOnFailure(hookFunc HookFunc) {
+	r.onFailure = hookFunc
+}
+
+func (r *baseRunner) runSuccessHook(context *RunContext) bool {
+	if err := r.onSuccess(context); err != nil {
+		ReportError(
+			r.ctx,
+			r.logger,
+			r.prefix,
+			"Success hook failed: %s",
+			err.Error(),
+		)
+
+		return false
+	}
+
 	return true
+}
+
+func (r *baseRunner) runFailureHook(context *RunContext) bool {
+	if err := r.onFailure(context); err != nil {
+		ReportError(
+			r.ctx,
+			r.logger,
+			r.prefix,
+			"Failure hook failed: %s",
+			err.Error(),
+		)
+	}
+
+	return false
 }
 
 func NewMultiFactory(factory BuilderFactory) BuilderSetFactory {
