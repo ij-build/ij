@@ -139,7 +139,7 @@ A push task pushes image tags to a remote registry. For this task to succeed, th
 | Name          | Required | Default | Description |
 | ------------- | -------- | ------- | ----------- |
 | images        |          | []      | A list of image tags to push to a remote registry. Value may be a string or a list. |
-| include-built |          | false   | If true, push all tags created by a previous and successful build task in addition to the ones supplied above. |
+| include-built |          | false   | If true, push all images created by a build task in addition to the images supplied explicitly. |
 
 ### Example
 
@@ -163,7 +163,7 @@ A remove task removes image from the host.
 | Name          | Required | Default | Description |
 | ------------- | -------- | ------- | ----------- |
 | images        |          | []      | A list of image tags to remove from the host. Value may be a string or a list. |
-| include-built |          | false   | If true, rermove all tags created by a previous and successful build task in addition to the ones supplied above. |
+| include-built |          | false   | If true, remove all images created by a build task in addition to the images supplied explicitly. |
 
 ### Example
 
