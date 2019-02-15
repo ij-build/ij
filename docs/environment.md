@@ -22,6 +22,8 @@ The `BUILD_TIME` environment variable containing the ISO8601-formatted current U
 - *GIT_COMMIT_SHORT* (the first 12 chars of the commit hash)
 - *GIT_BRANCH_NORMALIZED* (non-alphanum characters replaced by a dash)
 
+Additionally, the intrinsic variable `IJ_IMAGE_TAGS` contains a semicolon-separated list of images tags that are created by a successful build task. The value of this variable updates after completion of each build task.
+
 # Environment Files
 
 Contents of an environment file can be interpreted as environment assignments using the `env-file` property of the config and override files, the `--env-file` command line argument, or from an `exported-environment-file` property of a run task.

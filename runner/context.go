@@ -1,6 +1,8 @@
 package runner
 
 import (
+	"sort"
+	"strings"
 	"sync"
 
 	"github.com/efritz/ij/environment"
@@ -18,7 +20,8 @@ type RunContext struct {
 
 func NewRunContext(parent *RunContext) *RunContext {
 	context := &RunContext{
-		parent: parent,
+		parent:      parent,
+		Environment: environment.New(nil),
 	}
 
 	if parent != nil {
@@ -36,8 +39,14 @@ func (c *RunContext) AddTags(tags []string) {
 	}
 
 	c.tagsMutex.Lock()
+	defer c.tagsMutex.Unlock()
+
+	// Add tags and resort
 	c.tags = append(c.tags, tags...)
-	c.tagsMutex.Unlock()
+	sort.Strings(c.tags)
+
+	// Make these values available from within the running plan
+	c.Environment["IJ_IMAGE_TAGS"] = strings.Join(c.tags, ";")
 }
 
 func (c *RunContext) GetTags() []string {
