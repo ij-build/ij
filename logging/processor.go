@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -135,11 +136,11 @@ func (p *processor) process() {
 			message.Text(),
 		)
 
-		if err := writeAll(message.stream, []byte(streamText)); err != nil {
+		if _, err := io.Copy(message.stream, bytes.NewReader([]byte(streamText))); err != nil {
 			EmergencyLog("error: failed to write log: %s", err.Error())
 		}
 
-		if err := writeAll(message.file, []byte(fileText)); err != nil {
+		if _, err := io.Copy(message.file, bytes.NewReader([]byte(fileText))); err != nil {
 			EmergencyLog("error: failed to write log: %s", err.Error())
 		}
 	}

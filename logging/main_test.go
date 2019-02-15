@@ -17,6 +17,5 @@ func TestMain(m *testing.M) {
 		s.AddSuite(&PrefixSuite{})
 		s.AddSuite(&ColorPickerSuite{})
 		s.AddSuite(&ProcessorSuite{})
-		s.AddSuite(&UtilSuite{})
 	})
 }
