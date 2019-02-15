@@ -7,11 +7,13 @@ import (
 )
 
 type RunContext struct {
-	parent      *RunContext
-	Failure     bool
-	Environment environment.Environment
-	exportedEnv []string
-	envMutex    sync.RWMutex
+	parent           *RunContext
+	Failure          bool
+	Environment      environment.Environment
+	tags             []string
+	tagsMutex        sync.RWMutex
+	exportedEnv      []string
+	exportedEnvMutex sync.RWMutex
 }
 
 func NewRunContext(parent *RunContext) *RunContext {
@@ -27,15 +29,42 @@ func NewRunContext(parent *RunContext) *RunContext {
 	return context
 }
 
+func (c *RunContext) AddTags(tags []string) {
+	if c.parent != nil {
+		c.parent.AddTags(tags)
+		return
+	}
+
+	c.tagsMutex.Lock()
+	c.tags = append(c.tags, tags...)
+	c.tagsMutex.Unlock()
+}
+
+func (c *RunContext) GetTags() []string {
+	if c.parent != nil {
+		return c.parent.GetTags()
+	}
+
+	c.tagsMutex.RLock()
+	defer c.tagsMutex.RUnlock()
+
+	tags := []string{}
+	for _, tag := range c.tags {
+		tags = append(tags, tag)
+	}
+
+	return tags
+}
+
 func (c *RunContext) ExportEnv(line string) {
 	if c.parent != nil {
 		c.parent.ExportEnv(line)
 		return
 	}
 
-	c.envMutex.Lock()
+	c.exportedEnvMutex.Lock()
 	c.exportedEnv = append(c.exportedEnv, line)
-	c.envMutex.Unlock()
+	c.exportedEnvMutex.Unlock()
 }
 
 func (c *RunContext) GetExportedEnv() []string {
@@ -43,13 +72,13 @@ func (c *RunContext) GetExportedEnv() []string {
 		return c.parent.GetExportedEnv()
 	}
 
-	c.envMutex.RLock()
-	defer c.envMutex.RUnlock()
+	c.exportedEnvMutex.RLock()
+	defer c.exportedEnvMutex.RUnlock()
 
 	env := []string{}
 	for _, line := range c.exportedEnv {
 		env = append(env, line)
 	}
 
-	return c.exportedEnv
+	return env
 }

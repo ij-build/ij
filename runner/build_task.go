@@ -41,12 +41,29 @@ func NewBuildTaskRunnerFactory(
 			env,
 		)
 
-		return NewBaseRunner(
+		runner := NewBaseRunner(
 			ctx,
 			NewMultiFactory(factory),
 			logger,
 			prefix,
 		)
+
+		runner.RegisterOnSuccess(func(context *RunContext) error {
+			tags := []string{}
+			for _, tag := range task.Tags {
+				expanded, err := env.ExpandString(tag)
+				if err != nil {
+					return err
+				}
+
+				tags = append(tags, expanded)
+			}
+
+			context.AddTags(tags)
+			return nil
+		})
+
+		return runner
 	}
 }
 
