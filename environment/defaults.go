@@ -2,7 +2,6 @@ package environment
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"os/user"
 	"regexp"
@@ -36,9 +35,6 @@ func Default() (Environment, error) {
 		lines = append(lines, fmt.Sprintf("GIT_COMMIT=%s", commit))
 		lines = append(lines, fmt.Sprintf("GIT_REMOTE=%s", remote))
 	}
-
-	fmt.Printf("`%s`\n`%s`\n`%s`\n`%s`\n", branch, remote, commit, shortCommit)
-	os.Exit(0)
 
 	return New(lines), nil
 }
