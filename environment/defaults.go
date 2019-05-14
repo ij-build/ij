@@ -3,13 +3,11 @@ package environment
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"os/user"
 	"regexp"
 	"strings"
 	"time"
-
-	"bitbucket.org/rw_grim/govcs"
-	"bitbucket.org/rw_grim/govcs/vcs"
 )
 
 const BuildTimeFormat = "2006-01-02T15:04:05-0700"
@@ -26,15 +24,21 @@ func Default() (Environment, error) {
 		fmt.Sprintf("BUILD_TIME=%s", formatNow()),
 	}
 
-	if repo, err := getVCS(); err == nil {
-		name := strings.ToUpper(repo.Name())
+	branch := gitOutput("rev-parse", "--abbrev-ref", "HEAD")
+	remote := gitOutput("config", "--local", "remote.origin.url")
+	commit := gitOutput("rev-parse", "HEAD")
+	shortCommit := gitOutput("rev-parse", "--short", "HEAD")
 
-		lines = append(lines, fmt.Sprintf("%s_BRANCH_NORMALIZED=%s", name, normalize(repo.Branch())))
-		lines = append(lines, fmt.Sprintf("%s_BRANCH=%s", name, repo.Branch()))
-		lines = append(lines, fmt.Sprintf("%s_COMMIT_SHORT=%s", name, repo.ShortCommit()))
-		lines = append(lines, fmt.Sprintf("%s_COMMIT=%s", name, repo.Commit()))
-		lines = append(lines, fmt.Sprintf("%s_REMOTE=%s", name, repo.Remote("")))
+	if commit != "" {
+		lines = append(lines, fmt.Sprintf("GIT_BRANCH_NORMALIZED=%s", normalize(branch)))
+		lines = append(lines, fmt.Sprintf("GIT_BRANCH=%s", branch))
+		lines = append(lines, fmt.Sprintf("GIT_COMMIT_SHORT=%s", shortCommit))
+		lines = append(lines, fmt.Sprintf("GIT_COMMIT=%s", commit))
+		lines = append(lines, fmt.Sprintf("GIT_REMOTE=%s", remote))
 	}
+
+	fmt.Printf("`%s`\n`%s`\n`%s`\n`%s`\n", branch, remote, commit, shortCommit)
+	os.Exit(0)
 
 	return New(lines), nil
 }
@@ -43,15 +47,15 @@ func formatNow() string {
 	return time.Now().UTC().Format(BuildTimeFormat)
 }
 
-func getVCS() (vcs.VCS, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
-	return govcs.Detect(wd)
-}
-
 func normalize(value string) string {
 	return regexp.MustCompile("[^._A-Za-z0-9-]").ReplaceAllLiteralString(value, "_")
+}
+
+func gitOutput(args ...string) string {
+	out, err := exec.Command("git", args...).Output()
+	if err != nil {
+		return ""
+	}
+
+	return strings.TrimSpace(string(out))
 }
