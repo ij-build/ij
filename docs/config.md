@@ -50,7 +50,7 @@ options:
         - SHA256:bpCS6MPUbsg3iOmQet2bNZ3m8DAED7ym6h9IrlYzPTU
 ```
 
-Alternatively, specifying the fingerprint '*' will allow any key that's bene added to the host's SSH agent (if at least one exists).
+Alternatively, specifying the fingerprint '*' will allow any key that's been added to the host's SSH agent (if at least one exists).
 
 ```yaml
 options:
