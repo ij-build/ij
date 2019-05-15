@@ -65,7 +65,7 @@ func SetupRunner(
 		scratch,
 		appOptions.Quiet,
 		appOptions.Verbose,
-		appOptions.Colorize,
+		!appOptions.DisableColor,
 		appOptions.FileFactory,
 	)
 

@@ -43,7 +43,7 @@ func withRegistrySet(
 	logProcessor := logging.NewProcessor(
 		appOptions.Quiet,
 		appOptions.Verbose,
-		appOptions.Colorize,
+		!appOptions.DisableColor,
 	)
 
 	logProcessor.Start()

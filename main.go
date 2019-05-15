@@ -23,12 +23,12 @@ func newSharedOptions(app *kingpin.Application, projectDir string) *options.AppO
 	}
 
 	app.Flag("scratch-root", "The directory where .ij/ files are written.").StringVar(&opts.ScratchRoot)
-	app.Flag("color", "Enable colorized output.").Default("true").BoolVar(&opts.Colorize)
 	app.Flag("config", "The path to the config file.").Short('f').StringVar(&opts.ConfigPath)
 	app.Flag("env", "Environment variables.").Short('e').StringsVar(&opts.Env)
 	app.Flag("env-file", "Environment file.").StringsVar(&opts.EnvFiles)
 	app.Flag("quiet", "Do not output to stdout or stderr.").Short('q').Default("false").BoolVar(&opts.Quiet)
 	app.Flag("verbose", "Output debug logs.").Short('v').Default("false").BoolVar(&opts.Verbose)
+	app.Flag("no-color", "Disable colorized output.").Default("false").BoolVar(&opts.DisableColor)
 	return opts
 }
 
