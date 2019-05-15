@@ -1,5 +1,3 @@
-bitbucket.org/rw_grim/govcs v0.0.0-20180308185220-f58bec590cb3 h1:6IH2zZommf+YmblYJhEa41baW1xsw9Sw2WbqRAZhjN4=
-bitbucket.org/rw_grim/govcs v0.0.0-20180308185220-f58bec590cb3/go.mod h1:s2T2txaZiZmJC6JyKfxXspmc3sG4Ha/OayWFErTuaGM=
 github.com/alecthomas/kingpin v2.2.6+incompatible h1:5svnBTFgJjZvGKyYBtMB0+m5wvrbUHiqye8wRJMlnYI=
 github.com/alecthomas/kingpin v2.2.6+incompatible/go.mod h1:59OFYbFVLKQKq+mqrL6Rw5bR0c3ACQaawgXx0QYndlE=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc h1:cAKDfWh5VpdgMhJosfJnn5/FoN2SRZ4p7fJNX58YPaU=
