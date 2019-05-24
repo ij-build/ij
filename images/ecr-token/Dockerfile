@@ -1,4 +1,4 @@
-FROM alpine:3.6
+FROM alpine:3.8
 
 RUN apk -v --update add python py-pip && \
     pip install --upgrade pip && \
@@ -8,5 +8,5 @@ RUN apk -v --update add python py-pip && \
     mkdir ~/.aws
 
 WORKDIR /ij
-COPY get-ecr-token.sh /ij
 CMD ["/ij/get-ecr-token.sh"]
+COPY get-ecr-token.sh /ij

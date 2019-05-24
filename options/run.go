@@ -6,14 +6,15 @@ import (
 )
 
 type RunOptions struct {
-	Plans               []string
-	CPUShares           string
-	ForceSequential     bool
-	HealthcheckInterval time.Duration
-	KeepWorkspace       bool
-	Login               bool
-	Memory              string
-	PlanTimeout         time.Duration
-	SSHIdentities       []string
-	Context             context.Context
+	Plans                   []string
+	CPUShares               string
+	ForceSequential         bool
+	HealthcheckInterval     time.Duration
+	KeepWorkspace           bool
+	Login                   bool
+	Memory                  string
+	PlanTimeout             time.Duration
+	SSHIdentities           []string
+	EnableContainerSSHAgent bool
+	Context                 context.Context
 }

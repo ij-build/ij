@@ -6,15 +6,13 @@ import (
 	"os"
 
 	"github.com/alecthomas/kingpin"
-
 	"github.com/efritz/ij/config"
+	"github.com/efritz/ij/consts"
 	"github.com/efritz/ij/loader"
 	"github.com/efritz/ij/logging"
 	"github.com/efritz/ij/options"
 	"github.com/efritz/ij/subcommand"
 )
-
-const Version = "0.1.0"
 
 func newSharedOptions(app *kingpin.Application, projectDir string) *options.AppOptions {
 	opts := &options.AppOptions{
@@ -46,6 +44,7 @@ func newRunOptions(cmd *kingpin.CmdClause) *options.RunOptions {
 	cmd.Flag("memory", "The amount of memory to give each container.").Short('m').StringVar(&opts.Memory)
 	cmd.Flag("timeout", "Maximum amount of time a plan can run. 0 to disable.").Default("15m").DurationVar(&opts.PlanTimeout)
 	cmd.Flag("ssh-identity", "Enable ssh-agent for the given identities.").StringsVar(&opts.SSHIdentities)
+	cmd.Flag("ssh-agent-container", "Start an ssh-agent inside of a container.").BoolVar(&opts.EnableContainerSSHAgent)
 	return opts
 }
 
@@ -66,7 +65,7 @@ func main() {
 }
 
 func runMain() error {
-	app := kingpin.New("ij", "IJ is a build tool using Docker containers.").Version(Version)
+	app := kingpin.New("ij", "IJ is a build tool using Docker containers.").Version(consts.Version)
 	clean := app.Command("clean", "Remove exported files.")
 	_ = app.Command("login", "Login to docker registries.")
 	_ = app.Command("logout", "Logout of docker registries.")

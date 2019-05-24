@@ -199,7 +199,7 @@ func (r *StageRunner) buildTaskRunnerFunc(
 		)
 
 		if !runner.Run(context) {
-			ReportError(
+			reportError(
 				r.ctx,
 				r.logger,
 				taskPrefix,

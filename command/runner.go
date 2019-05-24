@@ -7,7 +7,6 @@ import (
 	"io"
 	"os/exec"
 	"strings"
-	"syscall"
 
 	"github.com/efritz/ij/logging"
 	"github.com/efritz/ij/util"
@@ -112,9 +111,7 @@ func (r *runner) run(
 		}
 	}
 
-	command.SysProcAttr = &syscall.SysProcAttr{
-		Setpgid: true,
-	}
+	command.SysProcAttr = sysProcAttr
 
 	outReader, err := command.StdoutPipe()
 	if err != nil {

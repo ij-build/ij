@@ -2,13 +2,10 @@ package runner
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
-	"os/user"
 	"syscall"
 
-	"github.com/efritz/ij/command"
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/logging"
 	"github.com/efritz/ij/paths"
@@ -26,8 +23,6 @@ type Runner struct {
 	cancel            func()
 	env               []string
 }
-
-const FlashPermissionsImage = "alpine:3.8"
 
 var shutdownSignals = []syscall.Signal{
 	syscall.SIGINT,
@@ -125,18 +120,7 @@ func (r *Runner) Run(plans []string) bool {
 		}
 	}
 
-	r.logger.Info(
-		nil,
-		"Flashing workspace permissions",
-	)
-
-	if err := r.flashPermissions(); err != nil {
-		r.logger.Error(
-			nil,
-			"Failed to flash workspace permissions: %s",
-			err.Error(),
-		)
-	}
+	r.tryFlashPermissions()
 
 	if failure {
 		return false
@@ -181,34 +165,4 @@ func (r *Runner) watchSignals() {
 		r.cancel()
 		return
 	}
-}
-
-func (r *Runner) flashPermissions() error {
-	user, err := user.Current()
-	if err != nil {
-		return err
-	}
-
-	builder := command.NewBuilder([]string{
-		"docker",
-		"run",
-		"--rm",
-	}, nil)
-
-	builder.AddArgs(FlashPermissionsImage)
-	builder.AddArgs("chown", fmt.Sprintf("%s:%s", user.Uid, user.Gid), "-R", ".")
-	builder.AddFlagValue("-w", "/workspace")
-	builder.AddFlagValue("-v", fmt.Sprintf("%s:/workspace", r.scratch.Workspace()))
-
-	args, _, err := builder.Build()
-	if err != nil {
-		return err
-	}
-
-	return command.NewRunner(r.logger).Run(
-		r.ctx,
-		args,
-		nil,
-		nil,
-	)
 }

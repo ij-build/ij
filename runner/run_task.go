@@ -41,9 +41,10 @@ type (
 	}
 
 	containerOptions struct {
-		EnableSSHAgent bool
-		CPUShares      string
-		Memory         string
+		EnableHostSSHAgent      bool
+		EnableContainerSSHAgent bool
+		CPUShares               string
+		Memory                  string
 	}
 
 	runTaskCommandBuilderState struct {
@@ -185,7 +186,7 @@ func (r *runTaskRunner) runInForeground(
 	)
 
 	if err != nil {
-		ReportError(
+		reportError(
 			r.ctx,
 			r.logger,
 			r.prefix,
@@ -202,7 +203,7 @@ func (r *runTaskRunner) runInForeground(
 func (r *runTaskRunner) exportEnvironmentFiles(context *RunContext) bool {
 	paths, err := r.env.ExpandSlice(r.task.ExportEnvironmentFiles)
 	if err != nil {
-		ReportError(
+		reportError(
 			r.ctx,
 			r.logger,
 			r.prefix,
@@ -227,7 +228,7 @@ func (r *runTaskRunner) exportEnvironmentFile(context *RunContext, path string) 
 
 	realPath, err := filepath.Abs(filepath.Join(workspace, path))
 	if err != nil {
-		ReportError(
+		reportError(
 			r.ctx,
 			r.logger,
 			r.prefix,
@@ -239,7 +240,7 @@ func (r *runTaskRunner) exportEnvironmentFile(context *RunContext, path string) 
 	}
 
 	if !strings.HasPrefix(realPath, workspace) {
-		ReportError(
+		reportError(
 			r.ctx,
 			r.logger,
 			r.prefix,
@@ -294,7 +295,7 @@ func (r *runTaskRunner) runInBackground(containerName string, args []string) boo
 	)
 
 	if err != nil {
-		ReportError(
+		reportError(
 			r.ctx,
 			r.logger,
 			r.prefix,
@@ -313,7 +314,7 @@ func (r *runTaskRunner) runInBackground(containerName string, args []string) boo
 	)
 
 	if err != nil {
-		ReportError(
+		reportError(
 			r.ctx,
 			r.logger,
 			r.prefix,
@@ -341,7 +342,7 @@ func (r *runTaskRunner) monitor(containerName string) bool {
 		)
 
 		if err != nil {
-			ReportError(
+			reportError(
 				r.ctx,
 				r.logger,
 				r.prefix,
@@ -583,13 +584,19 @@ func (s *runTaskCommandBuilderState) addUserOptions(cb *command.Builder) error {
 }
 
 func (s *runTaskCommandBuilderState) addSSHOptions(cb *command.Builder) error {
-	if !s.containerOptions.EnableSSHAgent {
-		return nil
+	if s.containerOptions.EnableHostSSHAgent {
+		// Outside of the ssh-agent container we can just mount the host auth socket.
+		authSock := os.Getenv("SSH_AUTH_SOCK")
+		cb.AddFlagValue("-e", "SSH_AUTH_SOCK")
+		cb.AddFlagValue("-v", fmt.Sprintf("%s:%s", authSock, authSock))
 	}
 
-	authSock := os.Getenv("SSH_AUTH_SOCK")
-	cb.AddFlagValue("-e", "SSH_AUTH_SOCK")
-	cb.AddFlagValue("-v", authSock+":"+authSock)
+	if s.containerOptions.EnableContainerSSHAgent {
+		// Mount the socket from the ssh-agent container
+		cb.AddFlagValue("-e", fmt.Sprintf("SSH_AUTH_SOCK=%s", SocketPath))
+		cb.AddFlagValue("--volumes-from", fmt.Sprintf("%s-ssh-agent", s.runID))
+	}
+
 	return nil
 }
 

@@ -60,6 +60,7 @@ func translateTask(
 	assetName := fmt.Sprintf("schema/task-%s.yaml", typeHint.Type)
 
 	if err := schema.Validate(assetName, data); err != nil {
+		// TODO - need to go through these things and do (%s)
 		return nil, fmt.Errorf("failed to validate task %s: %s", name, err.Error())
 	}
 

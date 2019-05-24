@@ -30,7 +30,11 @@ func EnsureKeysAvailable(identities []string) (bool, error) {
 		}
 	}
 
-	return false, fmt.Errorf("no ssh keys available")
+	if len(keys) == 0 {
+		return false, fmt.Errorf("no ssh keys available")
+	}
+
+	return false, fmt.Errorf("available ssh keys do not match expected identities")
 }
 
 func matchIdentity(identity string, keys []*agent.Key) bool {

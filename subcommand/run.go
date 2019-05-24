@@ -9,7 +9,6 @@ import (
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/options"
 	"github.com/efritz/ij/runner"
-	"github.com/efritz/ij/ssh"
 )
 
 var ErrBuildFailed = fmt.Errorf("subcommand failed")
@@ -18,17 +17,6 @@ func NewRunCommand(appOptions *options.AppOptions, runOptions *options.RunOption
 	return func(config *config.Config) error {
 		if !ensureDocker() {
 			return fmt.Errorf("docker is not running")
-		}
-
-		enableSSHAgent, err := ssh.EnsureKeysAvailable(
-			config.Options.SSHIdentities,
-		)
-
-		if err != nil {
-			return fmt.Errorf(
-				"failed to validate ssh keys: %s",
-				err.Error(),
-			)
 		}
 
 		for _, name := range runOptions.Plans {
@@ -44,7 +32,6 @@ func NewRunCommand(appOptions *options.AppOptions, runOptions *options.RunOption
 			config,
 			appOptions,
 			runOptions,
-			enableSSHAgent,
 		)
 
 		if err != nil {

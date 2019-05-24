@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/efritz/ij/options"
 	"github.com/efritz/ij/registry"
 	"github.com/efritz/ij/scratch"
+	"github.com/efritz/ij/ssh"
 	"github.com/efritz/ij/util"
 )
 
@@ -19,7 +21,6 @@ func SetupRunner(
 	cfg *config.Config,
 	appOptions *options.AppOptions,
 	runOptions *options.RunOptions,
-	enableSSHAgent bool,
 ) (runner *Runner, err error) {
 	var (
 		cleanup           = NewCleanup()
@@ -32,6 +33,15 @@ func SetupRunner(
 	)
 
 	if runID, err = setupRunID(); err != nil {
+		return
+	}
+
+	enableHostSSHAgent, err := shouldEnableHostSSHAgent(
+		runOptions.EnableContainerSSHAgent,
+		cfg.Options.SSHIdentities,
+	)
+
+	if err != nil {
 		return
 	}
 
@@ -94,6 +104,33 @@ func SetupRunner(
 		logger,
 	)
 
+	if runOptions.EnableContainerSSHAgent {
+		logger.Info(
+			nil,
+			"Starting ssh-agent container",
+		)
+
+		err = startSSHAgent(
+			runID,
+			cfg.Options.SSHIdentities,
+			scratch,
+			containerLists,
+			logger,
+		)
+
+		if err != nil {
+			reportError(
+				ctx,
+				logger,
+				nil,
+				"error: failed to setup ssh-agent: %s",
+				err.Error(),
+			)
+
+			return
+		}
+	}
+
 	err = setupRegistries(
 		ctx,
 		cfg,
@@ -149,9 +186,10 @@ func SetupRunner(
 
 		case *config.RunTask:
 			containerOptions := &containerOptions{
-				EnableSSHAgent: enableSSHAgent,
-				CPUShares:      runOptions.CPUShares,
-				Memory:         runOptions.Memory,
+				EnableHostSSHAgent:      enableHostSSHAgent,
+				EnableContainerSSHAgent: runOptions.EnableContainerSSHAgent,
+				CPUShares:               runOptions.CPUShares,
+				Memory:                  runOptions.Memory,
 			}
 
 			return NewRunTaskRunnerFactory(
@@ -338,7 +376,7 @@ func setupRegistries(
 	)
 
 	if err != nil {
-		ReportError(
+		reportError(
 			ctx,
 			logger,
 			nil,
@@ -350,7 +388,7 @@ func setupRegistries(
 	}
 
 	if err = registrySet.Login(); err != nil {
-		ReportError(
+		reportError(
 			ctx,
 			logger,
 			nil,
@@ -373,7 +411,7 @@ func setupNetwork(
 ) (*network.Network, error) {
 	network, err := network.NewNetwork(ctx, runID, logger)
 	if err != nil {
-		ReportError(
+		reportError(
 			ctx,
 			logger,
 			nil,
@@ -388,7 +426,26 @@ func setupNetwork(
 	return network, nil
 }
 
-func ReportError(
+//
+// Helpers
+
+func shouldEnableHostSSHAgent(enableContainerSSHAgent bool, identities []string) (bool, error) {
+	if enableContainerSSHAgent {
+		return false, nil
+	}
+
+	enable, err := ssh.EnsureKeysAvailable(identities)
+	if err != nil {
+		return false, fmt.Errorf(
+			"failed to validate ssh keys: %s",
+			err.Error(),
+		)
+	}
+
+	return enable, nil
+}
+
+func reportError(
 	ctx context.Context,
 	logger logging.Logger,
 	prefix *logging.Prefix,

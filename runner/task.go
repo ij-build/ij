@@ -94,7 +94,7 @@ func (r *baseRunner) Run(context *RunContext) bool {
 		)
 
 		if err != nil {
-			ReportError(
+			reportError(
 				r.ctx,
 				r.logger,
 				r.prefix,
@@ -119,7 +119,7 @@ func (r *baseRunner) RegisterOnFailure(hookFunc HookFunc) {
 
 func (r *baseRunner) runSuccessHook(context *RunContext) bool {
 	if err := r.onSuccess(context); err != nil {
-		ReportError(
+		reportError(
 			r.ctx,
 			r.logger,
 			r.prefix,
@@ -135,7 +135,7 @@ func (r *baseRunner) runSuccessHook(context *RunContext) bool {
 
 func (r *baseRunner) runFailureHook(context *RunContext) bool {
 	if err := r.onFailure(context); err != nil {
-		ReportError(
+		reportError(
 			r.ctx,
 			r.logger,
 			r.prefix,

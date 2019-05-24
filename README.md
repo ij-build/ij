@@ -44,6 +44,7 @@ This command can be invoked as `ij [run]? (plan-name)*`. The run keyword is assu
 | login                |            | Login to registries before invoking plans and logout from registries after (useful for builds that push image artifacts). |
 | memory               | m          | The memory limit for run task containers. |
 | ssh-identity         |            | An additional SSH key fingerprint required to be present in the host's SSH agent. |
+| ssh-agent-container  |            | Mount your `~/.ssh` directory into a container and start an ssh-agent. This is required for using SSH keys on Windows. |
 | timeout              |            | The maximum time a build plan can run in total. |
 
 ### Login Command
