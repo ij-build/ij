@@ -83,7 +83,7 @@ func (s *KeysSuite) TestEnsureKeysAvailableNonMatching(t sweet.T) {
 
 	for _, fingerprint := range fingerprints {
 		_, err := EnsureKeysAvailable([]string{fingerprint})
-		Expect(err).To(MatchError("no ssh keys available"))
+		Expect(err).To(MatchError("available ssh keys do not match expected identities"))
 	}
 }
 

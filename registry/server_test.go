@@ -1,6 +1,6 @@
 package registry
 
-//go:generate go-mockgen github.com/efritz/ij/command -i Runner -d mocks -f
+//go:generate go-mockgen -f github.com/efritz/ij/command -i Runner -o mock_runner_test.go
 
 import (
 	"context"
@@ -10,16 +10,16 @@ import (
 	"github.com/aphistic/sweet"
 	. "github.com/onsi/gomega"
 
+	. "github.com/efritz/go-mockgen/matchers"
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/registry/mocks"
 )
 
 type ServerSuite struct{}
 
 func (s *ServerSuite) TestLogin(t sweet.T) {
-	runner := mocks.NewMockRunner()
+	runner := NewMockRunner()
 	registry := &config.ServerRegistry{
 		Server:   "docker.io",
 		Username: "admin",
@@ -39,23 +39,23 @@ func (s *ServerSuite) TestLogin(t sweet.T) {
 	Expect(server).To(Equal("docker.io"))
 	Expect(login.Login()).To(BeNil())
 
-	Expect(runner.RunFuncCallCount()).To(Equal(1))
-	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{
+	Expect(runner.RunFunc).To(BeCalledOnce())
+	Expect(runner.RunFunc).To(BeCalledWith(BeAnything(), []string{
 		"docker",
 		"login",
 		"-u",
 		"admin",
 		"--password-stdin",
 		"docker.io",
-	}))
+	}, BeAnything(), BeAnything()))
 
-	stdin := runner.RunFuncCallParams()[0].Arg2
+	stdin := runner.RunFunc.History()[0].Arg2
 	content, _ := ioutil.ReadAll(stdin)
 	Expect(string(content)).To(Equal("secret"))
 }
 
 func (s *ServerSuite) TestLoginPasswordFile(t sweet.T) {
-	runner := mocks.NewMockRunner()
+	runner := NewMockRunner()
 	registry := &config.ServerRegistry{
 		Server:       "docker.io",
 		Username:     "admin",
@@ -75,23 +75,23 @@ func (s *ServerSuite) TestLoginPasswordFile(t sweet.T) {
 	Expect(server).To(Equal("docker.io"))
 	Expect(login.Login()).To(BeNil())
 
-	Expect(runner.RunFuncCallCount()).To(Equal(1))
-	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{
+	Expect(runner.RunFunc).To(BeCalledOnce())
+	Expect(runner.RunFunc).To(BeCalledWith(BeAnything(), []string{
 		"docker",
 		"login",
 		"-u",
 		"admin",
 		"--password-stdin",
 		"docker.io",
-	}))
+	}, BeAnything(), BeAnything()))
 
-	stdin := runner.RunFuncCallParams()[0].Arg2
+	stdin := runner.RunFunc.History()[0].Arg2
 	content, _ := ioutil.ReadAll(stdin)
 	Expect(strings.TrimSpace(string(content))).To(Equal("super secret file"))
 }
 
 func (s *ServerSuite) TestLoginMappedEnvironment(t sweet.T) {
-	runner := mocks.NewMockRunner()
+	runner := NewMockRunner()
 	registry := &config.ServerRegistry{
 		Server:   "${DOCKER_HOST}",
 		Username: "${DOCKER_USERNAME}",
@@ -117,17 +117,17 @@ func (s *ServerSuite) TestLoginMappedEnvironment(t sweet.T) {
 	Expect(server).To(Equal("docker.io"))
 	Expect(login.Login()).To(BeNil())
 
-	Expect(runner.RunFuncCallCount()).To(Equal(1))
-	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{
+	Expect(runner.RunFunc).To(BeCalledOnce())
+	Expect(runner.RunFunc).To(BeCalledWith(BeAnything(), []string{
 		"docker",
 		"login",
 		"-u",
 		"admin",
 		"--password-stdin",
 		"docker.io",
-	}))
+	}, BeAnything(), BeAnything()))
 
-	stdin := runner.RunFuncCallParams()[0].Arg2
+	stdin := runner.RunFunc.History()[0].Arg2
 	content, _ := ioutil.ReadAll(stdin)
 	Expect(string(content)).To(Equal("secret"))
 }

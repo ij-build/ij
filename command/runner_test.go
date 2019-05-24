@@ -1,6 +1,6 @@
 package command
 
-//go:generate go-mockgen github.com/efritz/ij/logging -i Logger -o mock_logger_test.go -f
+//go:generate go-mockgen -f github.com/efritz/ij/logging -i Logger -o mock_logger_test.go
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 	"github.com/aphistic/sweet"
 	"github.com/efritz/ij/logging"
 	. "github.com/onsi/gomega"
+	. "github.com/efritz/go-mockgen/matchers"
 )
 
 type RunnerSuite struct{}
@@ -33,13 +34,11 @@ func (s *RunnerSuite) TestRun(t sweet.T) {
 	)
 
 	Expect(err).To(BeNil())
-	Expect(logger.InfoFuncCallCount()).To(Equal(3))
-	Expect(logger.ErrorFuncCallCount()).To(Equal(0))
-
-	params := logger.InfoFuncCallParams()
-	Expect(params[0].Arg2[0]).To(Equal("0 > foo"))
-	Expect(params[1].Arg2[0]).To(Equal("1 > bar"))
-	Expect(params[2].Arg2[0]).To(Equal("2 > baz"))
+	Expect(logger.InfoFunc).To(BeCalledN(3))
+	Expect(logger.ErrorFunc).NotTo(BeCalled())
+	Expect(logger.InfoFunc.History()[0].Arg2[0]).To(Equal("0 > foo"))
+	Expect(logger.InfoFunc.History()[1].Arg2[0]).To(Equal("1 > bar"))
+	Expect(logger.InfoFunc.History()[2].Arg2[0]).To(Equal("2 > baz"))
 }
 
 func (s *RunnerSuite) TestRunWithStdin(t sweet.T) {
@@ -60,14 +59,12 @@ func (s *RunnerSuite) TestRunWithStdin(t sweet.T) {
 	)
 
 	Expect(err).To(BeNil())
-	Expect(logger.InfoFuncCallCount()).To(Equal(4))
-	Expect(logger.ErrorFuncCallCount()).To(Equal(0))
-
-	params := logger.InfoFuncCallParams()
-	Expect(params[0].Arg2[0]).To(Equal("x > XXX"))
-	Expect(params[1].Arg2[0]).To(Equal("0 > foo"))
-	Expect(params[2].Arg2[0]).To(Equal("1 > bar"))
-	Expect(params[3].Arg2[0]).To(Equal("2 > baz"))
+	Expect(logger.InfoFunc).To(BeCalledN(4))
+	Expect(logger.ErrorFunc).NotTo(BeCalled())
+	Expect(logger.InfoFunc.History()[0].Arg2[0]).To(Equal("x > XXX"))
+	Expect(logger.InfoFunc.History()[1].Arg2[0]).To(Equal("0 > foo"))
+	Expect(logger.InfoFunc.History()[2].Arg2[0]).To(Equal("1 > bar"))
+	Expect(logger.InfoFunc.History()[3].Arg2[0]).To(Equal("2 > baz"))
 }
 
 func (s *RunnerSuite) TestRunWithMaskedSecrets(t sweet.T) {
@@ -95,10 +92,8 @@ func (s *RunnerSuite) TestRunWithMaskedSecrets(t sweet.T) {
 	)
 
 	Expect(err).To(BeNil())
-	Expect(logger.DebugFuncCallCount()).To(Equal(1))
-
-	params := logger.DebugFuncCallParams()
-	Expect(params[0].Arg2).To(Equal([]interface{}{strings.Join(expectedArgs, " ")}))
+	Expect(logger.DebugFunc).To(BeCalledOnce())
+	Expect(logger.DebugFunc.History()[0].Arg2).To(Equal([]interface{}{strings.Join(expectedArgs, " ")}))
 }
 
 func (s *RunnerSuite) TestRunErrorOutput(t sweet.T) {
@@ -122,18 +117,14 @@ func (s *RunnerSuite) TestRunErrorOutput(t sweet.T) {
 	)
 
 	Expect(err).To(BeNil())
-	Expect(logger.InfoFuncCallCount()).To(Equal(3))
-	Expect(logger.ErrorFuncCallCount()).To(Equal(3))
-
-	outParams := logger.InfoFuncCallParams()
-	Expect(outParams[0].Arg2[0]).To(Equal("0 > foo"))
-	Expect(outParams[1].Arg2[0]).To(Equal("2 > bar"))
-	Expect(outParams[2].Arg2[0]).To(Equal("4 > baz"))
-
-	errParams := logger.ErrorFuncCallParams()
-	Expect(errParams[0].Arg2[0]).To(Equal("1 > FOO"))
-	Expect(errParams[1].Arg2[0]).To(Equal("3 > BAR"))
-	Expect(errParams[2].Arg2[0]).To(Equal("5 > BAZ"))
+	Expect(logger.InfoFunc).To(BeCalledN(3))
+	Expect(logger.ErrorFunc).To(BeCalledN(3))
+	Expect(logger.InfoFunc.History()[0].Arg2[0]).To(Equal("0 > foo"))
+	Expect(logger.InfoFunc.History()[1].Arg2[0]).To(Equal("2 > bar"))
+	Expect(logger.InfoFunc.History()[2].Arg2[0]).To(Equal("4 > baz"))
+	Expect(logger.ErrorFunc.History()[0].Arg2[0]).To(Equal("1 > FOO"))
+	Expect(logger.ErrorFunc.History()[1].Arg2[0]).To(Equal("3 > BAR"))
+	Expect(logger.ErrorFunc.History()[2].Arg2[0]).To(Equal("5 > BAZ"))
 }
 
 func (s *RunnerSuite) TestRunForOutput(t sweet.T) {

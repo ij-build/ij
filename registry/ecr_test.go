@@ -2,21 +2,20 @@ package registry
 
 import (
 	"context"
-	"io"
 	"io/ioutil"
 
 	"github.com/aphistic/sweet"
+	. "github.com/efritz/go-mockgen/matchers"
 	"github.com/efritz/ij/config"
 	"github.com/efritz/ij/environment"
 	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/registry/mocks"
 	. "github.com/onsi/gomega"
 )
 
 type ECRSuite struct{}
 
 func (s *ECRSuite) TestLogin(t sweet.T) {
-	runner := mocks.NewMockRunner()
+	runner := NewMockRunner()
 	registry := &config.ECRRegistry{
 		AccessKeyID:     "testAccessKeyID",
 		SecretAccessKey: "testSecretAccessKey",
@@ -25,9 +24,7 @@ func (s *ECRSuite) TestLogin(t sweet.T) {
 		Role:            "testRole",
 	}
 
-	runner.RunForOutputFunc = func(_ context.Context, _ []string, _ io.ReadCloser) (string, string, error) {
-		return "somehugetoken", "", nil
-	}
+	runner.RunForOutputFunc.SetDefaultReturn("somehugetoken", "", nil)
 
 	login := newECRLogin(
 		context.Background(),
@@ -42,8 +39,8 @@ func (s *ECRSuite) TestLogin(t sweet.T) {
 	Expect(server).To(Equal("https://testAccountID.dkr.ecr.testRegion.amazonaws.com"))
 	Expect(login.Login()).To(BeNil())
 
-	Expect(runner.RunForOutputFuncCallCount()).To(Equal(1))
-	Expect(runner.RunForOutputFuncCallParams()[0].Arg1).To(Equal([]string{
+	Expect(runner.RunForOutputFunc).To(BeCalledOnce())
+	Expect(runner.RunForOutputFunc).To(BeCalledWith(BeAnything(), []string{
 		"docker",
 		"run",
 		"--rm",
@@ -53,25 +50,25 @@ func (s *ECRSuite) TestLogin(t sweet.T) {
 		"-e", "AWS_REGION=testRegion",
 		"-e", "AWS_ROLE=testRole",
 		"efritz/ij-ecr-token:latest",
-	}))
+	}, BeAnything()))
 
-	Expect(runner.RunFuncCallCount()).To(Equal(1))
-	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{
+	Expect(runner.RunFunc).To(BeCalledOnce())
+	Expect(runner.RunFunc).To(BeCalledWith(BeAnything(), []string{
 		"docker",
 		"login",
 		"-u",
 		"AWS",
 		"--password-stdin",
 		"https://testAccountID.dkr.ecr.testRegion.amazonaws.com",
-	}))
+	}, BeAnything(), BeAnything()))
 
-	stdin := runner.RunFuncCallParams()[0].Arg2
+	stdin := runner.RunFunc.History()[0].Arg2
 	content, _ := ioutil.ReadAll(stdin)
 	Expect(string(content)).To(Equal("somehugetoken"))
 }
 
 func (s *ECRSuite) TestLoginMappedEnvironment(t sweet.T) {
-	runner := mocks.NewMockRunner()
+	runner := NewMockRunner()
 	registry := &config.ECRRegistry{
 		AccessKeyID:     "${AWS_ACCESS_KEY_ID}",
 		SecretAccessKey: "${AWS_SECRET_ACCESS_KEY}",
@@ -88,9 +85,7 @@ func (s *ECRSuite) TestLoginMappedEnvironment(t sweet.T) {
 		"AWS_ROLE=testRole",
 	}
 
-	runner.RunForOutputFunc = func(_ context.Context, _ []string, _ io.ReadCloser) (string, string, error) {
-		return "somehugetoken", "", nil
-	}
+	runner.RunForOutputFunc.SetDefaultReturn("somehugetoken", "", nil)
 
 	login := newECRLogin(
 		context.Background(),
@@ -105,8 +100,8 @@ func (s *ECRSuite) TestLoginMappedEnvironment(t sweet.T) {
 	Expect(server).To(Equal("https://testAccountID.dkr.ecr.testRegion.amazonaws.com"))
 	Expect(login.Login()).To(BeNil())
 
-	Expect(runner.RunForOutputFuncCallCount()).To(Equal(1))
-	Expect(runner.RunForOutputFuncCallParams()[0].Arg1).To(Equal([]string{
+	Expect(runner.RunForOutputFunc).To(BeCalledOnce())
+	Expect(runner.RunForOutputFunc).To(BeCalledWith(BeAnything(), []string{
 		"docker",
 		"run",
 		"--rm",
@@ -116,19 +111,19 @@ func (s *ECRSuite) TestLoginMappedEnvironment(t sweet.T) {
 		"-e", "AWS_REGION=testRegion",
 		"-e", "AWS_ROLE=testRole",
 		"efritz/ij-ecr-token:latest",
-	}))
+	}, BeAnything()))
 
-	Expect(runner.RunFuncCallCount()).To(Equal(1))
-	Expect(runner.RunFuncCallParams()[0].Arg1).To(Equal([]string{
+	Expect(runner.RunFunc).To(BeCalledOnce())
+	Expect(runner.RunFunc).To(BeCalledWith(BeAnything(), []string{
 		"docker",
 		"login",
 		"-u",
 		"AWS",
 		"--password-stdin",
 		"https://testAccountID.dkr.ecr.testRegion.amazonaws.com",
-	}))
+	}, BeAnything(), BeAnything()))
 
-	stdin := runner.RunFuncCallParams()[0].Arg2
+	stdin := runner.RunFunc.History()[0].Arg2
 	content, _ := ioutil.ReadAll(stdin)
 	Expect(string(content)).To(Equal("somehugetoken"))
 }

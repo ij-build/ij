@@ -1,6 +1,6 @@
 package logging
 
-//go:generate go-mockgen github.com/efritz/ij/logging -i ColorPicker -o mock_color_picker_test.go -f
+//go:generate go-mockgen -f github.com/efritz/ij/logging -i ColorPicker -o mock_color_picker_test.go
 
 import (
 	"fmt"
@@ -18,9 +18,9 @@ func (s *PrefixSuite) TestSerialize(t sweet.T) {
 
 func (s *PrefixSuite) TestSerializeWithPicker(t sweet.T) {
 	picker := NewMockColorPicker()
-	picker.ColorizeFunc = func(val string) string {
+	picker.ColorizeFunc.SetDefaultHook(func(val string) string {
 		return fmt.Sprintf("[%s]", val)
-	}
+	})
 
 	prefix := NewPrefix("foo", "bar", "baz")
 	Expect(prefix.Serialize(picker)).To(Equal("[foo]/[bar]/[baz]"))

@@ -1,6 +1,6 @@
 package network
 
-//go:generate go-mockgen github.com/efritz/ij/command -i Runner -d mocks -f
+//go:generate go-mockgen -f github.com/efritz/ij/command -i Runner -o mock_runner_test.go
 
 import (
 	"context"
@@ -10,14 +10,13 @@ import (
 	"github.com/aphistic/sweet"
 	"github.com/efritz/ij/logging"
 	. "github.com/onsi/gomega"
-
-	"github.com/efritz/ij/network/mocks"
+	. "github.com/efritz/go-mockgen/matchers"
 )
 
 type NetworkSuite struct{}
 
 func (s *NetworkSuite) TestSetupTeardown(t sweet.T) {
-	runner := mocks.NewMockRunner()
+	runner := NewMockRunner()
 
 	network, err := newNetwork(
 		context.Background(),
@@ -27,23 +26,21 @@ func (s *NetworkSuite) TestSetupTeardown(t sweet.T) {
 	)
 
 	Expect(err).To(BeNil())
-	Expect(runner.RunForOutputFuncCallCount()).To(Equal(1))
-	Expect(runner.RunForOutputFuncCallParams()[0].Arg1).To(Equal([]string{
+	Expect(runner.RunForOutputFunc).To(BeCalledOnce())
+	Expect(runner.RunForOutputFunc).To(BeCalledWith(BeAnything(),[]string{
 		"docker", "network", "create", "abcdef0",
-	}))
+	}, BeAnything()))
 
 	network.Teardown()
-	Expect(runner.RunForOutputFuncCallCount()).To(Equal(2))
-	Expect(runner.RunForOutputFuncCallParams()[1].Arg1).To(Equal([]string{
+	Expect(runner.RunForOutputFunc).To(BeCalledN(2))
+	Expect(runner.RunForOutputFunc).To(BeCalledWith(BeAnything(),[]string{
 		"docker", "network", "rm", "abcdef0",
-	}))
+	},BeAnything()))
 }
 
 func (s *NetworkSuite) TestSetupError(t sweet.T) {
-	runner := mocks.NewMockRunner()
-	runner.RunForOutputFunc = func(_ context.Context, args []string, _ io.ReadCloser) (string, string, error) {
-		return "", "", fmt.Errorf("utoh")
-	}
+	runner := NewMockRunner()
+	runner.RunForOutputFunc.SetDefaultReturn("","", fmt.Errorf("utoh"))
 
 	_, err := newNetwork(
 		context.Background(),
@@ -59,8 +56,8 @@ func (s *NetworkSuite) TestCancelSetup(t sweet.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	runner := mocks.NewMockRunner()
-	runner.RunForOutputFunc = func(ctx context.Context, args []string, _ io.ReadCloser) (string, string, error) {
+	runner := NewMockRunner()
+	runner.RunForOutputFunc.SetDefaultHook(func(ctx context.Context, args []string, _ io.ReadCloser) (string, string, error) {
 		select {
 		case <-ctx.Done():
 			return "", "", fmt.Errorf("context canceled")
@@ -68,7 +65,7 @@ func (s *NetworkSuite) TestCancelSetup(t sweet.T) {
 		}
 
 		return "", "", nil
-	}
+	})
 
 	network, err := newNetwork(
 		ctx,
@@ -83,7 +80,7 @@ func (s *NetworkSuite) TestCancelSetup(t sweet.T) {
 
 func (s *NetworkSuite) TestCancelDuringTeardown(t sweet.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-	runner := mocks.NewMockRunner()
+	runner := NewMockRunner()
 
 	network, err := newNetwork(
 		ctx,
@@ -96,10 +93,10 @@ func (s *NetworkSuite) TestCancelDuringTeardown(t sweet.T) {
 
 	cancel()
 	network.Teardown()
-	Expect(runner.RunForOutputFuncCallCount()).To(Equal(2))
+	Expect(runner.RunForOutputFunc).To(BeCalledN(2))
 
 	select {
-	case <-runner.RunForOutputFuncCallParams()[1].Arg0.Done():
+	case <-runner.RunForOutputFunc.History()[1].Arg0.Done():
 		t.Fail()
 	default:
 	}
