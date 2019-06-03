@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/aphistic/sweet"
+	. "github.com/efritz/go-mockgen/matchers"
 	"github.com/efritz/ij/logging"
 	. "github.com/onsi/gomega"
-	. "github.com/efritz/go-mockgen/matchers"
 )
 
 type RunnerSuite struct{}

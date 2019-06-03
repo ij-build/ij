@@ -279,7 +279,6 @@ func makePlanExtensionGraph(child *Config) *topsort.Graph {
 	return graph
 }
 
-
 func flattenGraph(graph *topsort.Graph, names []string) ([]string, error) {
 	all := []string{}
 	for _, name := range names {
