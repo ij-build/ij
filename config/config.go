@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/stevenle/topsort"
 )
 
 type (
@@ -66,34 +68,51 @@ func (c *Config) Merge(child *Config) error {
 		c.Tasks[name] = task
 	}
 
-	for name, plan := range child.Plans {
-		if plan.Extends == "" {
-			c.Plans[name] = plan
-			continue
-		}
+	planNames := []string{}
+	for name := range child.Plans {
+		planNames = append(planNames, name)
+	}
 
-		parentPlan, ok := c.Plans[plan.Extends]
-		if !ok {
-			return fmt.Errorf(
-				"plan %s extends unknown plan %s in parent",
-				name,
-				plan.Extends,
-			)
-		}
+	order, err := flattenGraph(makePlanExtensionGraph(child), planNames)
+	if err != nil {
+		return err
+	}
 
-		parentPlan = parentPlan.Clone()
-
-		if err := parentPlan.Merge(plan); err != nil {
+	for _, name := range order {
+		if err := c.mergePlan(name, child.Plans[name]); err != nil {
 			return err
 		}
-
-		c.Plans[name] = parentPlan
 	}
 
 	for name, plans := range child.Metaplans {
 		c.Metaplans[name] = plans
 	}
 
+	return nil
+}
+
+func (c *Config) mergePlan(name string, plan *Plan) error {
+	if plan.Extends == "" {
+		c.Plans[name] = plan
+		return nil
+	}
+
+	parentPlan, ok := c.Plans[plan.Extends]
+	if !ok {
+		return fmt.Errorf(
+			"plan %s extends unknown plan %s in parent",
+			name,
+			plan.Extends,
+		)
+	}
+
+	parentPlan = parentPlan.Clone()
+
+	if err := parentPlan.Merge(plan); err != nil {
+		return err
+	}
+
+	c.Plans[name] = parentPlan
 	return nil
 }
 
@@ -240,4 +259,50 @@ func (o *Options) MarshalJSON() ([]byte, error) {
 		ForceSequential:     o.ForceSequential,
 		HealthcheckInterval: durationString(o.HealthcheckInterval),
 	})
+}
+
+//
+// Helpers
+
+func makePlanExtensionGraph(child *Config) *topsort.Graph {
+	graph := topsort.NewGraph()
+	for name := range child.Plans {
+		graph.AddNode(name)
+	}
+
+	for name, plan := range child.Plans {
+		if _, ok := child.Plans[plan.Extends]; ok && plan.Extends != name {
+			graph.AddEdge(name, plan.Extends)
+		}
+	}
+
+	return graph
+}
+
+
+func flattenGraph(graph *topsort.Graph, names []string) ([]string, error) {
+	all := []string{}
+	for _, name := range names {
+		order, err := graph.TopSort(name)
+		if err != nil {
+			// Error messages starts with "Cycle error: "
+			return nil, fmt.Errorf("failed to extend cyclic plans (%s)", err.Error()[13:])
+		}
+
+		all = append(all, order...)
+	}
+
+	unique := []string{}
+	set := map[string]struct{}{}
+
+	for _, name := range all {
+		if _, ok := set[name]; ok {
+			continue
+		}
+
+		set[name] = struct{}{}
+		unique = append(unique, name)
+	}
+
+	return unique, nil
 }
