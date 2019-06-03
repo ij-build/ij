@@ -10,6 +10,26 @@ type Plan struct {
 	Environment []string `json:"environment,omitempty"`
 }
 
+func (p *Plan) Clone() *Plan {
+	stages := []*Stage{}
+	for _, stage := range p.Stages {
+		stages = append(stages, stage)
+	}
+
+	environment := []string{}
+	for _, value := range p.Environment {
+		environment = append(environment, value)
+	}
+
+	return &Plan{
+		Name:        p.Name,
+		Disabled:    p.Disabled,
+		Extends:     p.Extends,
+		Stages:      stages,
+		Environment: environment,
+	}
+}
+
 func (p *Plan) Merge(child *Plan) error {
 	for _, stage := range child.Stages {
 		if err := p.AddStage(stage); err != nil {

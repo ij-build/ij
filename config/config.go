@@ -81,6 +81,8 @@ func (c *Config) Merge(child *Config) error {
 			)
 		}
 
+		parentPlan = parentPlan.Clone()
+
 		if err := parentPlan.Merge(plan); err != nil {
 			return err
 		}
