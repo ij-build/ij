@@ -27,20 +27,20 @@ func (s *NetworkSuite) TestSetupTeardown(t sweet.T) {
 
 	Expect(err).To(BeNil())
 	Expect(runner.RunForOutputFunc).To(BeCalledOnce())
-	Expect(runner.RunForOutputFunc).To(BeCalledWith(BeAnything(),[]string{
+	Expect(runner.RunForOutputFunc).To(BeCalledWith(BeAnything(), []string{
 		"docker", "network", "create", "abcdef0",
 	}, BeAnything()))
 
 	network.Teardown()
 	Expect(runner.RunForOutputFunc).To(BeCalledN(2))
-	Expect(runner.RunForOutputFunc).To(BeCalledWith(BeAnything(),[]string{
+	Expect(runner.RunForOutputFunc).To(BeCalledWith(BeAnything(), []string{
 		"docker", "network", "rm", "abcdef0",
-	},BeAnything()))
+	}, BeAnything()))
 }
 
 func (s *NetworkSuite) TestSetupError(t sweet.T) {
 	runner := NewMockRunner()
-	runner.RunForOutputFunc.SetDefaultReturn("","", fmt.Errorf("utoh"))
+	runner.RunForOutputFunc.SetDefaultReturn("", "", fmt.Errorf("utoh"))
 
 	_, err := newNetwork(
 		context.Background(),
