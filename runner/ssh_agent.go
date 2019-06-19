@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os/user"
+	"path/filepath"
 
 	"github.com/ij-build/ij/command"
 	"github.com/ij-build/ij/logging"
@@ -150,7 +151,7 @@ func sshAgentCommandBuilderFactory(
 	}, nil)
 
 	builder.AddArgs(SSHAgentImage)
-	builder.AddFlagValue("-v", fmt.Sprintf("%s/.ssh:/root/.ssh", current.HomeDir))
+	builder.AddFlagValue("-v", fmt.Sprintf("%s:/root/.ssh", filepath.Join(current.HomeDir, ".ssh")))
 	builder.AddFlagValue("--name", containerName)
 	builder.AddFlag("-d")
 	builder.AddFlagValue("--network", runID)
