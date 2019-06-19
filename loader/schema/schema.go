@@ -6,7 +6,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/xeipuuv/gojsonschema"
 
-	"github.com/efritz/ij/asset"
+	"github.com/ij-build/ij/asset"
 )
 
 func Validate(name string, data []byte) error {

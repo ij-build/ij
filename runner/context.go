@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/efritz/ij/environment"
+	"github.com/ij-build/ij/environment"
 )
 
 type RunContext struct {

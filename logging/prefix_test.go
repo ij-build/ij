@@ -1,6 +1,6 @@
 package logging
 
-//go:generate go-mockgen -f github.com/efritz/ij/logging -i ColorPicker -o mock_color_picker_test.go
+//go:generate go-mockgen -f github.com/ij-build/ij/logging -i ColorPicker -o mock_color_picker_test.go
 
 import (
 	"fmt"

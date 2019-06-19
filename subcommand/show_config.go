@@ -3,9 +3,9 @@ package subcommand
 import (
 	"fmt"
 
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/options"
 	"github.com/ghodss/yaml"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/options"
 )
 
 func NewShowConfigCommand(appOptions *options.AppOptions) CommandRunner {

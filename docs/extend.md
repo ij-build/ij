@@ -1,6 +1,6 @@
 # Extending a Config
 
-A child config (with the `extends` property set) extends its parent config. Tasks, plans, and metaplans defined in the child config will be merged with the parent config. If the same name is defined in both config files, then the child definition overwrites the parent (except for plans defined in the child where the `extends` property is true, then see the [extending a plan](https://github.com/efritz/ij/blob/master/docs/extend.md#user-content-extending-a-plan) section below).
+A child config (with the `extends` property set) extends its parent config. Tasks, plans, and metaplans defined in the child config will be merged with the parent config. If the same name is defined in both config files, then the child definition overwrites the parent (except for plans defined in the child where the `extends` property is true, then see the [extending a plan](https://github.com/ij-build/ij/blob/master/docs/extend.md#user-content-extending-a-plan) section below).
 
 The values of all remaining properties *except* for `ssh-identities` are merged in the following manner:
 
@@ -8,7 +8,7 @@ The values of all remaining properties *except* for `ssh-identities` are merged 
 2. Otherwise, if the property is defined in the child, the value of the child is used;
 3. Otherwise, the value of the parent is used (which may be a zero-value for that type).
 
-Like [override files](https://github.com/efritz/ij/blob/master/docs/override.md#user-content-override-files), any ssh-identities specified in a child config file will *replace* ssh-identities defined in the parent.
+Like [override files](https://github.com/ij-build/ij/blob/master/docs/override.md#user-content-override-files), any ssh-identities specified in a child config file will *replace* ssh-identities defined in the parent.
 
 # Extending a Task
 

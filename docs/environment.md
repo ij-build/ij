@@ -6,7 +6,7 @@ If a variable is defined multiple times in a single environment, the last value 
 
 - the config `environment` and `env-file` properties
 - the override `environment` and `env-file` properties
-- the active [plan task](https://github.com/efritz/ij/blob/master/docs/tasks.md#user-content-plan-task-environment)'s environment
+- the active [plan task](https://github.com/ij-build/ij/blob/master/docs/tasks.md#user-content-plan-task-environment)'s environment
 - the active task's `environment` property
 - the active plan's `environment` property
 - the active stage's `environment` property

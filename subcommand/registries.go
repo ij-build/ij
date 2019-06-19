@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/environment"
-	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/options"
-	"github.com/efritz/ij/registry"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/environment"
+	"github.com/ij-build/ij/logging"
+	"github.com/ij-build/ij/options"
+	"github.com/ij-build/ij/registry"
 )
 
 func NewLoginCommand(appOptions *options.AppOptions) CommandRunner {

@@ -5,7 +5,7 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/efritz/ij/paths"
+	"github.com/ij-build/ij/paths"
 )
 
 var (

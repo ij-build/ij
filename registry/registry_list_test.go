@@ -1,6 +1,6 @@
 package registry
 
-//go:generate go-mockgen -f github.com/efritz/ij/registry -i Login -o mock_login_test.go
+//go:generate go-mockgen -f github.com/ij-build/ij/registry -i Login -o mock_login_test.go
 
 import (
 	"context"
@@ -10,9 +10,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/efritz/go-mockgen/matchers"
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/environment"
-	"github.com/efritz/ij/logging"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/environment"
+	"github.com/ij-build/ij/logging"
 )
 
 type RegistrySetSuite struct{}

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/efritz/ij/command"
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/options"
-	"github.com/efritz/ij/runner"
+	"github.com/ij-build/ij/command"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/options"
+	"github.com/ij-build/ij/runner"
 )
 
 var ErrBuildFailed = fmt.Errorf("subcommand failed")

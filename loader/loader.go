@@ -8,14 +8,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/environment"
-	"github.com/efritz/ij/util"
 	"github.com/ghodss/yaml"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/environment"
+	"github.com/ij-build/ij/util"
 	"github.com/stevenle/topsort"
 
-	"github.com/efritz/ij/loader/jsonconfig"
-	"github.com/efritz/ij/loader/schema"
+	"github.com/ij-build/ij/loader/jsonconfig"
+	"github.com/ij-build/ij/loader/schema"
 )
 
 type (

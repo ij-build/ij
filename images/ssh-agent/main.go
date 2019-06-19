@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/efritz/ij/consts"
-	"github.com/efritz/ij/ssh"
+	"github.com/ij-build/ij/consts"
+	"github.com/ij-build/ij/ssh"
 )
 
 func main() {

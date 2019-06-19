@@ -3,8 +3,8 @@ package network
 import (
 	"context"
 
-	"github.com/efritz/ij/command"
-	"github.com/efritz/ij/logging"
+	"github.com/ij-build/ij/command"
+	"github.com/ij-build/ij/logging"
 )
 
 type Network struct {

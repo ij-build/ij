@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/aphistic/sweet"
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/util"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/util"
 	. "github.com/onsi/gomega"
 )
 

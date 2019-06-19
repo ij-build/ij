@@ -1,6 +1,6 @@
 package options
 
-import "github.com/efritz/ij/logging"
+import "github.com/ij-build/ij/logging"
 
 type AppOptions struct {
 	ProjectDir   string

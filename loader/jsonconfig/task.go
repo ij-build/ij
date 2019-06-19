@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/loader/schema"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/loader/schema"
 )
 
 type (

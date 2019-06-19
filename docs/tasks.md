@@ -9,7 +9,7 @@ A task is an object representing a unit of work in the run of a build plan. Thes
 | environment          |          | []      | A list of environment variable definitions. Value may be a string or a list. |
 | required-environment |          | []      | A list of environment variable names which MUST be defined as non-empty for this task to run. |
 
-See the section on [extending a task](https://github.com/efritz/ij/blob/master/docs/extend.md#user-content-extending-a-task) about the semantics of the `extends` property. It may be of note that the `extends` property does **not** support environment expansion.
+See the section on [extending a task](https://github.com/ij-build/ij/blob/master/docs/extend.md#user-content-extending-a-task) about the semantics of the `extends` property. It may be of note that the `extends` property does **not** support environment expansion.
 
 The `type` property is not always required when not the default value -- if the `extends` property is set and the `type` property is not, then the value of the `type` property is inferred by type of the parent task. It is an error to supply both the `type` and `extends` property in an inconsistent manner (it is not possible to extend a task of a different type).
 
@@ -23,7 +23,7 @@ A run task runs a Docker container.
 | detach                  |          | false      | If true, this container is run in the background until container exit or the end of the build plan. |
 | entrypoint              |          | ''         | The entrypoint of the container. |
 | export-environment-file |          | ''         | The path (relative to the working directory) to the file where exported environment variables are written. |
-| healthcheck             |          | {}         | A [healthcheck configuration object](https://github.com/efritz/ij/blob/master/docs/tasks.md#user-content-healthcheck-configuration). |
+| healthcheck             |          | {}         | A [healthcheck configuration object](https://github.com/ij-build/ij/blob/master/docs/tasks.md#user-content-healthcheck-configuration). |
 | hostname                |          | ''         | The container's network alias. |
 | image                   | yes      |            | The name of the image to run. |
 | script                  |          | ''         | Lke the `command` property, but supports multi-line strings and shell features. |
@@ -40,7 +40,7 @@ Some of these properties work only in tandem (or mutually exclusively) with othe
 
 This task will run containers in the foreground (blocking until the container exits) unless `detach` is set to true. The task succeeds if the container exits with a zero status. When `detach` is set to true, the container will be run in the background. If the container defines a healthcheck (either via Dockerfile or the task healthcheck configuration defined below), the task will block until the container becomes healthy. The task succeeds if the container becomes healthy.
 
-The file referenced by `export-environment-file` should be formatted like an env file as discussed in the documentation on [environments](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment). Each relevant line of the file will be added to the working environment set made available to tasks in future stages in the same run.
+The file referenced by `export-environment-file` should be formatted like an env file as discussed in the documentation on [environments](https://github.com/ij-build/ij/blob/master/docs/environment.md#user-content-environment). Each relevant line of the file will be added to the working environment set made available to tasks in future stages in the same run.
 
 ### Healthcheck Configuration
 
@@ -192,7 +192,7 @@ It may be of note that the `name` property does **not** support environment expa
 
 ### Plan Task Environment
 
-The [environment](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment) built to execute a plan task is merged into the environment of the target plan. The environment active at the time of this task invocation is inserted after the override environment, but before the environment of a task referenced by the target plan.
+The [environment](https://github.com/ij-build/ij/blob/master/docs/environment.md#user-content-environment) built to execute a plan task is merged into the environment of the target plan. The environment active at the time of this task invocation is inserted after the override environment, but before the environment of a task referenced by the target plan.
 
 ### Example
 

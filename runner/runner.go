@@ -6,10 +6,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/paths"
-	"github.com/efritz/ij/scratch"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/logging"
+	"github.com/ij-build/ij/paths"
+	"github.com/ij-build/ij/scratch"
 )
 
 type Runner struct {

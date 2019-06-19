@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/efritz/ij/logging"
+	"github.com/ij-build/ij/logging"
 )
 
 type Copier struct {

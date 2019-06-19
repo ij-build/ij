@@ -5,7 +5,7 @@ import (
 	"context"
 	"io/ioutil"
 
-	"github.com/efritz/ij/command"
+	"github.com/ij-build/ij/command"
 )
 
 type Login interface {

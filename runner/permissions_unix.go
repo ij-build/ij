@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os/user"
 
-	"github.com/efritz/ij/command"
+	"github.com/ij-build/ij/command"
 )
 
 const FlashPermissionsImage = "alpine:3.8"

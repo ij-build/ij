@@ -3,9 +3,9 @@ package runner
 import (
 	"context"
 
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/environment"
-	"github.com/efritz/ij/logging"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/environment"
+	"github.com/ij-build/ij/logging"
 )
 
 type PlanRunner struct {

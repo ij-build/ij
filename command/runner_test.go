@@ -1,6 +1,6 @@
 package command
 
-//go:generate go-mockgen -f github.com/efritz/ij/logging -i Logger -o mock_logger_test.go
+//go:generate go-mockgen -f github.com/ij-build/ij/logging -i Logger -o mock_logger_test.go
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/aphistic/sweet"
 	. "github.com/efritz/go-mockgen/matchers"
-	"github.com/efritz/ij/logging"
+	"github.com/ij-build/ij/logging"
 	. "github.com/onsi/gomega"
 )
 

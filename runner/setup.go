@@ -6,15 +6,15 @@ import (
 	"io"
 	"time"
 
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/environment"
-	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/network"
-	"github.com/efritz/ij/options"
-	"github.com/efritz/ij/registry"
-	"github.com/efritz/ij/scratch"
-	"github.com/efritz/ij/ssh"
-	"github.com/efritz/ij/util"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/environment"
+	"github.com/ij-build/ij/logging"
+	"github.com/ij-build/ij/network"
+	"github.com/ij-build/ij/options"
+	"github.com/ij-build/ij/registry"
+	"github.com/ij-build/ij/scratch"
+	"github.com/ij-build/ij/ssh"
+	"github.com/ij-build/ij/util"
 )
 
 func SetupRunner(

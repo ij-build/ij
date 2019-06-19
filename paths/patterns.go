@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/efritz/ij/logging"
+	"github.com/ij-build/ij/logging"
 	"github.com/mattn/go-zglob"
 )
 

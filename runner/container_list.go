@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/efritz/ij/command"
-	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/util"
+	"github.com/ij-build/ij/command"
+	"github.com/ij-build/ij/logging"
+	"github.com/ij-build/ij/util"
 )
 
 type (

@@ -1,6 +1,6 @@
 package registry
 
-//go:generate go-mockgen -f github.com/efritz/ij/command -i Runner -o mock_runner_test.go
+//go:generate go-mockgen -f github.com/ij-build/ij/command -i Runner -o mock_runner_test.go
 
 import (
 	"context"
@@ -11,9 +11,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/efritz/go-mockgen/matchers"
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/environment"
-	"github.com/efritz/ij/logging"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/environment"
+	"github.com/ij-build/ij/logging"
 )
 
 type ServerSuite struct{}

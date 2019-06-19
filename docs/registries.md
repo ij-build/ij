@@ -31,7 +31,7 @@ An AWS Elastic Container Registry which can be logged in via AWS account credent
 | role              |          |           | The target assumed role of the provided account. |
 | secret-access-key | yes      |           | The user's AWS credentials. |
 
-If `role` and `account-id` are not supplied, then the registry is assumed to belong to the same account as the authenticated user. For cross-account use, the `role` and `account-id` variables can be supplied to force a role to be assumed on a secondary account. For more details, see the ecr-token [readme](https://github.com/efritz/ij/blob/master/images/ecr-token/README.md#user-content-ecr-token).
+If `role` and `account-id` are not supplied, then the registry is assumed to belong to the same account as the authenticated user. For cross-account use, the `role` and `account-id` variables can be supplied to force a role to be assumed on a secondary account. For more details, see the ecr-token [readme](https://github.com/ij-build/ij/blob/master/images/ecr-token/README.md#user-content-ecr-token).
 
 ## Google Cloud / GCR
 

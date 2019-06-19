@@ -2,7 +2,7 @@ package command
 
 import (
 	"github.com/aphistic/sweet"
-	"github.com/efritz/ij/logging"
+	"github.com/ij-build/ij/logging"
 	. "github.com/onsi/gomega"
 )
 

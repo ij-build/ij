@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/options"
-	"github.com/efritz/ij/paths"
-	"github.com/efritz/ij/scratch"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/options"
+	"github.com/ij-build/ij/paths"
+	"github.com/ij-build/ij/scratch"
 )
 
 func NewRotateLogsCommand(appOptions *options.AppOptions) CommandRunner {

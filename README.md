@@ -1,23 +1,23 @@
 <p align="center">
-    <img width="100" src="https://github.com/efritz/ij/blob/master/ij.svg" alt="IJ logo">
+    <img width="100" src="https://github.com/ij-build/ij/blob/master/ij.svg" alt="IJ logo">
 </p>
 
 <p align="center">
-    <a href="https://godoc.org/github.com/efritz/ij"><img src="https://godoc.org/github.com/efritz/ij?status.svg" alt="GoDoc"></a>
-    <a href="http://travis-ci.org/efritz/ij"><img src="https://secure.travis-ci.org/efritz/ij.png" alt="Build Status"></a>
-    <a href="https://codeclimate.com/github/efritz/ij/maintainability"><img src="https://api.codeclimate.com/v1/badges/63b7e45a56b21d361a62/maintainability" alt="Maintainability"></a>
-    <a href="https://codeclimate.com/github/efritz/ij/test_coverage"><img src="https://api.codeclimate.com/v1/badges/63b7e45a56b21d361a62/test_coverage" alt="Test Coverage"></a>
+    <a href="https://godoc.org/github.com/ij-build/ij"><img src="https://godoc.org/github.com/ij-build/ij?status.svg" alt="GoDoc"></a>
+    <a href="http://travis-ci.org/ij-build/ij"><img src="https://secure.travis-ci.org/ij-build/ij.png" alt="Build Status"></a>
+    <a href="https://codeclimate.com/github/ij-build/ij/maintainability"><img src="https://api.codeclimate.com/v1/badges/63b7e45a56b21d361a62/maintainability" alt="Maintainability"></a>
+    <a href="https://codeclimate.com/github/ij-build/ij/test_coverage"><img src="https://api.codeclimate.com/v1/badges/63b7e45a56b21d361a62/test_coverage" alt="Test Coverage"></a>
 </p>
 
 IJ is a build tool using Docker containers.
 
 ## Concepts
 
-A build is defined by a sequence of [tasks](https://github.com/efritz/ij/blob/master/docs/tasks.md#user-content-tasks) which perform some unit of work (e.g. building a binary, running integration tests, pushing artifacts to a remote server), usually within a docker container. This ensures that the development host stays clean, and that the exact build dependencies are available within the container (no more development tool version hell). The build process is defined by assembling a sequence of tasks into a [plan](https://github.com/efritz/ij/blob/master/docs/plans.md#user-content-plans). A build is simply the invocation of one or more plans. A project's [config file](https://github.com/efritz/ij/blob/master/docs/config.md#user-content-config) declares tasks and plans which builds the project.
+A build is defined by a sequence of [tasks](https://github.com/ij-build/ij/blob/master/docs/tasks.md#user-content-tasks) which perform some unit of work (e.g. building a binary, running integration tests, pushing artifacts to a remote server), usually within a docker container. This ensures that the development host stays clean, and that the exact build dependencies are available within the container (no more development tool version hell). The build process is defined by assembling a sequence of tasks into a [plan](https://github.com/ij-build/ij/blob/master/docs/plans.md#user-content-plans). A build is simply the invocation of one or more plans. A project's [config file](https://github.com/ij-build/ij/blob/master/docs/config.md#user-content-config) declares tasks and plans which builds the project.
 
 ## Installation
 
-Simply run `go install github.com/efritz/ij`.
+Simply run `go install github.com/ij-build/ij`.
 
 ## Usage
 
@@ -27,7 +27,7 @@ There are currently four IJ subcommands (`run`, `login`, `logout`, `clean`, and 
 | -------- | ---------- | ----------- |
 | config   | f          | The path to the config file. If not supplied, `ij.yaml` and `ij.yml` are attempted in the current directory. |
 | env      | e          | Set an environment variable. Use `-e VAR=VAL` to set an explicit value for the variable `VAR`. Use `-e VAR` to use the host value of `$VAR`. |
-| env-file |            | The path to an [environment file](https://github.com/efritz/ij/blob/master/docs/environment.md#user-content-environment-files). |
+| env-file |            | The path to an [environment file](https://github.com/ij-build/ij/blob/master/docs/environment.md#user-content-environment-files). |
 | no-color |            | Disable colorized output. |
 | verbose  | v          | Show debug-level output. |
 
@@ -49,11 +49,11 @@ This command can be invoked as `ij [run]? (plan-name)*`. The run keyword is assu
 
 ### Login Command
 
-This command can be invoked as `ij login`. Login to all [registries](https://github.com/efritz/ij/blob/master/docs/registries.md#user-content-registries) defined in the config file.
+This command can be invoked as `ij login`. Login to all [registries](https://github.com/ij-build/ij/blob/master/docs/registries.md#user-content-registries) defined in the config file.
 
 ### Logout Command
 
-This command can be invoked as `ij logout`. Logout from all [registries](https://github.com/efritz/ij/blob/master/docs/registries.md#user-content-registries) defined in the config file.
+This command can be invoked as `ij logout`. Logout from all [registries](https://github.com/ij-build/ij/blob/master/docs/registries.md#user-content-registries) defined in the config file.
 
 ### Rotate Logs Command
 

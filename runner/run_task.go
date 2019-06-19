@@ -11,12 +11,12 @@ import (
 
 	"github.com/kballard/go-shellquote"
 
-	"github.com/efritz/ij/command"
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/environment"
-	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/scratch"
-	"github.com/efritz/ij/util"
+	"github.com/ij-build/ij/command"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/environment"
+	"github.com/ij-build/ij/logging"
+	"github.com/ij-build/ij/scratch"
+	"github.com/ij-build/ij/util"
 )
 
 type (

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/aphistic/sweet"
-	"github.com/efritz/ij/config"
+	"github.com/ij-build/ij/config"
 	. "github.com/onsi/gomega"
 )
 

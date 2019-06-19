@@ -1,8 +1,8 @@
 package subcommand
 
 import (
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/options"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/options"
 )
 
 type CommandRunner func(*config.Config) error

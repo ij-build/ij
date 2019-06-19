@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os/user"
 
-	"github.com/efritz/ij/command"
-	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/scratch"
+	"github.com/ij-build/ij/command"
+	"github.com/ij-build/ij/logging"
+	"github.com/ij-build/ij/scratch"
 )
 
 const (

@@ -6,12 +6,12 @@ import (
 	"os"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/efritz/ij/config"
-	"github.com/efritz/ij/consts"
-	"github.com/efritz/ij/loader"
-	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/options"
-	"github.com/efritz/ij/subcommand"
+	"github.com/ij-build/ij/config"
+	"github.com/ij-build/ij/consts"
+	"github.com/ij-build/ij/loader"
+	"github.com/ij-build/ij/logging"
+	"github.com/ij-build/ij/options"
+	"github.com/ij-build/ij/subcommand"
 )
 
 func newSharedOptions(app *kingpin.Application, projectDir string) *options.AppOptions {

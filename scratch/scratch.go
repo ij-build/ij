@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/efritz/ij/logging"
-	"github.com/efritz/ij/paths"
-	"github.com/efritz/ij/util"
+	"github.com/ij-build/ij/logging"
+	"github.com/ij-build/ij/paths"
+	"github.com/ij-build/ij/util"
 )
 
 type ScratchSpace struct {
